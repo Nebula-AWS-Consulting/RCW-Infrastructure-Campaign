@@ -1,4 +1,3 @@
-Certainly! Based on the diagram code you've provided, I'll help create documentation explaining the architecture. The architecture seems to involve several AWS services and components. Below is a detailed explanation of the architecture, its components, and how they interact.
 
 ---
 
