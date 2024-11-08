@@ -2,6 +2,6 @@
 
 ## Architecture Diagram
 
-![Architecture Diagram](RCW-Infrastrcture.png)
+![Architecture Diagram](images/RCW-Infrastrcture.png)
 
 Additional project details go here.
