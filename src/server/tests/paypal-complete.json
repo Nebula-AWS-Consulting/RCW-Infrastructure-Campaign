@@ -1,0 +1,38 @@
+{
+    "id": "WH-1234567890",
+    "event_version": "1.0",
+    "create_time": "2021-01-01T12:00:00Z",
+    "resource_type": "sale",
+    "event_type": "PAYMENT.SALE.COMPLETED",
+    "summary": "Payment completed for $100.00 USD",
+    "resource": {
+      "id": "9B12345678901234L",
+      "state": "completed",
+      "amount": {
+        "total": "100.00",
+        "currency": "USD"
+      },
+      "payment_mode": "INSTANT_TRANSFER",
+      "update_time": "2021-01-01T12:00:00Z",
+      "create_time": "2021-01-01T12:00:00Z",
+      "payer": {
+        "email_address": "buyer@example.com",
+        "payer_id": "PAYER12345",
+        "payer_status": "VERIFIED",
+        "country_code": "US"
+      }
+    },
+    "links": [
+      {
+        "href": "https://api.paypal.com/v1/notifications/webhooks-events/WH-1234567890",
+        "rel": "self",
+        "method": "GET"
+      },
+      {
+        "href": "https://api.paypal.com/v1/notifications/webhooks-events/WH-1234567890/resend",
+        "rel": "resend",
+        "method": "POST"
+      }
+    ]
+  }
+  

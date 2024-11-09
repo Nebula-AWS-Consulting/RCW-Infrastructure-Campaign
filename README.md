@@ -1,4 +1,3 @@
-
 ---
 
 # **Project Architecture Documentation**

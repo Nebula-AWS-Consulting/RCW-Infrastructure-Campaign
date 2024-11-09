@@ -1,0 +1,265 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  AWS CloudFormation template to create a VPC with Cognito, WAF, and IAM users.
+
+Parameters:
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR block for the VPC.
+
+  PublicSubnetCidr:
+    Type: String
+    Default: 10.0.1.0/24
+    Description: CIDR block for the public subnet.
+
+  PrivateSubnetCidr:
+    Type: String
+    Default: 10.0.2.0/24
+    Description: CIDR block for the private subnet.
+
+  Environment:
+    Type: String
+    Default: Dev
+    Description: Environment name for the VPC
+
+Resources:
+
+  ### VPC Resources ###
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Networking
+        - Key: Name
+          Value: RCW-VPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Networking
+        - Key: Name
+          Value: RCW-InternetGateway
+        - Key: Environment
+          Value: !Ref Environment
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnetCidr
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Networking
+        - Key: Name
+          Value: RCW-PublicSubnet
+        - Key: Environment
+          Value: !Ref Environment
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnetCidr
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Networking
+        - Key: Name
+          Value: RCW-PrivateSubnet
+        - Key: Environment
+          Value: !Ref Environment
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Networking
+        - Key: Name
+          Value: RCW-PublicRouteTable
+        - Key: Environment
+          Value: !Ref Environment
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  ### AWS Cognito ###
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: RCW-UserPool
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: RCW-UserPoolClient
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ADMIN_NO_SRP_AUTH
+
+  ### AWS WAF ###
+
+  WebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: RCW-WebACL
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: RCW-WebACL
+      Rules:
+        - Name: AWS-AWSManagedRulesCommonRuleSet
+          Priority: 1
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesCommonRuleSet
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+
+  ### IAM Users ###
+
+  AdminUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: AdminUser
+      Groups:
+        - !Ref AdminGroup
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Security
+        - Key: Name
+          Value: AdminUser
+
+  DeveloperUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: DeveloperUser
+      Groups:
+        - !Ref DeveloperGroup
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Security
+        - Key: Name
+          Value: AdminUser
+
+  SecurityAuditorUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: SecurityAuditorUser
+      Groups:
+        - !Ref SecurityAuditorGroup
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Security
+        - Key: Name
+          Value: AdminUser
+
+  ### IAM Groups and Policies ###
+
+  AdminGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: AdminGroup
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  DeveloperGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: DeveloperGroup
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/PowerUserAccess
+
+  SecurityAuditorGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: SecurityAuditorGroup
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecurityAudit
+
+  ### Output Values ###
+
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !Ref VPC
+
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref UserPool
+
+  WebACLArn:
+    Description: WAF Web ACL ARN
+    Value: !GetAtt WebACL.Arn
