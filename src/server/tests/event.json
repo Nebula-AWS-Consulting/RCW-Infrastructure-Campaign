@@ -1,0 +1,18 @@
+{
+    "resource": "/paypal-webhook",
+    "path": "/paypal-webhook",
+    "httpMethod": "POST",
+    "headers": {
+      "Content-Type": "application/json",
+      "User-Agent": "PayPal/IPN",
+      "PayPal-Transmission-Id": "1234567890",
+      "PayPal-Transmission-Time": "2021-01-01T12:00:00Z",
+      "PayPal-Transmission-Sig": "abcdef1234567890",
+      "PayPal-Cert-Url": "https://api.paypal.com/certs/cert.pem",
+      "PayPal-Auth-Algo": "SHA256withRSA",
+      "Webhook-Id": "YOUR_WEBHOOK_ID"
+    },
+    "body": "{...}",
+    "isBase64Encoded": false
+  }
+  
