@@ -184,6 +184,15 @@ Resources:
       UserName: AdminUser
       Groups:
         - !Ref AdminGroup
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Security
+        - Key: Name
+          Value: AdminUser
 
   DeveloperUser:
     Type: AWS::IAM::User
@@ -191,6 +200,15 @@ Resources:
       UserName: DeveloperUser
       Groups:
         - !Ref DeveloperGroup
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Security
+        - Key: Name
+          Value: AdminUser
 
   SecurityAuditorUser:
     Type: AWS::IAM::User
@@ -198,6 +216,15 @@ Resources:
       UserName: SecurityAuditorUser
       Groups:
         - !Ref SecurityAuditorGroup
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Security
+        - Key: Name
+          Value: AdminUser
 
   ### IAM Groups and Policies ###
 
