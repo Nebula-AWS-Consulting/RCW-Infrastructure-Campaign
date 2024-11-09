@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Workload Application Resources
+
+Parameters:
+  VpcId:
+    Type: String
+    Description: The ID of the VPC.
+
+Resources:
+  ### S3 Bucket for logs ###
+
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-app-bucket
+
+  ### S3 Bucket for app ###
+
+  MyBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-app-bucket
+
+  ### Lambda Function ###
+
+  MyLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: MyFunction
+      Runtime: python3.8
+      Handler: index.handler
+      Role: # Lambda execution role ARN
+      Code:
+        S3Bucket: # Code S3 bucket
+        S3Key: # Code S3 key
+
+  ### CloudWatch Logs ###
+
+  MyLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/MyFunction
+      RetentionInDays: 14
