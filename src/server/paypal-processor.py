@@ -1,13 +1,15 @@
 import json
 import os
 import boto3
-from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
 ## Install dependencies: pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib -t .
 import base64
 
 # Replace with your actual spreadsheet ID
-SPREADSHEET_ID = os.environ['SPREADSHEET_ID']
+SPREADSHEET_ID = os.environ['1Jpicnmuuuy7aS__mGb-3sLgED9vxvELrvffrDtOHWjo']
 
 # Scopes required for Google Sheets API
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -77,10 +79,22 @@ def verify_paypal_webhook(event):
 
 def get_google_sheets_service():
     # Load the service account credentials from environment variable
-    service_account_info = json.loads(base64.b64decode(os.environ['GOOGLE_SERVICE_ACCOUNT']).decode('utf-8'))
-    credentials = service_account.Credentials.from_service_account_info(
-        service_account_info, scopes=SCOPES)
-    service = build('sheets', 'v4', credentials=credentials)
+    creds = None
+    if os.path.exists("token.json"):
+      creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+      if creds and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+      else:
+        flow = InstalledAppFlow.from_client_secrets_file(
+            "credentials.json", SCOPES
+        )
+        creds = flow.run_local_server(port=0)
+      # Save the credentials for the next run
+      with open("token.json", "w") as token:
+        token.write(creds.to_json())
+    service = build('sheets', 'v4', credentials=creds)
     return service
 
 def lambda_handler(event, context):
