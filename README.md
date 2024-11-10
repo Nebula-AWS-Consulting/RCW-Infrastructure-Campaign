@@ -37,6 +37,9 @@ The application architecture consists of the following key components:
 - **Role Structure**: Defines permissions and access controls for developers and security personnel.
 - **CloudFormation Design**: Manages infrastructure as code for consistent deployment.
 
+![Architecture Diagram](Images/RCW-Infrastructure.png)
+
+
 ---
 
 ## **3. Components and Services**
