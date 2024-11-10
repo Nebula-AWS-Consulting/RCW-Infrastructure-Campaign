@@ -264,15 +264,42 @@ The application architecture consists of the following key components:
 
 ---
 
-## **9. Conclusion**
+## **9. Application Logic
+
+This application is designed to collect data from PayPal webhooks and append it to a Google Sheet. The main flow is as follows:
+
+1. Webhook Verification and Data Collection
+Webhook Event: The application listens for PayPal webhook events, specifically targeting PAYMENT.SALE.COMPLETED events.
+Verification: Each webhook event is verified to ensure it comes from PayPal and contains the required data.
+Data Parsing: If the event is verified, relevant payment details are extracted. This includes:
+Transaction ID
+Payer’s email address
+Payment amount
+Currency code
+Transaction timestamp
+2. Google Sheets Integration
+Service Authorization: The application uses OAuth 2.0 for secure access to the Google Sheets API. It checks for a valid token, refreshing if necessary, or prompting reauthorization if no valid token exists.
+Data Appending: Once authorized, the application appends the extracted payment data to a predefined range (Sheet1!A:E) in the Google Sheet.
+3. Error Handling and Response
+Error Handling: If there’s an issue with Google Sheets API access or data processing, the application logs the error and returns an appropriate HTTP status code.
+Response: For successful processing, the application returns a 200 OK response with a success message. If the webhook is invalid, it returns a 400 Bad Request.
+4. Future Data Integration
+In future enhancements, collected data from Google Sheets will be synchronized with AWS services for further processing:
+
+Amazon S3: To store and organize raw data files.
+Amazon Athena: To enable SQL-based queries for data visualization and analytics.
+Amazon DynamoDB (if needed): To manage structured data for quick access and integration with other applications.
+This setup allows real-time data collection from webhooks, centralized storage in Google Sheets, and integration with AWS for advanced data analysis and visualization.
+
+## **10. Conclusion**
 
 This architecture provides a robust, scalable, and secure foundation for the organization's application. By leveraging AWS services and best practices, it ensures high availability, operational efficiency, and alignment with the organization's mission to improve global outreach and resource management.
 
 ---
 
-## **10. Appendices**
+## **11. Appendices**
 
-### **10.1 Glossary**
+### **11.1 Glossary**
 
 - **VPC (Virtual Private Cloud)**: A virtual network dedicated to your AWS account.
 - **AWS Lambda**: A serverless compute service that runs code in response to events.
@@ -284,7 +311,7 @@ This architecture provides a robust, scalable, and secure foundation for the org
 - **Amazon QuickSight**: Business intelligence service for data visualization.
 - **IAM (Identity and Access Management)**: Service for managing access to AWS services.
 
-### **10.2 References**
+### **11.2 References**
 
 - [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/)
 - [AWS Security Best Practices](https://docs.aws.amazon.com/general/latest/gr/aws-security-best-practices.html)
