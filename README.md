@@ -286,11 +286,11 @@ Response: For successful processing, the application returns a 200 OK response w
 4. Future Data Integration
 In future enhancements, collected data from Google Sheets will be synchronized with AWS services for further processing:
 
-  Amazon S3: To store and organize raw data files.
+&nbsp;Amazon S3: To store and organize raw data files.
 
-  Amazon Athena: To enable SQL-based queries for data visualization and analytics.
+&nbsp;Amazon Athena: To enable SQL-based queries for data visualization and analytics.
 
-  Amazon DynamoDB (if needed): To manage structured data for quick access and integration with other applications.
+&nbsp;Amazon DynamoDB (if needed): To manage structured data for quick access and integration with other applications.
 
 This setup allows real-time data collection from webhooks, centralized storage in Google Sheets, and integration with AWS for advanced data analysis and visualization.
 
