@@ -264,7 +264,7 @@ The application architecture consists of the following key components:
 
 ---
 
-## **9. Application Logic
+## **9. Application Logic**
 
 This application is designed to collect data from PayPal webhooks and append it to a Google Sheet. The main flow is as follows:
 
@@ -287,9 +287,14 @@ Response: For successful processing, the application returns a 200 OK response w
 In future enhancements, collected data from Google Sheets will be synchronized with AWS services for further processing:
 
 Amazon S3: To store and organize raw data files.
+
 Amazon Athena: To enable SQL-based queries for data visualization and analytics.
+
 Amazon DynamoDB (if needed): To manage structured data for quick access and integration with other applications.
+
 This setup allows real-time data collection from webhooks, centralized storage in Google Sheets, and integration with AWS for advanced data analysis and visualization.
+
+---
 
 ## **10. Conclusion**
 
