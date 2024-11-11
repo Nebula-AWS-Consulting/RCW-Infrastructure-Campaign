@@ -7,16 +7,23 @@ Parameters:
     Description: The ID of the VPC.
 
 Resources:
-  ### S3 Bucket for logs ###
+  ### S3 Bucket for code ###
 
-  MyBucket:
+  CodeBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: my-app-bucket
 
   ### S3 Bucket for app ###
 
-  MyBucket:
+  ClientBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: my-app-bucket
+
+  ### S3 Bucket for logs ###
+
+  LogBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: my-app-bucket
