@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Workload Application Resources
 
 Parameters:
-
+  ### Add name to resources ###
   Environment:
     Type: String
     Default: Dev
@@ -15,21 +15,13 @@ Resources:
     Properties:
       BucketName: rcw-webpage
       WebsiteConfiguration:
-        IndexDocument: public/index.html
-        AdminDocument: admin/index.html
+        IndexDocument: index.html
         ErrorDocument: error.html
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
         IgnorePublicAcls: false
         RestrictPublicBuckets: false
-      BucketPolicy:
-        PolicyDocument:
-          Statement:
-            - Effect: Allow
-              Principal: "*"
-              Action: "s3:GetObject"
-              Resource: "arn:aws:s3:::rcw-webpage/*"
       Tags:
         - Key: Infrastructure
           Value: RCW
@@ -57,16 +49,50 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
+  ### Lambda Execution Role ###
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: PayPalProcessorExecutionRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: BasicLambdaExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Security
+        - Key: Name
+          Value: LambdaExecutionRole
+
   ### Lambda Function for application logic ###
   PayPalProcessorFunction:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: PayPal-Processor
-      Runtime: python3.6
-      Handler: index.handler
+      Runtime: python3.8
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         S3Bucket: rcw-code-bucket
-        S3Key: s3://rcw-code-bucket/paypal-processor/lambda-demo.zip
+        S3Key: paypal-processor/paypal-processor.zip
       Tags:
         - Key: Infrastructure
           Value: RCW
@@ -99,15 +125,6 @@ Resources:
       ParentId: !GetAtt RCWPaypalProcessorApiGateway.RootResourceId
       PathPart: paypalprocessor
       RestApiId: !Ref RCWPaypalProcessorApiGateway
-      Tags:
-        - Key: Infrastructure
-          Value: RCW
-        - Key: Component
-          Value: App
-        - Key: Name
-          Value: RCW-VPC
-        - Key: Environment
-          Value: !Ref Environment
 
   RCWPaypalProcessorMethodGet:
     Type: AWS::ApiGateway::Method
@@ -119,16 +136,7 @@ Resources:
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RCWPaypalProcessorApiGateway.Arn}/invocations
-      Tags:
-        - Key: Infrastructure
-          Value: RCW
-        - Key: Component
-          Value: App
-        - Key: Name
-          Value: RCW-VPC
-        - Key: Environment
-          Value: !Ref Environment
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PayPalProcessorFunction.Arn}/invocations
 
   RCWPaypalProcessorMethodPut:
     Type: AWS::ApiGateway::Method
@@ -140,16 +148,7 @@ Resources:
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RCWPaypalProcessorApiGateway.Arn}/invocations
-      Tags:
-        - Key: Infrastructure
-          Value: RCW
-        - Key: Component
-          Value: App
-        - Key: Name
-          Value: RCW-VPC
-        - Key: Environment
-          Value: !Ref Environment
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PayPalProcessorFunction.Arn}/invocations
 
   # ### Lambda Function for admin CRUD operations ###
   # AdminLambdaFunction:
