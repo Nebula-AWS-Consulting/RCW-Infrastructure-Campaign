@@ -29,6 +29,7 @@ function AppAppBar() {
               variant="h6"
               underline="none"
               sx={rightLink}
+              href="/auth/signin"
             >
               {'Sign In'}
             </Link>
@@ -36,6 +37,7 @@ function AppAppBar() {
               variant="h6"
               underline="none"
               sx={{ ...rightLink, color: 'secondary.main' }}
+              href="/auth/signup"
             >
               {'Sign Up'}
             </Link>
