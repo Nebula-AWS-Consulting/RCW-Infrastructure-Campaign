@@ -20,6 +20,7 @@ function AppAppBar() {
             underline="none"
             color="inherit"
             sx={{ fontSize: 24 }}
+            href="/"
           >
             {'Restored Church Las Vegas'}
           </Link>
