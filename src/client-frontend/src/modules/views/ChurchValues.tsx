@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Theme } from '@mui/material/styles';
 import { SxProps } from '@mui/system';
 import Box from '@mui/material/Box';
@@ -13,7 +12,7 @@ const item: SxProps<Theme> = {
   px: 5,
 };
 
-function ProductValues() {
+function ChurchValues() {
   return (
     <Box
       component="section"
@@ -22,7 +21,7 @@ function ProductValues() {
       <Container sx={{ mt: 15, mb: 30, display: 'flex', position: 'relative' }}>
         <Box
           component="img"
-          src="/static/themes/onepirate/productCurvyLines.png"
+          src="/public/appCurvyLines.png"
           alt="curvy lines"
           sx={{ pointerEvents: 'none', position: 'absolute', top: -180 }}
         />
@@ -31,19 +30,19 @@ function ProductValues() {
             <Box sx={item}>
               <Box
                 component="img"
-                src="/static/themes/onepirate/productValues1.svg"
+                src="/public/icons/bible-icon.png"
                 alt="suitcase"
-                sx={{ height: 55 }}
+                sx={{ height: 95 }}
               />
-              <Typography variant="h6" sx={{ my: 5 }}>
-                The best luxury hotels
+              <Typography variant="h6" sx={{ my: 3 }}>
+                WE ARE A BIBLE CHURCH
               </Typography>
-              <Typography variant="h5">
+              <Typography variant="h5" textAlign="center">
                 {
-                  'From the latest trendy boutique hotel to the iconic palace with XXL pool'
+                  'We are a Bible Church, not just a New Testament Church. '
                 }
                 {
-                  ', go for a mini-vacation just a few subway stops away from your home.'
+                  'All scripture is God-breathed and is useful and is to be applied to our lives.'
                 }
               </Typography>
             </Box>
@@ -52,18 +51,18 @@ function ProductValues() {
             <Box sx={item}>
               <Box
                 component="img"
-                src="/static/themes/onepirate/productValues2.svg"
+                src="/public/icons/apply-icon.png"
                 alt="graph"
-                sx={{ height: 55 }}
+                sx={{ height: 95 }}
               />
-              <Typography variant="h6" sx={{ my: 5 }}>
-                New experiences
+              <Typography variant="h6" sx={{ my: 3 }}>
+                WE APPLY THE BIBLE
               </Typography>
-              <Typography variant="h5">
+              <Typography variant="h5" textAlign="center">
                 {
-                  'Privatize a pool, take a Japanese bath or wake up in 900m2 of garden… '
+                  'Speak where the Bible is silent and be silent where the Bible speaks.'
                 }
-                {'your Sundays will not be alike.'}
+                {' We are free to practice and name anything as long as it does not conflict with scripture. '}
               </Typography>
             </Box>
           </Grid>
@@ -90,4 +89,4 @@ function ProductValues() {
   );
 }
 
-export default ProductValues;
+export default ChurchValues;
