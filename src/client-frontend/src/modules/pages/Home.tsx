@@ -1,11 +1,10 @@
 import * as React from 'react';
-import ProductCategories from '../views/ProductCategories';
-import ProductSmokingHero from '../views/ProductSmokingHero';
+import ChurchCategories from '../views/ChurchCategories';
 import AppFooter from '../views/AppFooter';
 import ChurchHero from '../views/ChurchHero';
 import ChurchValues from '../views/ChurchValues';
-import ProductHowItWorks from '../views/ProductHowItWorks';
-import ProductCTA from '../views/ProductCTA';
+import ChurchAboutUs from '../views/ChurchAboutUs';
+import ChurchContactUs from '../views/ChurchContactUs';
 import AppAppBar from '../views/AppAppBar';
 import withRoot from '../withRoot';
 
@@ -15,10 +14,9 @@ function Index() {
       <AppAppBar />
       <ChurchHero />
       <ChurchValues />
-      <ProductCategories />
-      <ProductHowItWorks />
-      <ProductCTA />
-      <ProductSmokingHero />
+      <ChurchCategories />
+      <ChurchAboutUs />
+      <ChurchContactUs />
       <AppFooter />
     </React.Fragment>
   );

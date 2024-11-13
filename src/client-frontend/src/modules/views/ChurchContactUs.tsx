@@ -7,7 +7,7 @@ import TextField from '../components/TextField';
 import Snackbar from '../components/Snackbar';
 import Button from '../components/Button';
 
-function ProductCTA() {
+function ChurchContactUs() {
   const [open, setOpen] = React.useState(false);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -20,7 +20,7 @@ function ProductCTA() {
   };
 
   return (
-    <Container component="section" sx={{ mt: 10, display: 'flex' }}>
+    <Container component="section" sx={{ my: 10, display: 'flex' }}>
       <Grid container>
         <Grid item xs={12} md={6} sx={{ zIndex: 1 }}>
           <Box
@@ -34,10 +34,13 @@ function ProductCTA() {
           >
             <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 400 }}>
               <Typography variant="h2" component="h2" gutterBottom>
-                Receive offers
+                Contact Us
+              </Typography>
+              <Typography variant="h5" mb={1}>
+                Get more information.
               </Typography>
               <Typography variant="h5">
-                Taste the holidays of the everyday close to home.
+                Set up a bible study.
               </Typography>
               <TextField
                 noBorder
@@ -51,7 +54,7 @@ function ProductCTA() {
                 variant="contained"
                 sx={{ width: '100%' }}
               >
-                Keep me updated
+                GET IN TOUCH
               </Button>
             </Box>
           </Box>
@@ -70,7 +73,7 @@ function ProductCTA() {
               right: 0,
               bottom: 0,
               width: '100%',
-              background: 'url(/static/themes/onepirate/productCTAImageDots.png)',
+              background: 'url(/public/churchContactUsDots.png)',
             }}
           />
           <Box
@@ -98,4 +101,4 @@ function ProductCTA() {
   );
 }
 
-export default ProductCTA;
+export default ChurchContactUs;
