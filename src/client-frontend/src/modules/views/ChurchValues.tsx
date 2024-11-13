@@ -18,7 +18,7 @@ function ChurchValues() {
       component="section"
       sx={{ display: 'flex', overflow: 'hidden', bgcolor: 'secondary.light' }}
     >
-      <Container sx={{ mt: 15, mb: 30, display: 'flex', position: 'relative' }}>
+      <Container sx={{ mt: 15, mb: 15, display: 'flex', position: 'relative' }}>
         <Box
           component="img"
           src="/public/appCurvyLines.png"
@@ -70,19 +70,61 @@ function ChurchValues() {
             <Box sx={item}>
               <Box
                 component="img"
-                src="/static/themes/onepirate/productValues3.svg"
+                src="/public/icons/disciples-icon.png"
                 alt="clock"
-                sx={{ height: 55 }}
+                sx={{ height: 95 }}
               />
-              <Typography variant="h6" sx={{ my: 5 }}>
-                Exclusive rates
+              <Typography variant="h6" sx={{ my: 3 }}>
+                WE MAKE DISCIPLES
               </Typography>
-              <Typography variant="h5">
-                {'By registering, you will access specially negotiated rates '}
-                {'that you will not find anywhere else.'}
+              <Typography variant="h5" textAlign="center">
+                {'We believe in every member of the body of Christ being disciples of Jesus and in '}
+                {'relationships that teach and mature us in the teachings of Christ'}
               </Typography>
             </Box>
           </Grid>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            px: 5,
+            mt: 5
+          }}>
+          <Grid item xs={12} md={4}>
+            <Box sx={item}>
+              <Box
+                component="img"
+                src="/public/icons/missionaries-icon.png"
+                alt="clock"
+                sx={{ height: 105 }}
+              />
+              <Typography variant="h6" sx={{ my: 3 }}>
+                WE ARE MISSIONARIES
+              </Typography>
+              <Typography variant="h5" textAlign="center">
+                {'God’s will is for all people to be saved and to come to a knowledge of the truth. '}
+                {'We believe in evangelizing the nations in this generation as Jesus teaches.'}
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Box sx={item}>
+              <Box
+                component="img"
+                src="/public/icons/unity-icon.png"
+                alt="clock"
+                sx={{ height: 140 }}
+              />
+              <Typography variant="h6" sx={{ mb: 3, mt: -1 }}>
+                UNITY IN LEADERSHIP
+              </Typography>
+              <Typography variant="h5" textAlign="center">
+                {'God’s plan is for a central leadership of His people where there is unity, '}
+                {'just as it was throughout the Bible when God’s people were unified there was a central leader.'}
+              </Typography>
+            </Box>
+          </Grid>
+          </Box>
         </Grid>
       </Container>
     </Box>
