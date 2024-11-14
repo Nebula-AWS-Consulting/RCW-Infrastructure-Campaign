@@ -2,6 +2,7 @@ import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import AppBar from '../components/AppBar';
 import Toolbar from '../components/Toolbar';
+import { useMediaQuery } from '@mui/material';
 
 const rightLink = {
   fontSize: 16,
@@ -10,6 +11,8 @@ const rightLink = {
 };
 
 function AppAppBar() {
+  const smallScreen = useMediaQuery('(min-width: 800px)')
+
   return (
     <div>
       <AppBar position="fixed">
@@ -22,8 +25,9 @@ function AppAppBar() {
             sx={{ fontSize: 24 }}
             href="/"
           >
-            {'Restored Church Las Vegas'}
+            { smallScreen ? 'Restored Church Las Vegas' : "RCW Las Vegas" }
           </Link>
+          { smallScreen ?
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
             <Link
               color="inherit"
@@ -43,6 +47,10 @@ function AppAppBar() {
               {'Sign Up'}
             </Link>
           </Box>
+          : <Box>
+            
+          </Box> 
+          }
         </Toolbar>
       </AppBar>
       <Toolbar />
