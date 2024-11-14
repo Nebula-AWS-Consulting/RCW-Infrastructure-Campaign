@@ -45,6 +45,9 @@ function ChurchValues() {
                   'All scripture is God-breathed and is useful and is to be applied to our lives.'
                 }
               </Typography>
+              <Typography variant="h6" color='secondary' textAlign="center" href='' mt='1rem'>
+                {'2 Timothy 3:16-17'}
+              </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} md={4}>
@@ -64,6 +67,9 @@ function ChurchValues() {
                 }
                 {' We are free to practice and name anything as long as it does not conflict with scripture. '}
               </Typography>
+              <Typography variant="h6" color='secondary' textAlign="center" href='' mt='1rem'>
+                {'2 Peter 1:20-21'}
+              </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} md={4}>
@@ -80,6 +86,9 @@ function ChurchValues() {
               <Typography variant="h5" textAlign="center">
                 {'We believe in every member of the body of Christ being disciples of Jesus and in '}
                 {'relationships that teach and mature us in the teachings of Christ'}
+              </Typography>
+              <Typography variant="h6" color='secondary' textAlign="center" href='' mt='1rem'>
+                {'Matthew 28:18-20'}
               </Typography>
             </Box>
           </Grid>
@@ -105,6 +114,9 @@ function ChurchValues() {
                 {'God’s will is for all people to be saved and to come to a knowledge of the truth. '}
                 {'We believe in evangelizing the nations in this generation as Jesus teaches.'}
               </Typography>
+              <Typography variant="h6" color='secondary' textAlign="center" mt='1rem'>
+                {'1 Timothy 2:3-4'}
+              </Typography>
             </Box>
           </Grid>
           <Grid item xs={12} md={4}>
@@ -121,6 +133,9 @@ function ChurchValues() {
               <Typography variant="h5" textAlign="center">
                 {'God’s plan is for a central leadership of His people where there is unity, '}
                 {'just as it was throughout the Bible when God’s people were unified there was a central leader.'}
+              </Typography>
+              <Typography variant="h6" color='secondary' textAlign="center" href='' mt='1rem'>
+                {'1 Corinthians 4:14-17'}
               </Typography>
             </Box>
           </Grid>
