@@ -2,49 +2,316 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Workload Application Resources
 
 Parameters:
-  VpcId:
+  ### Add name to resources ###
+  Environment:
     Type: String
-    Description: The ID of the VPC.
+    Default: Dev
+    Description: Environment name for the VPC
 
 Resources:
-  ### S3 Bucket for code ###
-
-  CodeBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: my-app-bucket
-
-  ### S3 Bucket for app ###
-
+  ### S3 Bucket for app (Website bucket with public access) ###
   ClientBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: my-app-bucket
+      BucketName: rcw-webpage
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      Tags:
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: App
+        - Key: Name
+          Value: RCW-VPC
+        - Key: Environment
+          Value: !Ref Environment
 
-  ### S3 Bucket for logs ###
 
+  ### S3 Bucket for logs (Secured) ###
   LogBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: my-app-bucket
+      BucketName: rcw-log-bucket
+      AccessControl: Private
+      Tags:
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: App
+        - Key: Name
+          Value: RCW-VPC
+        - Key: Environment
+          Value: !Ref Environment
 
-  ### Lambda Function ###
+  ### Lambda Execution Role ###
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: PayPalProcessorExecutionRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: BasicLambdaExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: Security
+        - Key: Name
+          Value: LambdaExecutionRole
 
-  MyLambdaFunction:
+  ### Lambda Function for application logic ###
+  PayPalProcessorFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: MyFunction
+      FunctionName: PayPal-Processor
       Runtime: python3.8
-      Handler: index.handler
-      Role: # Lambda execution role ARN
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
       Code:
-        S3Bucket: # Code S3 bucket
-        S3Key: # Code S3 key
+        S3Bucket: rcw-code-bucket
+        S3Key: paypal-processor/paypal-processor.zip
+      Tags:
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: App
+        - Key: Name
+          Value: RCW-VPC
+        - Key: Environment
+          Value: !Ref Environment
 
-  ### CloudWatch Logs ###
-
-  MyLogGroup:
-    Type: AWS::Logs::LogGroup
+  ### API Gateway for MyLambdaFunction with GET and PUT ###
+  RCWPaypalProcessorApiGateway:
+    Type: AWS::ApiGateway::RestApi
     Properties:
-      LogGroupName: /aws/lambda/MyFunction
-      RetentionInDays: 14
+      Name: RCWPaypalProcessorApi
+      Description: API for GET and PUT requests to PayPalProcessorFunction
+      Tags:
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: App
+        - Key: Name
+          Value: RCW-VPC
+        - Key: Environment
+          Value: !Ref Environment
+
+  RCWPayPalProcessorApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt RCWPaypalProcessorApiGateway.RootResourceId
+      PathPart: paypalprocessor
+      RestApiId: !Ref RCWPaypalProcessorApiGateway
+
+  RCWPaypalProcessorMethodGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      ResourceId: !Ref RCWPayPalProcessorApiResource
+      RestApiId: !Ref RCWPaypalProcessorApiGateway
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PayPalProcessorFunction.Arn}/invocations
+
+  RCWPaypalProcessorMethodPut:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: PUT
+      ResourceId: !Ref RCWPayPalProcessorApiResource
+      RestApiId: !Ref RCWPaypalProcessorApiGateway
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PayPalProcessorFunction.Arn}/invocations
+
+  # ### Lambda Function for admin CRUD operations ###
+  # AdminLambdaFunction:
+  #   Type: AWS::Lambda::Function
+  #   Properties:
+  #     FunctionName: AdminFunction
+  #     Runtime: python3.8
+  #     Handler: admin.handler
+  #     Role: !Sub arn:aws:iam::${AWS::AccountId}:role/YourAdminLambdaExecutionRole
+  #     Code:
+  #       S3Bucket: !Ref CodeBucket
+  #       S3Key: path/to/admin/code.zip
+  #     Tags:
+  #       - Key: Infrastructure
+  #         Value: RCW
+  #       - Key: Component
+  #         Value: App
+  #       - Key: Name
+  #         Value: RCW-VPC
+  #       - Key: Environment
+  #         Value: !Ref Environment
+
+  # ### API Gateway for Admin Function with CRUD (POST, GET, PUT, DELETE) ###
+  # AdminApiGateway:
+  #   Type: AWS::ApiGateway::RestApi
+  #   Properties:
+  #     Name: AdminApi
+  #     Description: API for CRUD operations with AdminLambdaFunction
+  #     Tags:
+  #       - Key: Infrastructure
+  #         Value: RCW
+  #       - Key: Component
+  #         Value: App
+  #       - Key: Name
+  #         Value: RCW-VPC
+  #       - Key: Environment
+  #         Value: !Ref Environment
+
+  # AdminApiResource:
+  #   Type: AWS::ApiGateway::Resource
+  #   Properties:
+  #     ParentId: !GetAtt AdminApiGateway.RootResourceId
+  #     PathPart: admin
+  #     RestApiId: !Ref AdminApiGateway
+  #     Tags:
+  #       - Key: Infrastructure
+  #         Value: RCW
+  #       - Key: Component
+  #         Value: App
+  #       - Key: Name
+  #         Value: RCW-VPC
+  #       - Key: Environment
+  #         Value: !Ref Environment
+
+  # AdminApiMethodPost:
+  #   Type: AWS::ApiGateway::Method
+  #   Properties:
+  #     AuthorizationType: NONE
+  #     HttpMethod: POST
+  #     ResourceId: !Ref AdminApiResource
+  #     RestApiId: !Ref AdminApiGateway
+  #     Integration:
+  #       IntegrationHttpMethod: POST
+  #       Type: AWS_PROXY
+  #       Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AdminLambdaFunction.Arn}/invocations
+  #     Tags:
+  #       - Key: Infrastructure
+  #         Value: RCW
+  #       - Key: Component
+  #         Value: App
+  #       - Key: Name
+  #         Value: RCW-VPC
+  #       - Key: Environment
+  #         Value: !Ref Environment
+
+  # AdminApiMethodGet:
+  #   Type: AWS::ApiGateway::Method
+  #   Properties:
+  #     AuthorizationType: NONE
+  #     HttpMethod: GET
+  #     ResourceId: !Ref AdminApiResource
+  #     RestApiId: !Ref AdminApiGateway
+  #     Integration:
+  #       IntegrationHttpMethod: POST
+  #       Type: AWS_PROXY
+  #       Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AdminLambdaFunction.Arn}/invocations
+  #     Tags:
+  #       - Key: Infrastructure
+  #         Value: RCW
+  #       - Key: Component
+  #         Value: App
+  #       - Key: Name
+  #         Value: RCW-VPC
+  #       - Key: Environment
+  #         Value: !Ref Environment
+
+  # AdminApiMethodPut:
+  #   Type: AWS::ApiGateway::Method
+  #   Properties:
+  #     AuthorizationType: NONE
+  #     HttpMethod: PUT
+  #     ResourceId: !Ref AdminApiResource
+  #     RestApiId: !Ref AdminApiGateway
+  #     Integration:
+  #       IntegrationHttpMethod: POST
+  #       Type: AWS_PROXY
+  #       Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AdminLambdaFunction.Arn}/invocations
+  #     Tags:
+  #       - Key: Infrastructure
+  #         Value: RCW
+  #       - Key: Component
+  #         Value: App
+  #       - Key: Name
+  #         Value: RCW-VPC
+  #       - Key: Environment
+  #         Value: !Ref Environment
+
+  # AdminApiMethodDelete:
+  #   Type: AWS::ApiGateway::Method
+  #   Properties:
+  #     AuthorizationType: NONE
+  #     HttpMethod: DELETE
+  #     ResourceId: !Ref AdminApiResource
+  #     RestApiId: !Ref AdminApiGateway
+  #     Integration:
+  #       IntegrationHttpMethod: POST
+  #       Type: AWS_PROXY
+  #       Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AdminLambdaFunction.Arn}/invocations
+  #     Tags:
+  #       - Key: Infrastructure
+  #         Value: RCW
+  #       - Key: Component
+  #         Value: App
+  #       - Key: Name
+  #         Value: RCW-VPC
+  #       - Key: Environment
+  #         Value: !Ref Environment
+
+  ### DynamoDB Table for Admin Data ###
+  AdminTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: AdminTable
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      Tags:
+        - Key: Infrastructure
+          Value: RCW
+        - Key: Component
+          Value: App
+        - Key: Name
+          Value: RCW-VPC
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  WebsiteURL:
+    Value: !Sub http://${ClientBucket}.s3-website-${AWS::Region}.amazonaws.com
+    Description: "URL for website bucket"

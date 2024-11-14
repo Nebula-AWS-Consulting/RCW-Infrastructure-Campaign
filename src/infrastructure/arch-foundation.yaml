@@ -40,6 +40,8 @@ Resources:
           Value: Networking
         - Key: Name
           Value: RCW-VPC
+        - Key: Environment
+          Value: !Ref Environment
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
