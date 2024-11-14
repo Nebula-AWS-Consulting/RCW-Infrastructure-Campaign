@@ -73,7 +73,7 @@ function ChurchContactUs() {
               right: 0,
               bottom: 0,
               width: '100%',
-              background: 'url(/public/churchContactUsDots.png)',
+              background: 'url(/churchContactUsDots.png)',
             }}
           />
           <Box

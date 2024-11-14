@@ -21,7 +21,7 @@ function ChurchValues() {
       <Container sx={{ mt: 15, mb: 15, display: 'flex', position: 'relative' }}>
         <Box
           component="img"
-          src="/public/appCurvyLines.png"
+          src="/appCurvyLines.png"
           alt="curvy lines"
           sx={{ pointerEvents: 'none', position: 'absolute', top: -180 }}
         />
@@ -30,7 +30,7 @@ function ChurchValues() {
             <Box sx={item}>
               <Box
                 component="img"
-                src="/public/icons/bible-icon.png"
+                src="/icons/bible-icon.png"
                 alt="suitcase"
                 sx={{ height: 95 }}
               />
@@ -54,7 +54,7 @@ function ChurchValues() {
             <Box sx={item}>
               <Box
                 component="img"
-                src="/public/icons/apply-icon.png"
+                src="/icons/apply-icon.png"
                 alt="graph"
                 sx={{ height: 95 }}
               />
@@ -76,7 +76,7 @@ function ChurchValues() {
             <Box sx={item}>
               <Box
                 component="img"
-                src="/public/icons/disciples-icon.png"
+                src="/icons/disciples-icon.png"
                 alt="clock"
                 sx={{ height: 95 }}
               />
@@ -103,7 +103,7 @@ function ChurchValues() {
             <Box sx={item}>
               <Box
                 component="img"
-                src="/public/icons/missionaries-icon.png"
+                src="/icons/missionaries-icon.png"
                 alt="clock"
                 sx={{ height: 105 }}
               />
@@ -123,7 +123,7 @@ function ChurchValues() {
             <Box sx={item}>
               <Box
                 component="img"
-                src="/public/icons/unity-icon.png"
+                src="/icons/unity-icon.png"
                 alt="clock"
                 sx={{ height: 140 }}
               />

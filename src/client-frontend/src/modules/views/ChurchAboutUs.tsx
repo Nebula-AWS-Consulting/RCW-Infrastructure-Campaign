@@ -21,7 +21,7 @@ function ChurchAboutUs() {
       >
         <Box
           component="img"
-          src="public/appCurvyLines.png"
+          src="/appCurvyLines.png"
           alt="curvy lines"
           sx={{
             pointerEvents: 'none',

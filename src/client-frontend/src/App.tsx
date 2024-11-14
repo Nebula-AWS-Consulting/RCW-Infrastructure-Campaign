@@ -4,6 +4,8 @@ import { Route } from "react-router"
 import SignIn from "./modules/pages/SignIn"
 import SignUp from "./modules/pages/SignUp"
 import ForgotPassword from "./modules/pages/ForgotPassword"
+import Terms from "./modules/pages/Terms"
+import Privacy from "./modules/pages/Privacy"
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
             <Route path="/auth/signup" element={<SignUp />} />
             <Route path="/auth/signup" element={<SignUp />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
         </Routes>
     </div>
   )
