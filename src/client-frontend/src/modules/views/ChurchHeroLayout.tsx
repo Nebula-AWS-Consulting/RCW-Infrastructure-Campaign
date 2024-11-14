@@ -3,8 +3,9 @@ import { Theme, styled } from '@mui/material/styles';
 import { SxProps } from '@mui/system';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
-const ProductHeroLayoutRoot = styled('section')(({ theme }) => ({
+const ChurchHeroLayoutRoot = styled('section')(({ theme }) => ({
   color: theme.palette.common.white,
   position: 'relative',
   display: 'flex',
@@ -27,32 +28,26 @@ const Background = styled('div')({
   zIndex: -2,
 });
 
-interface ProductHeroLayoutProps {
+interface ChurchHeroLayoutProps {
   sxBackground: SxProps<Theme>;
 }
 
 export default function ProductHeroLayout(
-  props: React.HTMLAttributes<HTMLDivElement> & ProductHeroLayoutProps,
+  props: React.HTMLAttributes<HTMLDivElement> & ChurchHeroLayoutProps,
 ) {
   const { sxBackground, children } = props;
 
   return (
-    <ProductHeroLayoutRoot>
+    <ChurchHeroLayoutRoot>
       <Container
         sx={{
           mt: 3,
-          mb: 14,
+          mb: 8,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
         }}
       >
-        <img
-          src="/static/themes/onepirate/productHeroWonder.png"
-          alt="wonder"
-          width="147"
-          height="80"
-        />
         {children}
         <Box
           sx={{
@@ -67,13 +62,8 @@ export default function ProductHeroLayout(
           }}
         />
         <Background sx={sxBackground} />
-        <Box
-          component="img"
-          src="/static/themes/onepirate/productHeroArrowDown.png"
-          alt="arrow down"
-          sx={{ height: '16', width: '12', position: 'absolute', bottom: 32 }}
-        />
+        <KeyboardArrowDownIcon sx={{fontSize: '5rem', mt: '2rem'}} />
       </Container>
-    </ProductHeroLayoutRoot>
+    </ChurchHeroLayoutRoot>
   );
 }
