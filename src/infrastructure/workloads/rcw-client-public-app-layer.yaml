@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 Buckets and Lambda Functions for Workload Application
+
+Parameters:
+  Environment:
+    Type: String
+    Default: Dev
+    Description: Environment name for the VPC
+
+Resources:
+  ### S3 Bucket for app (Website bucket with public access) ###
+  ClientBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: rcw-webpage
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  ### S3 Bucket for logs (Secured) ###
+  LogBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: rcw-log-bucket
+      AccessControl: Private
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  ### Lambda Execution Role ###
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: PayPalProcessorExecutionRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: BasicLambdaExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  ### Lambda Function for application logic ###
+  PayPalProcessorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: PayPal-Processor
+      Runtime: python3.8
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: rcw-code-bucket
+        S3Key: paypal-processor/paypal-processor.zip
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  ClientBucketName:
+    Value: !Ref ClientBucket
+    Description: "S3 Bucket for the client application"
+
+  LogBucketName:
+    Value: !Ref LogBucket
+    Description: "S3 Bucket for logs"
+
+  LambdaFunctionArn:
+    Value: !GetAtt PayPalProcessorFunction.Arn
+    Description: "Lambda function ARN"
