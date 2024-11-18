@@ -2,7 +2,7 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
-import { Field, Form, FormSpy } from 'react-final-form';
+import { Field, Form } from 'react-final-form';
 import Typography from '../components/Typography';
 import AppFooter from '../views/AppFooter';
 import AppAppBar from '../views/AppAppBar';
@@ -15,6 +15,7 @@ import withRoot from '../withRoot';
 
 function SignUp() {
   const [sent, setSent] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState(null);
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['firstName', 'lastName', 'email', 'password'], values);
@@ -29,8 +30,37 @@ function SignUp() {
     return errors;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async (values: { [index: string]: string }) => {
     setSent(true);
+
+    try {
+      const response = await fetch(
+        'https://ggmbbzapm8.execute-api.us-west-1.amazonaws.com/prod/signup',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            first_name: values.firstName,
+            last_name: values.lastName,
+            email: values.email,
+            password: values.password,
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Sign-up successful:', data);
+    } catch (error) {
+      console.error('Sign-up failed:', error);
+    } finally {
+      setSent(false);
+    }
   };
 
   return (
@@ -100,15 +130,11 @@ function SignUp() {
                 type="password"
                 margin="normal"
               />
-              <FormSpy subscription={{ submitError: true }}>
-                {({ submitError }) =>
-                  submitError ? (
-                    <FormFeedback error sx={{ mt: 2 }}>
-                      {submitError}
-                    </FormFeedback>
-                  ) : null
-                }
-              </FormSpy>
+              {submitError && (
+                <FormFeedback error sx={{ mt: 2 }}>
+                  {submitError}
+                </FormFeedback>
+              )}
               <FormButton
                 sx={{ mt: 3, mb: 2 }}
                 disabled={submitting || sent}

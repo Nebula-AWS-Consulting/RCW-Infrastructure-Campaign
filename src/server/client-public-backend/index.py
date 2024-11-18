@@ -43,15 +43,24 @@ def lambda_handler(event, context):
         elif resource_path == "/delete-user" and http_method == "DELETE":
             return delete_user(email)
         else:
-            return {
-                "statusCode": 404,
-                "body": json.dumps({"message": "Resource not found"})
-            }
+            return cors_response(404, {"message": "Resource not found"})
     except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"message": str(e)})
-        }
+        return cors_response(500, {"message": str(e)})
+
+
+# Helper function to add CORS headers
+def cors_response(status_code, body):
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Access-Control-Allow-Credentials": "true"
+
+        },
+        "body": json.dumps(body)
+    }
 
 
 # User Sign-Up
@@ -66,10 +75,7 @@ def sign_up(password, email, first_name, last_name):
             {'Name': 'custom:lastName', 'Value': last_name}
         ]
     )
-    return {
-        "statusCode": 200,
-        "body": json.dumps({"message": "User signed up successfully"})
-    }
+    return cors_response(200, {"message": "User signed up successfully"})
 
 
 # Confirm User
@@ -78,10 +84,7 @@ def confirm_user(email):
         UserPoolId=USER_POOL_ID,
         Username=email
     )
-    return {
-        "statusCode": 200,
-        "body": json.dumps({"message": "User confirmed successfully"})
-    }
+    return cors_response(200, {"message": "User confirmed successfully"})
 
 
 # User Log-In
@@ -94,15 +97,12 @@ def log_in(email, password):
             'PASSWORD': password
         }
     )
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "User logged in successfully",
-            "id_token": response['AuthenticationResult']['IdToken'],
-            "access_token": response['AuthenticationResult']['AccessToken'],
-            "refresh_token": response['AuthenticationResult']['RefreshToken']
-        })
-    }
+    return cors_response(200, {
+        "message": "User logged in successfully",
+        "id_token": response['AuthenticationResult']['IdToken'],
+        "access_token": response['AuthenticationResult']['AccessToken'],
+        "refresh_token": response['AuthenticationResult']['RefreshToken']
+    })
 
 
 # Forgot Password (Initiate)
@@ -111,10 +111,7 @@ def forgot_password(email):
         ClientId=CLIENT_ID,
         Username=email
     )
-    return {
-        "statusCode": 200,
-        "body": json.dumps({"message": "Password reset initiated. Check your email for the code."})
-    }
+    return cors_response(200, {"message": "Password reset initiated. Check your email for the code."})
 
 
 # Confirm Forgot Password
@@ -125,10 +122,7 @@ def confirm_forgot_password(email, confirmation_code, new_password):
         ConfirmationCode=confirmation_code,
         Password=new_password
     )
-    return {
-        "statusCode": 200,
-        "body": json.dumps({"message": "Password reset successfully."})
-    }
+    return cors_response(200, {"message": "Password reset successfully."})
 
 
 # Get User Data
@@ -138,10 +132,7 @@ def get_user(email):
         Username=email
     )
     user_attributes = {attr['Name']: attr['Value'] for attr in response['UserAttributes']}
-    return {
-        "statusCode": 200,
-        "body": json.dumps({"message": "User data retrieved successfully", "user_attributes": user_attributes})
-    }
+    return cors_response(200, {"message": "User data retrieved successfully", "user_attributes": user_attributes})
 
 
 # Update User Attributes
@@ -152,10 +143,7 @@ def update_user(email, attribute_updates):
         Username=email,
         UserAttributes=attributes
     )
-    return {
-        "statusCode": 200,
-        "body": json.dumps({"message": "User attributes updated successfully"})
-    }
+    return cors_response(200, {"message": "User attributes updated successfully"})
 
 
 # Delete User
@@ -164,7 +152,4 @@ def delete_user(email):
         UserPoolId=USER_POOL_ID,
         Username=email
     )
-    return {
-        "statusCode": 200,
-        "body": json.dumps({"message": "User deleted successfully"})
-    }
+    return cors_response(200, {"message": "User deleted successfully"})

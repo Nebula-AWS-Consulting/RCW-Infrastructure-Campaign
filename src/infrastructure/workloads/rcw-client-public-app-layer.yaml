@@ -140,16 +140,71 @@ Resources:
   ClientPublicBackendApiDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
+      - SignupPostMethod
+      - SignupOptionsMethod
       - GetUsersMethod
       - CreateUserMethod
       - GetUserByIdMethod
       - UpdateUserMethod
       - DeleteUserMethod
+      - UsersOptionsMethod
+      - UserByIdOptionsMethod
     Properties:
       RestApiId: !Ref ClientPublicBackendApi
       StageName: prod
 
   ### API Gateway Resources and Methods ###
+
+  #### /signup Resource ####
+  SignupResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ClientPublicBackendApi.RootResourceId
+      PathPart: signup
+      RestApiId: !Ref ClientPublicBackendApi
+
+  #### POST /signup Method ####
+  SignupPostMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ClientPublicBackendApi
+      ResourceId: !Ref SignupResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
+          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
+        
+
+  #### OPTIONS /signup Method ####
+  SignupOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ClientPublicBackendApi
+      ResourceId: !Ref SignupResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type, Authorization'"
+              method.response.header.Access-Control-Allow-Credentials: "'true'"
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Credentials: true
 
   #### /users Resource ####
   UsersResource:
@@ -173,8 +228,8 @@ Resources:
         Uri: !Sub
           - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
           - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
-      MethodResponses:
-        - StatusCode: "200"
+
+
 
   #### POST /users Method ####
   CreateUserMethod:
@@ -190,8 +245,6 @@ Resources:
         Uri: !Sub
           - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
           - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
-      MethodResponses:
-        - StatusCode: "201"
 
   #### /users/{id} Resource ####
   UserByIdResource:
@@ -217,8 +270,7 @@ Resources:
         Uri: !Sub
           - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
           - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
-      MethodResponses:
-        - StatusCode: "200"
+
 
   #### PUT /users/{id} Method ####
   UpdateUserMethod:
@@ -236,8 +288,6 @@ Resources:
         Uri: !Sub
           - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
           - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
-      MethodResponses:
-        - StatusCode: "200"
 
   #### DELETE /users/{id} Method ####
   DeleteUserMethod:
@@ -255,8 +305,62 @@ Resources:
         Uri: !Sub
           - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
           - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
+
+
+  #### OPTIONS /users ####
+  UsersOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ClientPublicBackendApi
+      ResourceId: !Ref UsersResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Methods: "'GET, POST, PUT, DELETE, OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type, Authorization'"
+              method.response.header.Access-Control-Allow-Credentials: "'false'"
       MethodResponses:
         - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Credentials: true
+
+  #### OPTIONS /users/{id} ####
+  UserByIdOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ClientPublicBackendApi
+      ResourceId: !Ref UserByIdResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Methods: "'GET, POST, PUT, DELETE, OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type, Authorization'"
+              method.response.header.Access-Control-Allow-Credentials: "'false'"
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Credentials: true
+
 
   ### Permission for API Gateway to Invoke Lambda ###
   ApiGatewayInvokePermission:
