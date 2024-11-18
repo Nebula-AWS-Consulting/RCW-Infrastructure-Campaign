@@ -113,63 +113,102 @@ Resources:
           Type: Api
           Properties:
             Path: /signup
-            Method: post
+            Method: POST
             RestApiId:
               Ref: ClientPublicBackendApi
         SignupOptions:
           Type: Api
           Properties:
             Path: /signup
-            Method: options
+            Method: OPTIONS
             RestApiId:
               Ref: ClientPublicBackendApi
-        UsersGet:
+        ConfirmUser:
+          Type: Api
+          Properties:
+            Path: /confirm
+            Method: POST
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        ConfirmUserOptions:
+          Type: Api
+          Properties:
+            Path: /confirm
+            Method: OPTIONS
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        LoginUser:
+          Type: Api
+          Properties:
+            Path: /login
+            Method: POST
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        LoginUserOptions:
+          Type: Api
+          Properties:
+            Path: /login
+            Method: OPTIONS
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        ForgotPassword:
+          Type: Api
+          Properties:
+            Path: /forgot-password
+            Method: POST
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        ForgotPasswordOptions:
+          Type: Api
+          Properties:
+            Path: /forgot-password
+            Method: OPTIONS
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        ConfirmForgotPassword:
+          Type: Api
+          Properties:
+            Path: /confirm-forgot-password
+            Method: POST
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        ConfirmForgotPasswordOptions:
+          Type: Api
+          Properties:
+            Path: /confirm-forgot-password
+            Method: OPTIONS
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        GetUser:
           Type: Api
           Properties:
             Path: /users
-            Method: get
+            Method: GET
             RestApiId:
               Ref: ClientPublicBackendApi
-        UsersPost:
+            RequestParameters:
+              method.request.querystring.email: true
+        UpdateUser:
           Type: Api
           Properties:
             Path: /users
-            Method: post
+            Method: PATCH
             RestApiId:
               Ref: ClientPublicBackendApi
-        UserByIdGet:
+        DeleteUser:
           Type: Api
           Properties:
-            Path: /users/{id}
-            Method: get
+            Path: /users
+            Method: DELETE
             RestApiId:
               Ref: ClientPublicBackendApi
-        UserByIdPut:
-          Type: Api
-          Properties:
-            Path: /users/{id}
-            Method: put
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        UserByIdDelete:
-          Type: Api
-          Properties:
-            Path: /users/{id}
-            Method: delete
-            RestApiId:
-              Ref: ClientPublicBackendApi
+            RequestParameters:
+              method.request.querystring.email: true
         UsersOptions:
           Type: Api
           Properties:
             Path: /users
-            Method: options
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        UserByIdOptions:
-          Type: Api
-          Properties:
-            Path: /users/{id}
-            Method: options
+            Method: OPTIONS
             RestApiId:
               Ref: ClientPublicBackendApi
       Tags:
@@ -186,7 +225,7 @@ Resources:
         AllowMethods:
         - GET
         - POST
-        - PUT
+        - PATCH
         - DELETE
         - OPTIONS
         AllowHeaders:

@@ -25,10 +25,19 @@ def lambda_handler(event, context):
         # Handle preflight OPTIONS request
         if http_method == "OPTIONS":
             return cors_response(200, {})
+        
+        # Parse query string parameters
+        query_params = event.get('queryStringParameters', {}) or {}
+        email_from_query = query_params.get('email')
 
         # Parse the input body if available
-        body = json.loads(event['body']) if 'body' in event and event['body'] else {}
-        email = body.get('email')
+        body = json.loads(event.get('body', "{}"))
+        email_from_body = body.get('email')
+
+        # Determine the email source (query params take precedence)
+        email = email_from_query or email_from_body
+
+        # Extract other fields from the body
         password = body.get('password')
         first_name = body.get('first_name')
         last_name = body.get('last_name')
@@ -47,11 +56,11 @@ def lambda_handler(event, context):
             return forgot_password(email)
         elif resource_path == "/confirm-forgot-password" and http_method == "POST":
             return confirm_forgot_password(email, confirmation_code, new_password)
-        elif resource_path == "/get-user" and http_method == "GET":
+        elif resource_path == "/user" and http_method == "GET":
             return get_user(email)
-        elif resource_path == "/update-user" and http_method == "PATCH":
+        elif resource_path == "/user" and http_method == "PATCH":
             return update_user(email, attribute_updates)
-        elif resource_path == "/delete-user" and http_method == "DELETE":
+        elif resource_path == "/user" and http_method == "DELETE":
             return delete_user(email)
         else:
             return cors_response(404, {"message": "Resource not found"})
@@ -139,6 +148,8 @@ def confirm_forgot_password(email, confirmation_code, new_password):
 
 # Get User Data
 def get_user(email):
+    if not email:
+        return cors_response(400, {"message": "Missing required 'email' query parameter"})
     response = client.admin_get_user(
         UserPoolId=USER_POOL_ID,
         Username=email
@@ -160,6 +171,8 @@ def update_user(email, attribute_updates):
 
 # Delete User
 def delete_user(email):
+    if not email:
+        return cors_response(400, {"message": "Missing required 'email' query parameter"})
     client.admin_delete_user(
         UserPoolId=USER_POOL_ID,
         Username=email

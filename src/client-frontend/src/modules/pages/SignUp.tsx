@@ -30,12 +30,39 @@ function SignUp() {
     return errors;
   };
 
+  const confirmUser = async (email: string) => {
+    const user = await getUser(email);
+
+    if (user) {
+      setSubmitError('User already exists. Please sign in.');
+    }
+  };
+
+  const getUser = async (email: string) => {
+    const response = await fetch(
+      `XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX${email}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  };
+
   const handleSubmit = async (values: { [index: string]: string }) => {
     setSent(true);
 
     try {
       const response = await fetch(
-        'https://gkf18i3uhf.execute-api.us-west-1.amazonaws.com/prod/signup',
+        'https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/signup',
         {
           method: 'POST',
           headers: {
@@ -55,9 +82,7 @@ function SignUp() {
       }
 
       const data = await response.json();
-      console.log('Sign-up successful:', data);
     } catch (error) {
-      console.error('Sign-up failed:', error);
       setSubmitError('Sign-up failed. Please try again.');
     } finally {
       setSent(false);
