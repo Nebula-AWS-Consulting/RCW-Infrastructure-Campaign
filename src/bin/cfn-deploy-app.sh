@@ -1,5 +1,5 @@
 aws cloudformation deploy \
-    --template-file ../infrastructure/arch-app.yaml \
+    --template-file ../infrastructure/workloads/rcw-client-public-app-layer.yaml \
     --stack-name RCW-Architecture-App-Dev \
     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
     --no-execute-changeset \

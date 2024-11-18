@@ -58,11 +58,24 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource: "*"
+        - PolicyName: DynamoDBAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:UpdateItem"
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:Scan"
+                  - "dynamodb:Query"
+                Resource: "arn:aws:dynamodb:*:*:table/AdminTable"
       Tags:
         - Key: Environment
           Value: !Ref Environment
 
-  ### Lambda Function for application logic ###
+  ### Lambda Function for PayPal Processor ###
   PayPalProcessorFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -77,6 +90,167 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
+  ### Lambda Function for Client Public Backend ###
+  ClientPublicBackendFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: ClientPublicBackendFunction
+      Runtime: python3.8
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: rcw-code-bucket
+        S3Key: client-public-backend/client-public-backend.zip
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  ### API Gateway for Client Public Backend ###
+  ClientPublicBackendApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: ClientPublicBackendApi
+      Description: API Gateway for ClientPublicBackendFunction
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  ### API Gateway Deployment ###
+  ClientPublicBackendApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - GetUsersMethod
+      - CreateUserMethod
+      - GetUserByIdMethod
+      - UpdateUserMethod
+      - DeleteUserMethod
+    Properties:
+      RestApiId: !Ref ClientPublicBackendApi
+      StageName: prod
+
+  ### API Gateway Resources and Methods ###
+
+  #### /users Resource ####
+  UsersResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ClientPublicBackendApi.RootResourceId
+      PathPart: users
+      RestApiId: !Ref ClientPublicBackendApi
+
+  #### GET /users Method ####
+  GetUsersMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ClientPublicBackendApi
+      ResourceId: !Ref UsersResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
+          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
+      MethodResponses:
+        - StatusCode: "200"
+
+  #### POST /users Method ####
+  CreateUserMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ClientPublicBackendApi
+      ResourceId: !Ref UsersResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
+          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
+      MethodResponses:
+        - StatusCode: "201"
+
+  #### /users/{id} Resource ####
+  UserByIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref UsersResource
+      PathPart: "{id}"
+      RestApiId: !Ref ClientPublicBackendApi
+
+  #### GET /users/{id} Method ####
+  GetUserByIdMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ClientPublicBackendApi
+      ResourceId: !Ref UserByIdResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.id: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
+          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
+      MethodResponses:
+        - StatusCode: "200"
+
+  #### PUT /users/{id} Method ####
+  UpdateUserMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ClientPublicBackendApi
+      ResourceId: !Ref UserByIdResource
+      HttpMethod: PUT
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.id: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
+          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
+      MethodResponses:
+        - StatusCode: "200"
+
+  #### DELETE /users/{id} Method ####
+  DeleteUserMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ClientPublicBackendApi
+      ResourceId: !Ref UserByIdResource
+      HttpMethod: DELETE
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.id: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
+          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
+      MethodResponses:
+        - StatusCode: "200"
+
+  ### Permission for API Gateway to Invoke Lambda ###
+  ApiGatewayInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt ClientPublicBackendFunction.Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: 'apigateway.amazonaws.com'
+      SourceArn: !Sub
+        - "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/*/*/*"
+        - { RestApiId: !Ref ClientPublicBackendApi }
+
 Outputs:
   ClientBucketName:
     Value: !Ref ClientBucket
@@ -86,6 +260,14 @@ Outputs:
     Value: !Ref LogBucket
     Description: "S3 Bucket for logs"
 
-  LambdaFunctionArn:
+  PayPalProcessorLambdaFunctionArn:
     Value: !GetAtt PayPalProcessorFunction.Arn
-    Description: "Lambda function ARN"
+    Description: "Lambda function ARN for PayPal Processor"
+
+  ClientPublicBackendLambdaFunctionArn:
+    Value: !GetAtt ClientPublicBackendFunction.Arn
+    Description: "Lambda function ARN for Client Public Backend"
+
+  ClientPublicBackendApiInvokeURL:
+    Value: !Sub "https://${ClientPublicBackendApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+    Description: "Invoke URL for the Client Public Backend API"

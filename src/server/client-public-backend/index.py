@@ -1,79 +1,164 @@
+import json
 import boto3
+import os
+import hashlib
 from botocore.exceptions import ClientError
 
 # Initialize a DynamoDB client
-dynamodb = boto3.resource('dynamodb', region_name='us-west-1')  # Replace with your region
-
-# Reference your table
-table_name = "AdminTable"
+dynamodb = boto3.resource('dynamodb')
+table_name = os.environ.get('TABLE_NAME', 'AdminTable')
 table = dynamodb.Table(table_name)
 
-def add_item():
+def lambda_handler(event, context):
+    """Main Lambda handler function."""
+    http_method = event.get('httpMethod')
+    path = event.get('path')
+    response = {
+        'statusCode': 400,
+        'body': json.dumps({'message': 'Invalid request'})
+    }
+
+    if http_method == 'POST' and path == '/users':
+        response = add_item(event)
+    elif http_method == 'GET' and path.startswith('/users/'):
+        response = get_item(event)
+    elif http_method == 'PUT' and path.startswith('/users/'):
+        response = update_item(event)
+    elif http_method == 'DELETE' and path.startswith('/users/'):
+        response = delete_item(event)
+    else:
+        response = {
+            'statusCode': 405,
+            'body': json.dumps({'message': 'Method not allowed'})
+        }
+
+    return response
+
+def add_item(event):
     """Add an item to the DynamoDB table."""
     try:
-        response = table.put_item(
-            Item={
-                'id': 'user123',  # Partition key
-                'username': 'john_doe',
-                'email': 'john@example.com',
-                'password': 'securepassword'
-            }
-        )
-        print("Item added:", response)
-    except ClientError as e:
-        print(f"Error adding item: {e.response['Error']['Message']}")
+        body = json.loads(event.get('body', '{}'))
+        user_id = body.get('id')
+        username = body.get('username')
+        email = body.get('email')
+        password = body.get('password')
 
-def get_item():
+        if not all([user_id, username, email, password]):
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'message': 'Missing required fields'})
+            }
+
+        # Hash the password before storing it
+        password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+        item = {
+            'id': user_id,
+            'username': username,
+            'email': email,
+            'password_hash': password_hash
+        }
+
+        table.put_item(Item=item)
+
+        return {
+            'statusCode': 201,
+            'body': json.dumps({'message': 'User created successfully'})
+        }
+    except ClientError as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'message': f"Error adding item: {e.response['Error']['Message']}"})
+        }
+
+def get_item(event):
     """Retrieve an item from the DynamoDB table."""
     try:
-        response = table.get_item(
-            Key={
-                'id': 'user123'  # Specify the primary key
-            }
-        )
-        item = response.get('Item')
-        if item:
-            print("Item retrieved:", item)
-        else:
-            print("Item not found")
-    except ClientError as e:
-        print(f"Error retrieving item: {e.response['Error']['Message']}")
+        user_id = event['pathParameters']['id']
 
-def update_item():
+        response = table.get_item(Key={'id': user_id})
+        item = response.get('Item')
+
+        if item:
+            # Do not return the password hash
+            item.pop('password_hash', None)
+            return {
+                'statusCode': 200,
+                'body': json.dumps(item)
+            }
+        else:
+            return {
+                'statusCode': 404,
+                'body': json.dumps({'message': 'User not found'})
+            }
+    except ClientError as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'message': f"Error retrieving item: {e.response['Error']['Message']}"})
+        }
+
+def update_item(event):
     """Update an item in the DynamoDB table."""
     try:
-        response = table.update_item(
-            Key={
-                'id': 'user123'  # Specify the primary key
-            },
-            UpdateExpression="SET email = :email, username = :username",
-            ExpressionAttributeValues={
-                ':email': 'new_email@example.com',
-                ':username': 'john_updated'
-            },
-            ReturnValues="UPDATED_NEW"
-        )
-        print("Item updated:", response['Attributes'])
-    except ClientError as e:
-        print(f"Error updating item: {e.response['Error']['Message']}")
+        user_id = event['pathParameters']['id']
+        body = json.loads(event.get('body', '{}'))
+        update_expression = []
+        expression_attribute_values = {}
+        expression_attribute_names = {}
 
-def delete_item():
+        if 'username' in body:
+            update_expression.append('#username = :username')
+            expression_attribute_values[':username'] = body['username']
+            expression_attribute_names['#username'] = 'username'
+
+        if 'email' in body:
+            update_expression.append('#email = :email')
+            expression_attribute_values[':email'] = body['email']
+            expression_attribute_names['#email'] = 'email'
+
+        if 'password' in body:
+            # Hash the new password
+            password_hash = hashlib.sha256(body['password'].encode('utf-8')).hexdigest()
+            update_expression.append('password_hash = :password_hash')
+            expression_attribute_values[':password_hash'] = password_hash
+
+        if not update_expression:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'message': 'No valid fields to update'})
+            }
+
+        response = table.update_item(
+            Key={'id': user_id},
+            UpdateExpression='SET ' + ', '.join(update_expression),
+            ExpressionAttributeNames=expression_attribute_names,
+            ExpressionAttributeValues=expression_attribute_values,
+            ReturnValues='UPDATED_NEW'
+        )
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'message': 'User updated successfully', 'attributes': response['Attributes']})
+        }
+    except ClientError as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'message': f"Error updating item: {e.response['Error']['Message']}"})
+        }
+
+def delete_item(event):
     """Delete an item from the DynamoDB table."""
     try:
-        response = table.delete_item(
-            Key={
-                'id': 'user123'  # Specify the primary key
-            }
-        )
-        print("Item deleted:", response)
-    except ClientError as e:
-        print(f"Error deleting item: {e.response['Error']['Message']}")
+        user_id = event['pathParameters']['id']
 
-# Example usage
-if __name__ == "__main__":
-    add_item()
-    get_item()
-    update_item()
-    get_item()
-    delete_item()
-    get_item()
+        response = table.delete_item(Key={'id': user_id})
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'message': 'User deleted successfully'})
+        }
+    except ClientError as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'message': f"Error deleting item: {e.response['Error']['Message']}"})
+        }
