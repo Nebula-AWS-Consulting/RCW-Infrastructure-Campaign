@@ -15,7 +15,7 @@ import withRoot from '../withRoot';
 
 function SignUp() {
   const [sent, setSent] = React.useState(false);
-  const [submitError, setSubmitError] = React.useState(null);
+  const [submitError, setSubmitError] = React.useState(String);
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['firstName', 'lastName', 'email', 'password'], values);
@@ -35,7 +35,7 @@ function SignUp() {
 
     try {
       const response = await fetch(
-        'https://ggmbbzapm8.execute-api.us-west-1.amazonaws.com/prod/signup',
+        'https://gkf18i3uhf.execute-api.us-west-1.amazonaws.com/prod/signup',
         {
           method: 'POST',
           headers: {
@@ -58,6 +58,7 @@ function SignUp() {
       console.log('Sign-up successful:', data);
     } catch (error) {
       console.error('Sign-up failed:', error);
+      setSubmitError('Sign-up failed. Please try again.');
     } finally {
       setSent(false);
     }
@@ -72,7 +73,7 @@ function SignUp() {
             Sign Up
           </Typography>
           <Typography variant="body2" align="center">
-            <Link href="/premium-themes/onepirate/sign-in/" underline="always">
+            <Link href="/auth/signin" underline="always">
               Already have an account?
             </Link>
           </Typography>
