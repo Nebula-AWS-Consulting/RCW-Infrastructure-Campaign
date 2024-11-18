@@ -130,6 +130,8 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: RCW-UserPool
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
       UsernameAttributes:
         - email
       AutoVerifiedAttributes:
@@ -142,12 +144,14 @@ Resources:
           RequireNumbers: true
           RequireSymbols: false
       Schema:
-        - Name: given_name
-          Required: true
-        - Name: family_name
-          Required: true
-        - Name: custom:fullName
-          Required: true
+        - Name: firstName
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: lastName
+          AttributeDataType: String
+          Mutable: true
+          Required: false
 
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
@@ -155,7 +159,6 @@ Resources:
       ClientName: RCW-UserPoolClient
       UserPoolId: !Ref UserPool
       GenerateSecret: false
-      AllowSelfSignUp: true
       AllowedOAuthFlows:
         - implicit
       AllowedOAuthScopes:

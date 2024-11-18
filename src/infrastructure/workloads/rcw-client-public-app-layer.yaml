@@ -35,7 +35,7 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
-  ### Lambda Execution Role ###
+### Lambda Execution Role ###
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -48,6 +48,7 @@ Resources:
               Service: "lambda.amazonaws.com"
             Action: "sts:AssumeRole"
       Policies:
+        # Basic Lambda logging policy
         - PolicyName: BasicLambdaExecutionPolicy
           PolicyDocument:
             Version: "2012-10-17"
@@ -58,6 +59,8 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource: "*"
+
+        # DynamoDB Access Policy (optional if you still use DynamoDB)
         - PolicyName: DynamoDBAccessPolicy
           PolicyDocument:
             Version: "2012-10-17"
@@ -71,9 +74,24 @@ Resources:
                   - "dynamodb:Scan"
                   - "dynamodb:Query"
                 Resource: "arn:aws:dynamodb:*:*:table/AdminTable"
+
+        # Cognito User Pool Permissions
+        - PolicyName: CognitoAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cognito-idp:AdminCreateUser"
+                  - "cognito-idp:AdminGetUser"
+                  - "cognito-idp:AdminUpdateUserAttributes"
+                  - "cognito-idp:AdminDeleteUser"
+                  - "cognito-idp:ListUsers"
+                Resource: "arn:aws:cognito-idp:*:*:userpool/us-west-1_lJ8JcxPXT"
       Tags:
         - Key: Environment
           Value: !Ref Environment
+
 
   ### Lambda Function for PayPal Processor ###
   PayPalProcessorFunction:
