@@ -1,11 +1,20 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: S3 Buckets and Lambda Functions for Workload Application
+Transform: AWS::Serverless-2016-10-31
+Description: S3 Buckets and Lambda Functions for Workload Application using AWS SAM
 
 Parameters:
   Environment:
     Type: String
     Default: Dev
     Description: Environment name for the VPC
+
+Globals:
+  Function:
+    Runtime: python3.8
+    Handler: index.lambda_handler
+    Timeout: 30
+    Tags:
+      Environment: !Ref Environment
 
 Resources:
   ### S3 Bucket for app (Website bucket with public access) ###
@@ -35,11 +44,11 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
-### Lambda Execution Role ###
+  ### Lambda Execution Role ###
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: PayPalProcessorExecutionRole
+      RoleName: LambdaExecutionRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -82,296 +91,108 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - "cognito-idp:AdminCreateUser"
-                  - "cognito-idp:AdminGetUser"
-                  - "cognito-idp:AdminUpdateUserAttributes"
-                  - "cognito-idp:AdminDeleteUser"
-                  - "cognito-idp:ListUsers"
+                  - "cognito-idp:*"
                 Resource: "arn:aws:cognito-idp:*:*:userpool/us-west-1_lJ8JcxPXT"
       Tags:
         - Key: Environment
           Value: !Ref Environment
 
-
   ### Lambda Function for PayPal Processor ###
   PayPalProcessorFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       FunctionName: PayPal-Processor
-      Runtime: python3.8
-      Handler: index.lambda_handler
       Role: !GetAtt LambdaExecutionRole.Arn
-      Code:
-        S3Bucket: rcw-code-bucket
-        S3Key: paypal-processor/paypal-processor.zip
+      CodeUri: s3://rcw-code-bucket/paypal-processor/paypal-processor.zip
       Tags:
-        - Key: Environment
-          Value: !Ref Environment
+        Environment: !Ref Environment
 
   ### Lambda Function for Client Public Backend ###
   ClientPublicBackendFunction:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       FunctionName: ClientPublicBackendFunction
-      Runtime: python3.8
-      Handler: index.lambda_handler
       Role: !GetAtt LambdaExecutionRole.Arn
-      Code:
-        S3Bucket: rcw-code-bucket
-        S3Key: client-public-backend/client-public-backend.zip
+      CodeUri: s3://rcw-code-bucket/client-public-backend/client-public-backend.zip
+      Events:
+        SignupPost:
+          Type: Api
+          Properties:
+            Path: /signup
+            Method: post
+            RestApiId: !Ref ClientPublicBackendApi
+        SignupOptions:
+          Type: Api
+          Properties:
+            Path: /signup
+            Method: options
+            RestApiId: !Ref ClientPublicBackendApi
+        UsersGet:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: get
+            RestApiId: !Ref ClientPublicBackendApi
+        UsersPost:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: post
+            RestApiId: !Ref ClientPublicBackendApi
+        UserByIdGet:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: get
+            RestApiId: !Ref ClientPublicBackendApi
+        UserByIdPut:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: put
+            RestApiId: !Ref ClientPublicBackendApi
+        UserByIdDelete:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: delete
+            RestApiId: !Ref ClientPublicBackendApi
+        UsersOptions:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: options
+            RestApiId: !Ref ClientPublicBackendApi
+        UserByIdOptions:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: options
+            RestApiId: !Ref ClientPublicBackendApi
       Tags:
-        - Key: Environment
-          Value: !Ref Environment
+        Environment: !Ref Environment
 
   ### API Gateway for Client Public Backend ###
   ClientPublicBackendApi:
-    Type: AWS::ApiGateway::RestApi
+    Type: AWS::Serverless::Api
     Properties:
       Name: ClientPublicBackendApi
-      Description: API Gateway for ClientPublicBackendFunction
-      EndpointConfiguration:
-        Types:
-          - REGIONAL
-      Tags:
-        - Key: Environment
-          Value: !Ref Environment
-
-  ### API Gateway Deployment ###
-  ClientPublicBackendApiDeployment:
-    Type: AWS::ApiGateway::Deployment
-    DependsOn:
-      - SignupPostMethod
-      - SignupOptionsMethod
-      - GetUsersMethod
-      - CreateUserMethod
-      - GetUserByIdMethod
-      - UpdateUserMethod
-      - DeleteUserMethod
-      - UsersOptionsMethod
-      - UserByIdOptionsMethod
-    Properties:
-      RestApiId: !Ref ClientPublicBackendApi
       StageName: prod
-
-  ### API Gateway Resources and Methods ###
-
-  #### /signup Resource ####
-  SignupResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !GetAtt ClientPublicBackendApi.RootResourceId
-      PathPart: signup
-      RestApiId: !Ref ClientPublicBackendApi
-
-  #### POST /signup Method ####
-  SignupPostMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref ClientPublicBackendApi
-      ResourceId: !Ref SignupResource
-      HttpMethod: POST
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub
-          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
-          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
-        
-
-  #### OPTIONS /signup Method ####
-  SignupOptionsMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref ClientPublicBackendApi
-      ResourceId: !Ref SignupResource
-      HttpMethod: OPTIONS
-      AuthorizationType: NONE
-      Integration:
-        Type: MOCK
-        RequestTemplates:
-          application/json: '{"statusCode": 200}'
-        IntegrationResponses:
-          - StatusCode: "200"
-            ResponseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'*'"
-              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type, Authorization'"
-              method.response.header.Access-Control-Allow-Credentials: "'true'"
-      MethodResponses:
-        - StatusCode: "200"
-          ResponseParameters:
-            method.response.header.Access-Control-Allow-Origin: true
-            method.response.header.Access-Control-Allow-Methods: true
-            method.response.header.Access-Control-Allow-Headers: true
-            method.response.header.Access-Control-Allow-Credentials: true
-
-  #### /users Resource ####
-  UsersResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !GetAtt ClientPublicBackendApi.RootResourceId
-      PathPart: users
-      RestApiId: !Ref ClientPublicBackendApi
-
-  #### GET /users Method ####
-  GetUsersMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref ClientPublicBackendApi
-      ResourceId: !Ref UsersResource
-      HttpMethod: GET
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub
-          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
-          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
-
-
-
-  #### POST /users Method ####
-  CreateUserMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref ClientPublicBackendApi
-      ResourceId: !Ref UsersResource
-      HttpMethod: POST
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub
-          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
-          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
-
-  #### /users/{id} Resource ####
-  UserByIdResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      ParentId: !Ref UsersResource
-      PathPart: "{id}"
-      RestApiId: !Ref ClientPublicBackendApi
-
-  #### GET /users/{id} Method ####
-  GetUserByIdMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref ClientPublicBackendApi
-      ResourceId: !Ref UserByIdResource
-      HttpMethod: GET
-      AuthorizationType: NONE
-      RequestParameters:
-        method.request.path.id: true
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub
-          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
-          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
-
-
-  #### PUT /users/{id} Method ####
-  UpdateUserMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref ClientPublicBackendApi
-      ResourceId: !Ref UserByIdResource
-      HttpMethod: PUT
-      AuthorizationType: NONE
-      RequestParameters:
-        method.request.path.id: true
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub
-          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
-          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
-
-  #### DELETE /users/{id} Method ####
-  DeleteUserMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref ClientPublicBackendApi
-      ResourceId: !Ref UserByIdResource
-      HttpMethod: DELETE
-      AuthorizationType: NONE
-      RequestParameters:
-        method.request.path.id: true
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub
-          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
-          - { LambdaArn: !GetAtt ClientPublicBackendFunction.Arn }
-
-
-  #### OPTIONS /users ####
-  UsersOptionsMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref ClientPublicBackendApi
-      ResourceId: !Ref UsersResource
-      HttpMethod: OPTIONS
-      AuthorizationType: NONE
-      Integration:
-        Type: MOCK
-        RequestTemplates:
-          application/json: '{"statusCode": 200}'
-        IntegrationResponses:
-          - StatusCode: "200"
-            ResponseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'*'"
-              method.response.header.Access-Control-Allow-Methods: "'GET, POST, PUT, DELETE, OPTIONS'"
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type, Authorization'"
-              method.response.header.Access-Control-Allow-Credentials: "'false'"
-      MethodResponses:
-        - StatusCode: "200"
-          ResponseParameters:
-            method.response.header.Access-Control-Allow-Origin: true
-            method.response.header.Access-Control-Allow-Methods: true
-            method.response.header.Access-Control-Allow-Headers: true
-            method.response.header.Access-Control-Allow-Credentials: true
-
-  #### OPTIONS /users/{id} ####
-  UserByIdOptionsMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref ClientPublicBackendApi
-      ResourceId: !Ref UserByIdResource
-      HttpMethod: OPTIONS
-      AuthorizationType: NONE
-      Integration:
-        Type: MOCK
-        RequestTemplates:
-          application/json: '{"statusCode": 200}'
-        IntegrationResponses:
-          - StatusCode: "200"
-            ResponseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'*'"
-              method.response.header.Access-Control-Allow-Methods: "'GET, POST, PUT, DELETE, OPTIONS'"
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type, Authorization'"
-              method.response.header.Access-Control-Allow-Credentials: "'false'"
-      MethodResponses:
-        - StatusCode: "200"
-          ResponseParameters:
-            method.response.header.Access-Control-Allow-Origin: true
-            method.response.header.Access-Control-Allow-Methods: true
-            method.response.header.Access-Control-Allow-Headers: true
-            method.response.header.Access-Control-Allow-Credentials: true
-
-
-  ### Permission for API Gateway to Invoke Lambda ###
-  ApiGatewayInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !GetAtt ClientPublicBackendFunction.Arn
-      Action: 'lambda:InvokeFunction'
-      Principal: 'apigateway.amazonaws.com'
-      SourceArn: !Sub
-        - "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/*/*/*"
-        - { RestApiId: !Ref ClientPublicBackendApi }
+      EndpointConfiguration:
+        Type: REGIONAL
+      Cors:
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+        AllowOrigin: '*'
+      Tags:
+        Environment: !Ref Environment
 
 Outputs:
   ClientBucketName:

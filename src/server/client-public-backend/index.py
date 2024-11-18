@@ -1,5 +1,6 @@
 import boto3
 import json
+import logging
 
 # Initialize the Cognito Identity Provider client
 client = boto3.client('cognito-idp', region_name='us-west-1')
@@ -8,12 +9,22 @@ client = boto3.client('cognito-idp', region_name='us-west-1')
 USER_POOL_ID = "us-west-1_lJ8JcxPXT"  # Replace with your Cognito User Pool ID
 CLIENT_ID = "2p3glok5k66cvh7hhs8lnpegsc"  # Replace with your Cognito App Client ID
 
+# Set up logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     try:
+        # Log the incoming event for debugging
+        logger.info(f"Event: {json.dumps(event)}")
+
         # Determine the HTTP method and path from the event
         http_method = event['httpMethod']
         resource_path = event['path']
+
+        # Handle preflight OPTIONS request
+        if http_method == "OPTIONS":
+            return cors_response(200, {})
 
         # Parse the input body if available
         body = json.loads(event['body']) if 'body' in event and event['body'] else {}
@@ -45,6 +56,7 @@ def lambda_handler(event, context):
         else:
             return cors_response(404, {"message": "Resource not found"})
     except Exception as e:
+        logger.error(f"Error: {str(e)}")
         return cors_response(500, {"message": str(e)})
 
 
@@ -55,8 +67,8 @@ def cors_response(status_code, body):
         "headers": {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-            "Access-Control-Allow-Credentials": "true"
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+            # "Access-Control-Allow-Credentials": "true"
 
         },
         "body": json.dumps(body)
