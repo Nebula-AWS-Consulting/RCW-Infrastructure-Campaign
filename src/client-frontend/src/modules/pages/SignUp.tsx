@@ -12,10 +12,15 @@ import RFTextField from '../form/RFTextField';
 import FormButton from '../form/FormButton';
 import FormFeedback from '../form/FormFeedback';
 import withRoot from '../withRoot';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setLogin } from '../ducks/userSlice';
 
 function SignUp() {
   const [sent, setSent] = React.useState(false);
   const [submitError, setSubmitError] = React.useState(String);
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['firstName', 'lastName', 'email', 'password'], values);
@@ -29,7 +34,7 @@ function SignUp() {
 
     return errors;
   };
-  
+
 
   const handleSubmit = async (values: { [index: string]: string }) => {
     setSent(true);
@@ -60,6 +65,15 @@ function SignUp() {
       setSubmitError('Sign-up failed. Please try again.');
     } finally {
       setSent(false);
+      navigate(`/auth/confirm`)
+      dispatch(setLogin({
+        user: {
+          user_name: `${values.firstname} ${values.lastName}`,
+          password: values.password,
+          email: values.email
+        },
+        token: null
+      }))
     }
   };
 

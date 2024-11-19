@@ -2,12 +2,9 @@ import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
 export interface User {
-    user_id: number,
     user_name: string,
     password: string,
-    email: string,
-    budget: number,
-    time_stamp: string
+    email: string
 }
 
 interface InitialState {

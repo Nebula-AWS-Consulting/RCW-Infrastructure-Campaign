@@ -16,7 +16,7 @@ function App() {
             <Route path="/auth/signin" element={<SignIn />} />
             <Route path="/auth/signup" element={<SignUp />} />
             <Route path="/auth/signup" element={<SignUp />} />
-            <Route path="/auth/confirm" element={<ConfirmSignUp />} />
+            <Route path="/auth/confirm/:email" element={<ConfirmSignUp />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
