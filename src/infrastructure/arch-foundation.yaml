@@ -130,6 +130,8 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: RCW-UserPool
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
       UsernameAttributes:
         - email
       AutoVerifiedAttributes:
@@ -141,6 +143,15 @@ Resources:
           RequireLowercase: true
           RequireNumbers: true
           RequireSymbols: false
+      Schema:
+        - Name: firstName
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: lastName
+          AttributeDataType: String
+          Mutable: true
+          Required: false
 
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
@@ -148,8 +159,18 @@ Resources:
       ClientName: RCW-UserPoolClient
       UserPoolId: !Ref UserPool
       GenerateSecret: false
+      AllowedOAuthFlows:
+        - implicit
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+      CallbackURLs:
+        - https://localhost
+      AllowedOAuthFlowsUserPoolClient: true
       ExplicitAuthFlows:
         - ADMIN_NO_SRP_AUTH
+        - USER_PASSWORD_AUTH
 
   ### AWS WAF ###
 
@@ -261,6 +282,10 @@ Outputs:
   UserPoolId:
     Description: Cognito User Pool ID
     Value: !Ref UserPool
+
+  UserPoolClientId:
+    Description: Cognito User Pool ID
+    Value: !Ref UserPoolClient
 
   WebACLArn:
     Description: WAF Web ACL ARN

@@ -2,7 +2,7 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
-import { Field, Form, FormSpy } from 'react-final-form';
+import { Field, Form } from 'react-final-form';
 import Typography from '../components/Typography';
 import AppFooter from '../views/AppFooter';
 import AppAppBar from '../views/AppAppBar';
@@ -12,9 +12,15 @@ import RFTextField from '../form/RFTextField';
 import FormButton from '../form/FormButton';
 import FormFeedback from '../form/FormFeedback';
 import withRoot from '../withRoot';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setLogin } from '../ducks/userSlice';
 
 function SignUp() {
   const [sent, setSent] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState(String);
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['firstName', 'lastName', 'email', 'password'], values);
@@ -29,8 +35,46 @@ function SignUp() {
     return errors;
   };
 
-  const handleSubmit = () => {
+
+  const handleSubmit = async (values: { [index: string]: string }) => {
     setSent(true);
+
+    try {
+      const response = await fetch(
+        'https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/signup',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            first_name: values.firstName,
+            last_name: values.lastName,
+            email: values.email,
+            password: values.password
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+    } catch (error) {
+      setSubmitError('Sign-up failed. Please try again.');
+    } finally {
+      setSent(false);
+      navigate(`/auth/confirm`)
+      dispatch(setLogin({
+        user: {
+          user_name: `${values.firstname} ${values.lastName}`,
+          password: values.password,
+          email: values.email
+        },
+        token: null
+      }))
+    }
   };
 
   return (
@@ -42,7 +86,7 @@ function SignUp() {
             Sign Up
           </Typography>
           <Typography variant="body2" align="center">
-            <Link href="/premium-themes/onepirate/sign-in/" underline="always">
+            <Link href="/auth/signin" underline="always">
               Already have an account?
             </Link>
           </Typography>
@@ -100,15 +144,11 @@ function SignUp() {
                 type="password"
                 margin="normal"
               />
-              <FormSpy subscription={{ submitError: true }}>
-                {({ submitError }) =>
-                  submitError ? (
-                    <FormFeedback error sx={{ mt: 2 }}>
-                      {submitError}
-                    </FormFeedback>
-                  ) : null
-                }
-              </FormSpy>
+              {submitError && (
+                <FormFeedback error sx={{ mt: 2 }}>
+                  {submitError}
+                </FormFeedback>
+              )}
               <FormButton
                 sx={{ mt: 3, mb: 2 }}
                 disabled={submitting || sent}

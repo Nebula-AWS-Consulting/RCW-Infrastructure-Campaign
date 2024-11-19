@@ -1,23 +1,20 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: S3 Buckets and Lambda Functions for Workload Application using AWS SAM
-
 Parameters:
   Environment:
     Type: String
     Default: Dev
     Description: Environment name for the VPC
-
 Globals:
   Function:
     Runtime: python3.8
     Handler: index.lambda_handler
     Timeout: 30
     Tags:
-      Environment: !Ref Environment
-
+      Environment:
+        Ref: Environment
 Resources:
-  ### S3 Bucket for app (Website bucket with public access) ###
   ClientBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -31,88 +28,85 @@ Resources:
         IgnorePublicAcls: false
         RestrictPublicBuckets: false
       Tags:
-        - Key: Environment
-          Value: !Ref Environment
-
-  ### S3 Bucket for logs (Secured) ###
+      - Key: Environment
+        Value:
+          Ref: Environment
   LogBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: rcw-log-bucket
       AccessControl: Private
       Tags:
-        - Key: Environment
-          Value: !Ref Environment
-
-  ### Lambda Execution Role ###
+      - Key: Environment
+        Value:
+          Ref: Environment
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: LambdaExecutionRole
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
-          - Effect: Allow
-            Principal:
-              Service: "lambda.amazonaws.com"
-            Action: "sts:AssumeRole"
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
       Policies:
-        # Basic Lambda logging policy
-        - PolicyName: BasicLambdaExecutionPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "logs:CreateLogGroup"
-                  - "logs:CreateLogStream"
-                  - "logs:PutLogEvents"
-                Resource: "*"
-
-        # DynamoDB Access Policy (optional if you still use DynamoDB)
-        - PolicyName: DynamoDBAccessPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:GetItem"
-                  - "dynamodb:PutItem"
-                  - "dynamodb:UpdateItem"
-                  - "dynamodb:DeleteItem"
-                  - "dynamodb:Scan"
-                  - "dynamodb:Query"
-                Resource: "arn:aws:dynamodb:*:*:table/AdminTable"
-
-        # Cognito User Pool Permissions
-        - PolicyName: CognitoAccessPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "cognito-idp:*"
-                Resource: "arn:aws:cognito-idp:*:*:userpool/us-west-1_lJ8JcxPXT"
+      - PolicyName: BasicLambdaExecutionPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: '*'
+      - PolicyName: DynamoDBAccessPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Scan
+            - dynamodb:Query
+            Resource: arn:aws:dynamodb:*:*:table/AdminTable
+      - PolicyName: CognitoAccessPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - cognito-idp:*
+            Resource: arn:aws:cognito-idp:*:*:userpool/us-west-1_lJ8JcxPXT
       Tags:
-        - Key: Environment
-          Value: !Ref Environment
-
-  ### Lambda Function for PayPal Processor ###
+      - Key: Environment
+        Value:
+          Ref: Environment
   PayPalProcessorFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: PayPal-Processor
-      Role: !GetAtt LambdaExecutionRole.Arn
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
       CodeUri: s3://rcw-code-bucket/paypal-processor/paypal-processor.zip
       Tags:
-        Environment: !Ref Environment
-
-  ### Lambda Function for Client Public Backend ###
+        Environment:
+          Ref: Environment
   ClientPublicBackendFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: ClientPublicBackendFunction
-      Role: !GetAtt LambdaExecutionRole.Arn
+      Role:
+        Fn::GetAtt:
+        - LambdaExecutionRole
+        - Arn
       CodeUri: s3://rcw-code-bucket/client-public-backend/client-public-backend.zip
       Events:
         SignupPost:
@@ -120,67 +114,78 @@ Resources:
           Properties:
             Path: /signup
             Method: POST
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
         SignupOptions:
           Type: Api
           Properties:
             Path: /signup
             Method: OPTIONS
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
         ConfirmUser:
           Type: Api
           Properties:
             Path: /confirm
             Method: POST
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
         ConfirmUserOptions:
           Type: Api
           Properties:
             Path: /confirm
             Method: OPTIONS
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
         LoginUser:
           Type: Api
           Properties:
             Path: /login
             Method: POST
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
         LoginUserOptions:
           Type: Api
           Properties:
             Path: /login
             Method: OPTIONS
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
         ForgotPassword:
           Type: Api
           Properties:
             Path: /forgot-password
             Method: POST
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
         ForgotPasswordOptions:
           Type: Api
           Properties:
             Path: /forgot-password
             Method: OPTIONS
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
         ConfirmForgotPassword:
           Type: Api
           Properties:
             Path: /confirm-forgot-password
             Method: POST
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
         ConfirmForgotPasswordOptions:
           Type: Api
           Properties:
             Path: /confirm-forgot-password
             Method: OPTIONS
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
         GetUser:
           Type: Api
           Properties:
             Path: /users
             Method: GET
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
             RequestParameters:
               method.request.querystring.email: true
         UpdateUser:
@@ -188,13 +193,15 @@ Resources:
           Properties:
             Path: /users
             Method: PATCH
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
         DeleteUser:
           Type: Api
           Properties:
             Path: /users
             Method: DELETE
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
             RequestParameters:
               method.request.querystring.email: true
         UsersOptions:
@@ -202,11 +209,11 @@ Resources:
           Properties:
             Path: /users
             Method: OPTIONS
-            RestApiId: !Ref ClientPublicBackendApi
+            RestApiId:
+              Ref: ClientPublicBackendApi
       Tags:
-        Environment: !Ref Environment
-
-  ### API Gateway for Client Public Backend ###
+        Environment:
+          Ref: Environment
   ClientPublicBackendApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -216,35 +223,40 @@ Resources:
         Type: REGIONAL
       Cors:
         AllowMethods:
-          - GET
-          - POST
-          - PATCH
-          - DELETE
-          - OPTIONS
+        - GET
+        - POST
+        - PATCH
+        - DELETE
+        - OPTIONS
         AllowHeaders:
-          - Content-Type
-          - Authorization
+        - Content-Type
+        - Authorization
         AllowOrigin: '*'
       Tags:
-        Environment: !Ref Environment
-
+        Environment:
+          Ref: Environment
 Outputs:
   ClientBucketName:
-    Value: !Ref ClientBucket
-    Description: "S3 Bucket for the client application"
-
+    Value:
+      Ref: ClientBucket
+    Description: S3 Bucket for the client application
   LogBucketName:
-    Value: !Ref LogBucket
-    Description: "S3 Bucket for logs"
-
+    Value:
+      Ref: LogBucket
+    Description: S3 Bucket for logs
   PayPalProcessorLambdaFunctionArn:
-    Value: !GetAtt PayPalProcessorFunction.Arn
-    Description: "Lambda function ARN for PayPal Processor"
-
+    Value:
+      Fn::GetAtt:
+      - PayPalProcessorFunction
+      - Arn
+    Description: Lambda function ARN for PayPal Processor
   ClientPublicBackendLambdaFunctionArn:
-    Value: !GetAtt ClientPublicBackendFunction.Arn
-    Description: "Lambda function ARN for Client Public Backend"
-
+    Value:
+      Fn::GetAtt:
+      - ClientPublicBackendFunction
+      - Arn
+    Description: Lambda function ARN for Client Public Backend
   ClientPublicBackendApiInvokeURL:
-    Value: !Sub "https://${ClientPublicBackendApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
-    Description: "Invoke URL for the Client Public Backend API"
+    Value:
+      Fn::Sub: https://${ClientPublicBackendApi}.execute-api.${AWS::Region}.amazonaws.com/prod
+    Description: Invoke URL for the Client Public Backend API
