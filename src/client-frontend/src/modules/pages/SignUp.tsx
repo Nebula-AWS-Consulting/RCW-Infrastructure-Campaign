@@ -29,33 +29,7 @@ function SignUp() {
 
     return errors;
   };
-
-  const confirmUser = async (email: string) => {
-    const user = await getUser(email);
-
-    if (user) {
-      setSubmitError('User already exists. Please sign in.');
-    }
-  };
-
-  const getUser = async (email: string) => {
-    const response = await fetch(
-      `XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX${email}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data;
-  };
+  
 
   const handleSubmit = async (values: { [index: string]: string }) => {
     setSent(true);
@@ -66,13 +40,13 @@ function SignUp() {
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             first_name: values.firstName,
             last_name: values.lastName,
             email: values.email,
-            password: values.password,
+            password: values.password
           })
         }
       );
