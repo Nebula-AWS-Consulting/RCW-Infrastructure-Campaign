@@ -32,28 +32,6 @@ export default function ChurchHero() {
       >
         Come worship this Sunday
       </Typography>
-      <Box>
-        <Button
-          color="primary"
-          variant="contained"
-          size="large"
-          component="a"
-          href="/auth/signup/"
-          sx={{ minWidth: 200, mr: '1rem' }}
-        >
-          Donate
-        </Button>
-        <Button
-          color="secondary"
-          variant="contained"
-          size="large"
-          component="a"
-          href="/auth/signup/"
-          sx={{ minWidth: 200 }}
-        >
-          Register
-        </Button>
-      </Box>
       <Typography variant="body2" color="inherit" sx={{ mt: 2 }}>
         Discover the experience
       </Typography>

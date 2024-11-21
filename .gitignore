@@ -6,3 +6,4 @@ lambda-demo
 paypal-processor
 pynamodb_layer
 venv
+.vite

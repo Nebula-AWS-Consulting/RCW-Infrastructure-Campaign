@@ -16,8 +16,8 @@ function AppAppBar() {
   return (
     <div>
       <AppBar position="fixed">
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
-          <Box sx={{ flex: 1 }} />
+        <Toolbar sx={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}>
+          <Box />
           <Link
             variant="h6"
             underline="none"
@@ -27,30 +27,6 @@ function AppAppBar() {
           >
             { smallScreen ? 'Restored Church Las Vegas' : "RCW Las Vegas" }
           </Link>
-          { smallScreen ?
-          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-            <Link
-              color="inherit"
-              variant="h6"
-              underline="none"
-              sx={rightLink}
-              href="/auth/signin"
-            >
-              {'Sign In'}
-            </Link>
-            <Link
-              variant="h6"
-              underline="none"
-              sx={{ ...rightLink, color: 'secondary.main' }}
-              href="/auth/signup"
-            >
-              {'Sign Up'}
-            </Link>
-          </Box>
-          : <Box>
-            
-          </Box> 
-          }
         </Toolbar>
       </AppBar>
       <Toolbar />

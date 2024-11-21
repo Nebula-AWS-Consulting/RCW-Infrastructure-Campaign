@@ -43,20 +43,24 @@ function ChurchContactUs() {
               <Typography variant="h5">
                 Set up a bible study.
               </Typography>
-              <TextField
-                noBorder
-                placeholder="Your email"
-                variant="standard"
-                sx={{ width: '100%', mt: 3, mb: 2 }}
-              />
-              <Button
-                type="submit"
-                color="primary"
-                variant="contained"
-                sx={{ width: '100%' }}
-              >
-                GET IN TOUCH
-              </Button>
+              <Typography variant="h5" mt={'1rem'}>
+                Evangelist: Austin Alexander
+              </Typography>
+              <Typography variant="h5" ml={'1rem'}>
+                Phone Number: 000000000000
+              </Typography>
+              <Typography variant="h5" ml={'1rem'}>
+                Email: 000000000000
+              </Typography>
+              <Typography variant="h5" mt={'1rem'}>
+                Woman's Ministry Leader: Gigi Alexander
+              </Typography>
+              <Typography variant="h5" ml={'1rem'}>
+                Phone Number: 000000000000
+              </Typography>
+              <Typography variant="h5" ml={'1rem'}>
+                Email: 000000000000
+              </Typography>
             </Box>
           </Box>
         </Grid>
