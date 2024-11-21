@@ -13,6 +13,7 @@ function ChurchContactUs() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setOpen(true);
+    
   };
 
   const handleClose = () => {

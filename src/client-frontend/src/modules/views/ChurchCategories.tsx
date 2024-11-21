@@ -57,6 +57,7 @@ const images = [
     url: 'https://images.unsplash.com/photo-1534081333815-ae5019106622?auto=format&fit=crop&w=400',
     title: 'Location',
     width: '40%',
+    link: '/location'
   },
   {
     url: 'https://images.unsplash.com/photo-1531299204812-e6d44d9a185c?auto=format&fit=crop&w=400',
@@ -67,6 +68,7 @@ const images = [
     url: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=400',
     title: 'WorldWide Movement',
     width: '40%',
+    link: 'https://restoredchurchworldwide.org/'
   },
   {
     url: 'https://images.unsplash.com/photo-1453747063559-36695c8771bd?auto=format&fit=crop&w=400',
@@ -112,7 +114,7 @@ export default function ChurchCategories() {
               }}
             />
             <ImageBackdrop className="imageBackdrop" />
-            <Box
+            <Box 
               sx={{
                 position: 'absolute',
                 left: 0,
@@ -130,6 +132,7 @@ export default function ChurchCategories() {
                 variant="h6"
                 color="inherit"
                 className="imageTitle"
+                onClick={() => window.location.href = image.link || ''}
               >
                 {image.title}
                 <div className="imageMarked" />
