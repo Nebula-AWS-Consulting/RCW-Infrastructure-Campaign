@@ -2,3 +2,7 @@ my-env
 node_modules
 credentials.json
 token.json
+lambda-demo
+paypal-processor
+pynamodb_layer
+venv
