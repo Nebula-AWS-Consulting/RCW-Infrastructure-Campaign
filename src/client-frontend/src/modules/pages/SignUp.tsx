@@ -66,13 +66,13 @@ function SignUp() {
     } finally {
       setSent(false);
       navigate(`/auth/confirm`)
-      dispatch(setLogin({
-        user: {
-          user_name: `${values.firstname} ${values.lastName}`,
-          password: values.password,
-          email: values.email
-        },
-        token: null
+      dispatch(
+        setLogin({
+          user: {
+            user_name: `${values.firstname} ${values.lastName}`,
+            password: values.password,
+            email: values.email
+          }
       }))
     }
   };
