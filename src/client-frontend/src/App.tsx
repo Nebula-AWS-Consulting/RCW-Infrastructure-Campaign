@@ -7,6 +7,7 @@ import ForgotPassword from "./modules/pages/ForgotPassword"
 import Terms from "./modules/pages/Terms"
 import Privacy from "./modules/pages/Privacy"
 import ConfirmSignUp from "./modules/pages/ConfirmSignUp"
+import Location from "./modules/pages/Location"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "./store"
 import { setLogin } from "./modules/ducks/userSlice"
@@ -33,6 +34,7 @@ console.log(user)
     <div>
         <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/location" element={<Location />} />
             <Route path="/auth/signin" element={<SignIn />} />
             <Route path="/auth/signup" element={<SignUp />} />
             <Route path="/auth/signup" element={<SignUp />} />
