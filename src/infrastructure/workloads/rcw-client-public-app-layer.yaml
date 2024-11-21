@@ -178,7 +178,7 @@ Resources:
         GetUser:
           Type: Api
           Properties:
-            Path: /users
+            Path: /user
             Method: GET
             RestApiId: !Ref ClientPublicBackendApi
             RequestParameters:
@@ -186,13 +186,13 @@ Resources:
         UpdateUser:
           Type: Api
           Properties:
-            Path: /users
+            Path: /user
             Method: PATCH
             RestApiId: !Ref ClientPublicBackendApi
         DeleteUser:
           Type: Api
           Properties:
-            Path: /users
+            Path: /user
             Method: DELETE
             RestApiId: !Ref ClientPublicBackendApi
             RequestParameters:
@@ -200,7 +200,7 @@ Resources:
         UsersOptions:
           Type: Api
           Properties:
-            Path: /users
+            Path: /user
             Method: OPTIONS
             RestApiId: !Ref ClientPublicBackendApi
       Tags:
