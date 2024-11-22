@@ -10,8 +10,8 @@ function Copyright() {
   return (
     <React.Fragment>
       {'© '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
+      <Link color="inherit" href="https://restoredchurchlv.com/">
+        restoredchurchlv
       </Link>{' '}
       {new Date().getFullYear()}
     </React.Fragment>
@@ -58,13 +58,13 @@ export default function AppFooter() {
               sx={{ justifyContent: 'flex-end', height: 120 }}
             >
               <Grid item sx={{ display: 'flex' }}>
-                <Box component="a" href="https://mui.com/" sx={iconStyle}>
+                <Box component="a" href="https://www.facebook.com/profile.php?id=61567909106667" sx={iconStyle} borderRadius={'8px'}>
                   <img
                     src="/icons/appFooterFacebook.png"
                     alt="Facebook"
                   />
                 </Box>
-                <Box component="a" href="https://x.com/MUI_hq" sx={iconStyle}>
+                <Box component="a" href="https://www.instagram.com/restoredchurchlv/" sx={iconStyle} borderRadius={'8px'}>
                   <img src="/icons/appFooterInstagram.png" alt="Instagram" />
                 </Box>
               </Grid>
@@ -85,47 +85,6 @@ export default function AppFooter() {
                 <Link href="/privacy">Privacy</Link>
               </Box>
             </Box>
-          </Grid>
-          <Grid item xs={6} sm={8} md={4}>
-            <Typography variant="h6" marked="left" gutterBottom>
-              Language
-            </Typography>
-            <TextField
-              select
-              size="medium"
-              variant="standard"
-              SelectProps={{
-                native: true,
-              }}
-              sx={{ mt: 1, width: 150 }}
-            >
-              {LANGUAGES.map((language) => (
-                <option value={language.code} key={language.code}>
-                  {language.name}
-                </option>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item>
-            <Typography variant="caption">
-              {'Icons made by '}
-              <Link href="https://www.freepik.com" rel="sponsored" title="Freepik">
-                Freepik
-              </Link>
-              {' from '}
-              <Link href="https://www.flaticon.com" rel="sponsored" title="Flaticon">
-                www.flaticon.com
-              </Link>
-              {' is licensed by '}
-              <Link
-                href="https://creativecommons.org/licenses/by/3.0/"
-                title="Creative Commons BY 3.0"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                CC 3.0 BY
-              </Link>
-            </Typography>
           </Grid>
         </Grid>
       </Container>

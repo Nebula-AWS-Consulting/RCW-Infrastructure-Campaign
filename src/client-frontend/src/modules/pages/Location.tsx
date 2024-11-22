@@ -24,7 +24,7 @@ function Location() {
           }}>
             <EventCard 
                 name='Sunday Service'
-                location='Cornerstone Park'
+                location='5858 S Pecos RD Las Vegas, NV'
                 date='Sundays'
                 time='5PM'
                 size='large'
@@ -35,7 +35,7 @@ function Location() {
                 date='Fridays'
                 time='7:30PM'
                 size='large'
-                description=''
+                description='We usually meet in the CHB A108 but please contact us for an exact location'
             />
             <EventCard 
                 name='Bible Talk'

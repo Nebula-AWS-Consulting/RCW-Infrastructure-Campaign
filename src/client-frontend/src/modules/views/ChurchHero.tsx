@@ -4,7 +4,7 @@ import ChurchHeroLayout from './ChurchHeroLayout';
 import { Box } from '@mui/material';
 
 const backgroundImage =
-  'https://images.unsplash.com/photo-1534854638093-bada1813ca19?auto=format&fit=crop&w=1400';
+  './images/sundaysService.jpg';
 
 export default function ChurchHero() {
   return (

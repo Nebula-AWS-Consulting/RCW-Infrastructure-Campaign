@@ -47,19 +47,19 @@ function ChurchContactUs() {
                 Evangelist: Austin Alexander
               </Typography>
               <Typography variant="h5" ml={'1rem'}>
-                Phone Number: 000000000000
+                Phone Number: (808)-208-4011
               </Typography>
               <Typography variant="h5" ml={'1rem'}>
-                Email: 000000000000
+                Email: austin.alexander@rcwmail.org
               </Typography>
               <Typography variant="h5" mt={'1rem'}>
                 Woman's Ministry Leader: Gigi Alexander
               </Typography>
               <Typography variant="h5" ml={'1rem'}>
-                Phone Number: 000000000000
+                Phone Number: (808)-498-9652
               </Typography>
               <Typography variant="h5" ml={'1rem'}>
-                Email: 000000000000
+                Email: gigi.alexander@rcwmail.org
               </Typography>
             </Box>
           </Box>
@@ -83,7 +83,7 @@ function ChurchContactUs() {
           />
           <Box
             component="img"
-            src="https://images.unsplash.com/photo-1527853787696-f7be74f2e39a?auto=format&fit=crop&w=750"
+            src="./images/alexanders.jpeg"
             alt="call to action"
             sx={{
               position: 'absolute',
@@ -92,7 +92,7 @@ function ChurchContactUs() {
               right: 0,
               bottom: 0,
               width: '100%',
-              maxWidth: 600,
+              maxWidth: 600
             }}
           />
         </Grid>
