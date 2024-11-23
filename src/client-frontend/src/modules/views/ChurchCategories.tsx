@@ -63,6 +63,7 @@ const images = [
     url: './images/henry.jpg',
     title: 'Missions',
     width: '20%',
+    link: 'https://www.paypal.com/donate/?hosted_button_id=GE88JN9WX35ML'
   },
   {
     url: './images/rcw.png',
@@ -79,6 +80,7 @@ const images = [
     url: './images/preach.jpg',
     title: 'Donate',
     width: '38%',
+    link: 'https://www.paypal.com/donate/?hosted_button_id=3K78Y7VSPZMGN'
   },
   {
     url: './images/devo.jpg',

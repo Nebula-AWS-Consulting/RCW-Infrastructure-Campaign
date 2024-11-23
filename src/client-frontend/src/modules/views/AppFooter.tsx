@@ -4,7 +4,6 @@ import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 import Container from '@mui/material/Container';
 import Typography from '../components/Typography';
-import TextField from '../components/TextField';
 
 function Copyright() {
   return (
@@ -30,17 +29,6 @@ const iconStyle = {
     bgcolor: 'warning.dark',
   },
 };
-
-const LANGUAGES = [
-  {
-    code: 'en-US',
-    name: 'English',
-  },
-  {
-    code: 'fr-FR',
-    name: 'Français',
-  },
-];
 
 export default function AppFooter() {
   return (

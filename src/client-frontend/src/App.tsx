@@ -13,7 +13,6 @@ import { RootState } from "./store"
 import { setLogin } from "./modules/ducks/userSlice"
 
 function App() {
-  const isLoggedIn = Boolean(useSelector((state: RootState) => state.userAuthAndInfo.token))
   const user = useSelector((state: RootState) => state.userAuthAndInfo);
   const dispatch = useDispatch();
 

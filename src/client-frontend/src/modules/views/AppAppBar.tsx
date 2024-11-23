@@ -4,11 +4,6 @@ import AppBar from '../components/AppBar';
 import Toolbar from '../components/Toolbar';
 import { useMediaQuery } from '@mui/material';
 
-const rightLink = {
-  fontSize: 16,
-  color: 'common.white',
-  ml: 3,
-};
 
 function AppAppBar() {
   const smallScreen = useMediaQuery('(min-width: 800px)')

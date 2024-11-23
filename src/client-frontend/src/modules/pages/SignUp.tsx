@@ -60,7 +60,7 @@ function SignUp() {
         throw new Error(`Error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      await response.json();
     } catch (error) {
       setSubmitError('Sign-up failed. Please try again.');
     } finally {

@@ -1,7 +1,5 @@
-import Button from '../components/Button';
 import Typography from '../components/Typography';
 import ChurchHeroLayout from './ChurchHeroLayout';
-import { Box } from '@mui/material';
 
 const backgroundImage =
   './images/sundaysService.jpg';
