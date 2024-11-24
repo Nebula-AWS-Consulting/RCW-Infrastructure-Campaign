@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 export interface User {
   user_name: string;
-  password: string;
+  password: string | null;
   email: string;
 }
 
@@ -42,6 +42,13 @@ export const userAuthAndInfoSlice = createSlice({
     },
   },
 });
+
+export const selectIsLoggedIn = (state: { userAuthAndInfo: InitialState }) => {
+  return (
+    !!state.userAuthAndInfo.user &&
+    !!state.userAuthAndInfo.token.access_token
+  );
+};
 
 export const { setLogin, setLogout } = userAuthAndInfoSlice.actions;
 export default userAuthAndInfoSlice.reducer;

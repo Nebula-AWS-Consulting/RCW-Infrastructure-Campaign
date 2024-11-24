@@ -11,24 +11,32 @@ import Location from "./modules/pages/Location"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "./store"
 import { setLogin } from "./modules/ducks/userSlice"
+import { useEffect } from "react"
 
 function App() {
-  const isLoggedIn = Boolean(useSelector((state: RootState) => state.userAuthAndInfo.token))
   const user = useSelector((state: RootState) => state.userAuthAndInfo);
   const dispatch = useDispatch();
 
-  const userCookies = localStorage.getItem('user')
-  const userToken = localStorage.getItem('userToken')
+  const isLoggedIn = useSelector(
+    (state: RootState) => Boolean(state.userAuthAndInfo.token)
+  );
 
-  if (userCookies && userToken) {
-    dispatch(
-      setLogin({
-        user: userCookies,
-        token: userToken
-    }))
-  }
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    const token = localStorage.getItem('userToken');
+
+    if (user && token) {
+      dispatch(
+        setLogin({
+          user: JSON.parse(user),
+          token: JSON.parse(token),
+        })
+      );
+    }
+  }, [dispatch]);
 
 console.log(user)
+console.log(isLoggedIn)
 
   return (
     <div>

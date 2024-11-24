@@ -10,7 +10,6 @@ import { setLogin } from "../ducks/userSlice";
 
 function ConfirmSignUp() {
     const user = useSelector((state: RootState) => state.userAuthAndInfo.user);
-    const token = useSelector((state: RootState) => state.userAuthAndInfo.token);
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -66,22 +65,30 @@ function ConfirmSignUp() {
         }
     
         const data = await response.json();
+
+        const userData = {
+          user_name: user?.user_name,
+          password: null,
+          email: email
+        };
+      
+        const tokenData = {
+          id_token: data.id_token,
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+        };
+      
+        // Store data in local storage
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('userToken', JSON.stringify(tokenData));
+      
+        // Dispatch to Redux store
         dispatch(
-            setLogin({
-              user: {
-                user_name: user?.user_name,
-                password: password,
-                email: email
-              },
-              token: {
-                id_token: data.id_token,
-                access_token: data.access_token,
-                refresh_token: data.refresh_token,
-              },
-            })
-          );
-          localStorage.setItem('user', JSON.stringify(user))
-          localStorage.setItem('userToken', JSON.stringify(token))
+          setLogin({
+            user: userData,
+            token: tokenData,
+          })
+        )
       };
       
   return (
@@ -97,7 +104,6 @@ function ConfirmSignUp() {
             <h1>Confirm Sign Up</h1>
             <p>Is this info correct</p>
             <p>{user?.email}</p>
-            <p>{user?.password}</p>
           <FormButton
           sx={{ mt: 3, mb: 2, paddingX: 10 }}
           color="secondary"

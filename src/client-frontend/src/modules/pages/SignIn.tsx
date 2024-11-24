@@ -66,24 +66,28 @@ function SignIn() {
 
     const userName = await getUserUsername(email)
 
+    const userData = {
+      user_name: userName,
+      email: email
+    };
+  
+    const tokenData = {
+      id_token: data.id_token,
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    };
+  
+    // Store data in local storage
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('userToken', JSON.stringify(tokenData));
+  
+    // Dispatch to Redux store
     dispatch(
-        setLogin({
-          user: {
-            user_name: userName,
-            password: password,
-            email: email
-          },
-          token: {
-            id_token: data.id_token,
-            access_token: data.access_token,
-            refresh_token: data.refresh_token,
-          },
-        })
-      );
-      localStorage.setItem('user', JSON.stringify(user))
-      localStorage.setItem('userToken', JSON.stringify(token))
-
-      setSent(false)
+      setLogin({
+        user: userData,
+        token: tokenData,
+      })
+    )
   };
 
   const getUserUsername = async (email:string) => {
