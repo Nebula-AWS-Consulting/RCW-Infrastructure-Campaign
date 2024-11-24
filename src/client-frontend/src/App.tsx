@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "./store"
 import { setLogin } from "./modules/ducks/userSlice"
 import { useEffect } from "react"
+import SignOut from "./modules/pages/SignOut"
 
 function App() {
   const user = useSelector((state: RootState) => state.userAuthAndInfo);
@@ -45,7 +46,7 @@ console.log(isLoggedIn)
             <Route path="/location" element={<Location />} />
             <Route path="/auth/signin" element={<SignIn />} />
             <Route path="/auth/signup" element={<SignUp />} />
-            <Route path="/auth/signup" element={<SignUp />} />
+            <Route path="/auth/signout" element={<SignOut />} />
             <Route path="/auth/confirm" element={<ConfirmSignUp />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
             <Route path="/terms" element={<Terms />} />

@@ -115,7 +115,7 @@ function AppAppBar() {
                     <Link
                       variant="h6"
                       underline="none"
-                      sx={{ ...rightLink, color: 'secondary.main' }}
+                      sx={{ ...rightLink, color: 'inherit' }}
                       href="/profile"
                     >
                       Profile
@@ -123,7 +123,7 @@ function AppAppBar() {
                     <Link
                       variant="h6"
                       underline="none"
-                      sx={{ ...rightLink, color: 'error.main' }}
+                      sx={{ ...rightLink, color: 'secondary.main' }}
                       href="/auth/signout"
                     >
                       Logout

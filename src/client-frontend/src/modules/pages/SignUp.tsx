@@ -7,7 +7,7 @@ import Typography from '../components/Typography';
 import AppFooter from '../views/AppFooter';
 import AppAppBar from '../views/AppAppBar';
 import AppForm from '../views/AppForm';
-import { email, required } from '../form/validation';
+import { email, password, required } from '../form/validation';
 import RFTextField from '../form/RFTextField';
 import FormButton from '../form/FormButton';
 import FormFeedback from '../form/FormFeedback';
@@ -23,15 +23,20 @@ function SignUp() {
   const dispatch = useDispatch()
 
   const validate = (values: { [index: string]: string }) => {
-    const errors = required(['firstName', 'lastName', 'email', 'password'], values);
-
+    const errors = required(['email', 'password'], values);
+  
     if (!errors.email) {
       const emailError = email(values.email);
       if (emailError) {
         errors.email = emailError;
       }
     }
-
+  
+    const passwordError = password(values.password);
+    if (passwordError) {
+      errors.password = passwordError;
+    }
+  
     return errors;
   };
 

@@ -6,88 +6,103 @@ import Typography from '../components/Typography';
 import AppFooter from '../views/AppFooter';
 import AppAppBar from '../views/AppAppBar';
 import AppForm from '../views/AppForm';
-import { email, required } from '../form/validation';
+import { email, password, required } from '../form/validation';
 import RFTextField from '../form/RFTextField';
 import FormButton from '../form/FormButton';
 import FormFeedback from '../form/FormFeedback';
 import withRoot from '../withRoot';
 import { setLogin } from '../ducks/userSlice';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 function SignIn() {
-  const user = useSelector((state: RootState) => state.userAuthAndInfo.user);
-  const token = useSelector((state: RootState) => state.userAuthAndInfo.token);
   const [sent, setSent] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState(String);
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['email', 'password'], values);
-
+  
     if (!errors.email) {
       const emailError = email(values.email);
       if (emailError) {
         errors.email = emailError;
       }
     }
-
+  
+    const passwordError = password(values.password);
+    if (passwordError) {
+      errors.password = passwordError;
+    }
+  
     return errors;
   };
 
   const handleSubmit = async (values: { [index: string]: string }) => {
     setSent(true);
-    await loginUser(values.email, values.password)
-
-    navigate('/')
+    try {
+      await loginUser(values.email, values.password);
+      navigate('/');
+    } catch (error) {
+      setSubmitError('Sign-in failed. Please try again.');
+    } finally {
+      setSent(false);
+    }
   };
 
   const loginUser = async (email: string, password: string) => {
-    const response = await fetch(
-      `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/login`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password
-      })
+    try{
+      const response = await fetch(
+        `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/login`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            password
+        })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
       }
-    );
 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
+      const data = await response.json();
+
+      const userName = await getUserUsername(email)
+
+      const userData = {
+        user_name: userName,
+        email: email
+      };
+    
+      const tokenData = {
+        id_token: data.id_token,
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+      };
+    
+      // Store data in local storage
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('userToken', JSON.stringify(tokenData));
+    
+      // Dispatch to Redux store
+      dispatch(
+        setLogin({
+          user: userData,
+          token: tokenData,
+        })
+      )
     }
-
-    const data = await response.json();
-
-    const userName = await getUserUsername(email)
-
-    const userData = {
-      user_name: userName,
-      email: email
-    };
-  
-    const tokenData = {
-      id_token: data.id_token,
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-    };
-  
-    // Store data in local storage
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('userToken', JSON.stringify(tokenData));
-  
-    // Dispatch to Redux store
-    dispatch(
-      setLogin({
-        user: userData,
-        token: tokenData,
-      })
-    )
+    catch (error) {
+      setSubmitError('Sign-in failed. Please try again.');
+    } finally {
+      setSent(false);
+    }
   };
 
   const getUserUsername = async (email:string) => {
@@ -170,6 +185,11 @@ function SignIn() {
                   ) : null
                 }
               </FormSpy>
+              {submitError && (
+                <FormFeedback error sx={{ mt: 2 }}>
+                  {submitError}
+                </FormFeedback>
+              )}
               <FormButton
                 sx={{ mt: 3, mb: 2 }}
                 disabled={submitting || sent}
