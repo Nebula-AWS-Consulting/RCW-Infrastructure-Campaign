@@ -14,6 +14,22 @@ export function email(value: string) {
   return value && !isEmail(value.trim()) ? 'Invalid email' : null;
 }
 
+export function password(value: string) {
+  if (!value) {
+    return 'Password is required';
+  }
+
+  if (value.length < 8) {
+    return 'Password must be at least 8 characters';
+  }
+
+  if (!/[A-Z]/.test(value)) {
+    return 'Password must contain at least one uppercase letter';
+  }
+
+  return null;
+}
+
 function isDirty(value: string | number) {
   return value || value === 0;
 }

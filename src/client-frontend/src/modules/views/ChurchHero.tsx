@@ -4,7 +4,7 @@ import ChurchHeroLayout from './ChurchHeroLayout';
 import { Box } from '@mui/material';
 
 const backgroundImage =
-  'https://images.unsplash.com/photo-1534854638093-bada1813ca19?auto=format&fit=crop&w=1400';
+  './images/sundaysService.jpg';
 
 export default function ChurchHero() {
   return (
@@ -22,7 +22,7 @@ export default function ChurchHero() {
         alt="increase priority"
       />
       <Typography color="inherit" align="center" variant="h2" marked="center">
-        Upgrade your Sundays
+        RESTORING TRUTH WORLDWIDE
       </Typography>
       <Typography
         color="inherit"
@@ -34,24 +34,13 @@ export default function ChurchHero() {
       </Typography>
       <Box>
         <Button
-          color="primary"
-          variant="contained"
-          size="large"
-          component="a"
-          href="/auth/signup/"
-          sx={{ minWidth: 200, mr: '1rem' }}
-        >
-          Donate
-        </Button>
-        <Button
           color="secondary"
           variant="contained"
           size="large"
           component="a"
-          href="/auth/signup/"
           sx={{ minWidth: 200 }}
         >
-          Register
+          Contact Us
         </Button>
       </Box>
       <Typography variant="body2" color="inherit" sx={{ mt: 2 }}>
