@@ -6,9 +6,25 @@ import Typography from '../components/Typography';
 import TextField from '../components/TextField';
 import Snackbar from '../components/Snackbar';
 import Button from '../components/Button';
+import { Field, Form } from 'react-final-form';
+import { email, required } from '../form/validation';
+import RFTextField from '../form/RFTextField';
 
 function ChurchContactUs() {
   const [open, setOpen] = React.useState(false);
+  const [sent, setSent] = React.useState(false);
+
+  const validate = (values: { [index: string]: string }) => {
+    const errors = required(['email', 'phone number'], values);
+  
+    if (!errors.email) {
+      const emailError = email(values.email);
+      if (emailError) {
+        errors.email = emailError;
+      }
+    }
+    return errors;
+  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,20 +59,42 @@ function ChurchContactUs() {
               <Typography variant="h5">
                 Set up a bible study.
               </Typography>
-              <TextField
-                noBorder
-                placeholder="Your email"
-                variant="standard"
-                sx={{ width: '100%', mt: 3, mb: 2 }}
-              />
-              <Button
-                type="submit"
-                color="primary"
-                variant="contained"
-                sx={{ width: '100%' }}
+              <Form
+                onSubmit={handleSubmit}
+                subscription={{ submitting: true }}
               >
-                GET IN TOUCH
-              </Button>
+              {({ handleSubmit: handleSubmit2, submitting }) => (
+                <Box component="form" onSubmit={handleSubmit2} noValidate sx={{ mt: 6 }}>
+                  <Field
+                    noBorder
+                    placeholder="Your email"
+                    component={RFTextField}
+                    disabled={submitting || sent}
+                    fullWidth
+                    name='email'
+                    required
+                  />
+                  <Field
+                    noBorder
+                    placeholder="Your Phone Number"
+                    sx={{ width: '100%', mt: 1, mb: 3 }}
+                    component={RFTextField}
+                    disabled={submitting || sent}
+                    fullWidth
+                    name='Phone Number'
+                    required
+                  />
+                  <Button
+                    type="submit"
+                    color="primary"
+                    variant="contained"
+                    sx={{ width: '100%' }}
+                  >
+                    GET IN TOUCH
+                  </Button>
+                </Box>
+              )}
+              </Form>
             </Box>
           </Box>
         </Grid>
@@ -74,12 +112,15 @@ function ChurchContactUs() {
               right: 0,
               bottom: 0,
               width: '100%',
-              background: 'url(/churchContactUsDots.png)',
+              maxWidth: 600,
+              height: '60%',
+              overflow: 'hidden',
+              background: 'url(/churchContactUsDots.png)'
             }}
           />
           <Box
             component="img"
-            src="https://images.unsplash.com/photo-1527853787696-f7be74f2e39a?auto=format&fit=crop&w=750"
+            src="./images/alexanders.jpeg"
             alt="call to action"
             sx={{
               position: 'absolute',
@@ -88,7 +129,10 @@ function ChurchContactUs() {
               right: 0,
               bottom: 0,
               width: '100%',
-              maxWidth: 600,
+              height: '100%',
+              maxWidth: 500,
+              objectFit: 'cover',
+              objectPosition: '30% 30%',
             }}
           />
         </Grid>
@@ -96,7 +140,7 @@ function ChurchContactUs() {
       <Snackbar
         open={open}
         closeFunc={handleClose}
-        message="We will send you our best offers, once a week."
+        message="We will contact you soon."
       />
     </Container>
   );
