@@ -92,54 +92,48 @@ function ChurchValues() {
               </Typography>
             </Box>
           </Grid>
-          <Box sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            px: 5,
-            mt: 5
-          }}>
-          <Grid item xs={12} md={4}>
-            <Box sx={item}>
-              <Box
-                component="img"
-                src="/icons/missionaries-icon.png"
-                alt="clock"
-                sx={{ height: 105 }}
-              />
-              <Typography variant="h6" sx={{ my: 3 }}>
-                WE ARE MISSIONARIES
-              </Typography>
-              <Typography variant="h5" textAlign="center">
-                {'God’s will is for all people to be saved and to come to a knowledge of the truth. '}
-                {'We believe in evangelizing the nations in this generation as Jesus teaches.'}
-              </Typography>
-              <Typography variant="h6" color='secondary' textAlign="center" mt='1rem'>
-                {'1 Timothy 2:3-4'}
-              </Typography>
-            </Box>
+          <Grid container item xs={12} justifyContent="center" spacing={5}>
+            <Grid item xs={12} md={4}>
+              <Box sx={item}>
+                <Box
+                  component="img"
+                  src="/icons/missionaries-icon.png"
+                  alt="clock"
+                  sx={{ height: 105 }}
+                />
+                <Typography variant="h6" sx={{ my: 3 }}>
+                  WE ARE MISSIONARIES
+                </Typography>
+                <Typography variant="h5" textAlign="center">
+                  {'God’s will is for all people to be saved and to come to a knowledge of the truth. '}
+                  {'We believe in evangelizing the nations in this generation as Jesus teaches.'}
+                </Typography>
+                <Typography variant="h6" color='secondary' textAlign="center" mt='1rem'>
+                  {'1 Timothy 2:3-4'}
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={item}>
+                <Box
+                  component="img"
+                  src="/icons/unity-icon.png"
+                  alt="clock"
+                  sx={{ height: 140 }}
+                />
+                <Typography variant="h6" sx={{ mb: 3, mt: -1 }}>
+                  UNITY IN LEADERSHIP
+                </Typography>
+                <Typography variant="h5" textAlign="center">
+                  {'God’s plan is for a central leadership of His people where there is unity, '}
+                  {'just as it was throughout the Bible when God’s people were unified there was a central leader.'}
+                </Typography>
+                <Typography variant="h6" color='secondary' textAlign="center" href='' mt='1rem'>
+                  {'1 Corinthians 4:14-17'}
+                </Typography>
+              </Box>
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={4}>
-            <Box sx={item}>
-              <Box
-                component="img"
-                src="/icons/unity-icon.png"
-                alt="clock"
-                sx={{ height: 140 }}
-              />
-              <Typography variant="h6" sx={{ mb: 3, mt: -1 }}>
-                UNITY IN LEADERSHIP
-              </Typography>
-              <Typography variant="h5" textAlign="center">
-                {'God’s plan is for a central leadership of His people where there is unity, '}
-                {'just as it was throughout the Bible when God’s people were unified there was a central leader.'}
-              </Typography>
-              <Typography variant="h6" color='secondary' textAlign="center" href='' mt='1rem'>
-                {'1 Corinthians 4:14-17'}
-              </Typography>
-            </Box>
-          </Grid>
-          </Box>
         </Grid>
       </Container>
     </Box>
