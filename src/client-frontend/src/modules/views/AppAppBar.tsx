@@ -12,7 +12,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { selectIsLoggedIn } from '../ducks/userSlice';
+import { selectIsLoggedIn, selectLanguage } from '../ducks/userSlice';
 
 const rightLink = {
   fontSize: 16,
@@ -24,6 +24,7 @@ function AppAppBar() {
   const isSmallScreen = useMediaQuery('(max-width: 800px)');
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const isLoggedIn = useSelector((state: RootState) => selectIsLoggedIn(state));
+  const language = useSelector(selectLanguage);
 
 
   const toggleDrawer = (open: boolean) => () => {
@@ -110,7 +111,7 @@ function AppAppBar() {
                       sx={rightLink}
                       href="/dashboard"
                     >
-                      Dashboard
+                      {language=='en-US' ? 'Dashboard' : language=='fr-FR' ? 'Légal' : language=='es-MX' ? 'Legal' : ''}
                     </Link>
                     <Link
                       variant="h6"

@@ -16,6 +16,7 @@ import AccountCreated from "./modules/pages/AccountCreated"
 
 function App() {
   const user = useSelector((state: RootState) => state.userAuthAndInfo);
+  const language = useSelector((state: RootState) => state.userAuthAndInfo.language);
   const dispatch = useDispatch();
 
   const isLoggedIn = useSelector(
@@ -38,6 +39,7 @@ function App() {
 
 console.log(user)
 console.log(isLoggedIn)
+console.log(language)
 
   return (
     <div>
