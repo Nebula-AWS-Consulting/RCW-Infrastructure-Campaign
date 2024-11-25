@@ -52,57 +52,48 @@ function SignIn() {
   };
 
   const loginUser = async (email: string, password: string) => {
-    try{
-      const response = await fetch(
-        `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email,
-            password
-        })
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+    const response = await fetch(
+      `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/login`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       }
-
-      const data = await response.json();
-
-      const userName = await getUserUsername(email)
-
-      const userData = {
-        user_name: userName,
-        email: email
-      };
-    
-      const tokenData = {
-        id_token: data.id_token,
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-      };
-    
-      // Store data in local storage
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('userToken', JSON.stringify(tokenData));
-    
-      // Dispatch to Redux store
-      dispatch(
-        setLogin({
-          user: userData,
-          token: tokenData,
-        })
-      )
+    );
+  
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
     }
-    catch (error) {
-      setSubmitError('Sign-in failed. Please try again.');
-    } finally {
-      setSent(false);
-    }
+  
+    const data = await response.json();
+  
+    const userName = await getUserUsername(email);
+  
+    const userData = {
+      user_name: userName,
+      email: email,
+    };
+  
+    const tokenData = {
+      id_token: data.id_token,
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    };
+  
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('userToken', JSON.stringify(tokenData));
+  
+    dispatch(
+      setLogin({
+        user: userData,
+        token: tokenData,
+      })
+    );
   };
 
   const getUserUsername = async (email:string) => {

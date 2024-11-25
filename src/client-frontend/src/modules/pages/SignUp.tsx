@@ -43,6 +43,7 @@ function SignUp() {
 
   const handleSubmit = async (values: { [index: string]: string }) => {
     setSent(true);
+    setSubmitError('');
 
     try {
       const response = await fetch(
@@ -66,19 +67,84 @@ function SignUp() {
       }
 
       await response.json();
+
+      const userName = `${values.firstName} ${values.lastName}`
+
+      confirmUser(values.email)
+      loginUser(values.email, values.password, userName);
     } catch (error) {
       setSubmitError('Sign-up failed. Please try again.');
     } finally {
+      if (submitError === '') {
+        navigate('/auth/created')
+      }
       setSent(false);
-      navigate(`/auth/confirm`)
+    }
+  };
+
+  const confirmUser = async (email: string) => {
+    const response = await fetch(
+        `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/confirm`,
+        {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: email
+          })
+          }
+    )
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+};
+
+  const loginUser = async (email: string, password: string, user_name: string) => {
+    try {
+      const response = await fetch(
+        `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/login`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            password
+          })
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error(`Login failed: ${response.statusText}`);
+      }
+  
+      const data = await response.json();
+  
+      const userData = {
+        user_name: user_name,
+        email: email
+      };
+  
+      const tokenData = {
+        id_token: data.id_token,
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+      };
+  
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('userToken', JSON.stringify(tokenData));
+  
       dispatch(
         setLogin({
-          user: {
-            user_name: `${values.firstname} ${values.lastName}`,
-            password: values.password,
-            email: values.email
-          }
-      }))
+          user: userData,
+          token: tokenData,
+        })
+      );
+    } catch (error) {
+      throw error;
     }
   };
 
