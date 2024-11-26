@@ -3,16 +3,18 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Container from '@mui/material/Container';
 import Typography from '../components/Typography';
-import TextField from '../components/TextField';
 import Snackbar from '../components/Snackbar';
 import Button from '../components/Button';
 import { Field, Form } from 'react-final-form';
 import { email, required } from '../form/validation';
 import RFTextField from '../form/RFTextField';
+import { useSelector } from 'react-redux';
+import { selectLanguage } from '../ducks/userSlice';
 
 function ChurchContactUs() {
   const [open, setOpen] = React.useState(false);
   const [sent, setSent] = React.useState(false);
+  const language = useSelector(selectLanguage);
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['email', 'phone number'], values);
@@ -51,13 +53,13 @@ function ChurchContactUs() {
           >
             <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 400 }}>
               <Typography variant="h2" component="h2" gutterBottom>
-                Contact Us
+                {language=='en-US' ? 'Contact Us' : language=='fr-FR' ? 'Contactez-nous' : language=='es-MX' ? 'Contacta con nosotros' : ''}
               </Typography>
               <Typography variant="h5" mb={1}>
-                Get more information.
+              {language=='en-US' ? 'Get more information.' : language=='fr-FR' ? `Obtenez plus d'informations.` : language=='es-MX' ? 'Obtenga más información.' : ''}
               </Typography>
               <Typography variant="h5">
-                Set up a bible study.
+              {language=='en-US' ? 'Set up a bible study.' : language=='fr-FR' ? `Organisez une étude biblique.` : language=='es-MX' ? 'Organice un estudio bíblico.' : ''}
               </Typography>
               <Form
                 onSubmit={handleSubmit}
@@ -67,7 +69,7 @@ function ChurchContactUs() {
                 <Box component="form" onSubmit={handleSubmit2} noValidate sx={{ mt: 6 }}>
                   <Field
                     noBorder
-                    placeholder="Your email"
+                    placeholder={language=='en-US' ? 'Your email' : language=='fr-FR' ? 'Votre email' : language=='es-MX' ? 'Tu correo electrónico' : ''}
                     component={RFTextField}
                     disabled={submitting || sent}
                     fullWidth
@@ -76,7 +78,7 @@ function ChurchContactUs() {
                   />
                   <Field
                     noBorder
-                    placeholder="Your Phone Number"
+                    placeholder={language=='en-US' ? 'Your Phone Number' : language=='fr-FR' ? 'Votre numéro de téléphone' : language=='es-MX' ? 'Tu número de teléfono' : ''}
                     sx={{ width: '100%', mt: 1, mb: 3 }}
                     component={RFTextField}
                     disabled={submitting || sent}
@@ -90,7 +92,7 @@ function ChurchContactUs() {
                     variant="contained"
                     sx={{ width: '100%' }}
                   >
-                    GET IN TOUCH
+                    {language=='en-US' ? 'GET IN TOUCH' : language=='fr-FR' ? 'ENTRER EN CONTACT' : language=='es-MX' ? 'PONTE EN CONTACTO' : ''}
                   </Button>
                 </Box>
               )}
@@ -140,7 +142,7 @@ function ChurchContactUs() {
       <Snackbar
         open={open}
         closeFunc={handleClose}
-        message="We will contact you soon."
+        message={language=='en-US' ? 'We will contact you soon.' : language=='fr-FR' ? 'Nous vous contacterons bientôt.' : language=='es-MX' ? 'Lo contactaremos pronto.' : ''}
       />
     </Container>
   );

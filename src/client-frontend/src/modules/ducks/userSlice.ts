@@ -22,7 +22,7 @@ const initialState: InitialState = {
     access_token: null,
     refresh_token: null,
   },
-  language: 'en-US'
+  language: localStorage.getItem('language') || 'en-US'
 };
 
 export const userAuthAndInfoSlice = createSlice({
@@ -42,7 +42,8 @@ export const userAuthAndInfoSlice = createSlice({
       };
     },
     setLanguage: (state, action) => {
-      state.language = action.payload; // Update language state
+      state.language = action.payload;
+      localStorage.setItem('language', action.payload);
     },
   },
 });
