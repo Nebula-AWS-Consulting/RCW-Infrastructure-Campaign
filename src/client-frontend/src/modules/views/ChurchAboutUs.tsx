@@ -1,8 +1,12 @@
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Typography from '../components/Typography';
+import { useSelector } from 'react-redux';
+import { selectLanguage } from '../ducks/userSlice';
 
 function ChurchAboutUs() {
+  const language = useSelector(selectLanguage);
+  
   return (
     <Box
       component="section"
@@ -31,6 +35,7 @@ function ChurchAboutUs() {
           }}
         />
         <Typography variant="h3" marked="center" component="h2" sx={{ mb: 8 }}>
+        {language=='en-US' ? 'Contribution' : language=='fr-FR' ? 'Contribution' : language=='es-MX' ? 'Contribución' : ''}
           About Us
         </Typography>
         <div>

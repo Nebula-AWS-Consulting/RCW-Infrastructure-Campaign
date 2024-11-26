@@ -3,6 +3,8 @@ import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import Container from '@mui/material/Container';
 import Typography from '../components/Typography';
+import { useSelector } from 'react-redux';
+import { selectLanguage } from '../ducks/userSlice';
 
 const ImageBackdrop = styled('div')(({ theme }) => ({
   position: 'absolute',
@@ -52,48 +54,53 @@ const ImageIconButton = styled(ButtonBase)(({ theme }) => ({
   },
 }));
 
-const images = [
-  {
-    url: './images/alex.jpg',
-    title: 'Location',
-    width: '40%',
-    link: '/location'
-  },
-  {
-    url: './images/devo.jpg',
-    title: 'Contact Us',
-    width: '20%',
-  },
-  {
-    url: './images/rcw.png',
-    title: 'WorldWide Movement',
-    width: '40%',
-    link: 'https://restoredchurchworldwide.org/'
-  },
-  {
-    url: './images/happy.jpg',
-    title: 'Missions',
-    width: '28%',
-    link: 'https://www.paypal.com/donate/?hosted_button_id=GE88JN9WX35ML'
-  },
-  {
-    url: './images/henry.jpg',
-    title: 'Benevolence',
-    width: '34%',
-  },
-  {
-    url: './images/preach.jpg',
-    title: 'Contribution',
-    width: '38%',
-    link: 'https://www.paypal.com/donate/?hosted_button_id=3K78Y7VSPZMGN'
-  }
-];
 
 export default function ChurchCategories() {
+  const language = useSelector(selectLanguage);
+  
+  const images = [
+    {
+      url: './images/alex.jpg',
+      title: `${language=='en-US' ? 'Location' : language=='fr-FR' ? 'Emplacement' : language=='es-MX' ? 'Ubicación' : ''}`,
+      width: '40%',
+      link: '/location'
+    },
+    {
+      url: './images/devo.jpg',
+      title: `${language=='en-US' ? 'Contact Us' : language=='fr-FR' ? 'Contactez-nous' : language=='es-MX' ? 'Contáctenos' : ''}`,
+      width: '20%',
+    },
+    {
+      url: './images/rcw.png',
+      title: `${language=='en-US' ? 'Worldwide Movement' : language=='fr-FR' ? 'Mouvement Mondial' : language=='es-MX' ? 'Movimiento Mundial' : ''}`,
+      width: '40%',
+      link: 'https://restoredchurchworldwide.org/'
+    },
+    {
+      url: './images/happy.jpg',
+      title: `${language=='en-US' ? 'Missions' : language=='fr-FR' ? 'Missions' : language=='es-MX' ? 'Misiones' : ''}`,
+      width: '28%',
+      link: 'https://www.paypal.com/donate/?hosted_button_id=GE88JN9WX35ML'
+    },
+    {
+      url: './images/henry.jpg',
+      title: `${language=='en-US' ? 'Benevolence' : language=='fr-FR' ? 'Bienveillance' : language=='es-MX' ? 'Benevolencia' : ''}`,
+      width: '34%',
+    },
+    {
+      url: './images/preach.jpg',
+      title: `${language=='en-US' ? 'Contribution' : language=='fr-FR' ? 'Contribution' : language=='es-MX' ? 'Contribución' : ''}`,
+      width: '38%',
+      link: 'https://www.paypal.com/donate/?hosted_button_id=3K78Y7VSPZMGN'
+    }
+  ];
+
   return (
     <Container component="section" sx={{ mt: 8, mb: 4 }}>
       <Typography variant="h3" marked="center" align="center" component="h2">
-        All are welcome
+        {language=='en-US' ? 'All are welcome'
+        : language=='fr-FR' ? 'Tous sont les bienvenus' 
+        : language=='es-MX' ? 'Todos son bienvenidos' : ''}
       </Typography>
       <Box sx={{ mt: 8, display: 'flex', flexWrap: 'wrap' }}>
         {images.map((image) => (
