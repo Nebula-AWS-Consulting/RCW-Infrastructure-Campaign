@@ -78,22 +78,22 @@ function AppAppBar() {
                     {isLoggedIn ? (
                       <>
                         <ListItem>
-                          <ListItemText primary="Dashboard" />
+                          <ListItemText primary={language=='en-US' ? 'Dashboard' : language=='fr-FR' ? 'Tableau De Bord' : language=='es-MX' ? 'Panel' : ''} />
                         </ListItem>
                         <ListItem >
-                          <ListItemText primary="Profile" />
+                          <ListItemText primary={language=='en-US' ? 'Profile' : language=='fr-FR' ? 'Profil' : language=='es-MX' ? 'Perfil' : ''} />
                         </ListItem>
                         <ListItem>
-                          <ListItemText primary="Logout" />
+                          <ListItemText primary={language=='en-US' ? 'Logout' : language=='fr-FR' ? 'Déconnexion' : language=='es-MX' ? 'Cerrar Sesión' : ''} />
                         </ListItem>
                       </>
                     ) : (
                       <>
                         <ListItem component="a" href="/auth/signin">
-                          <ListItemText primary="Sign In" />
+                          <ListItemText primary={language=='en-US' ? 'Sign In' : language=='fr-FR' ? 'Se connecter' : language=='es-MX' ? 'Iniciar sesión' : ''} />
                         </ListItem>
                         <ListItem component="a" href="/auth/signup">
-                          <ListItemText primary="Sign Up" />
+                          <ListItemText primary={language=='en-US' ? 'Sign Up' : language=='fr-FR' ? `S'inscrire` : language=='es-MX' ? 'Inscribirse' : ''} />
                         </ListItem>
                       </>
                     )}
@@ -111,7 +111,7 @@ function AppAppBar() {
                       sx={rightLink}
                       href="/dashboard"
                     >
-                      {language=='en-US' ? 'Dashboard' : language=='fr-FR' ? 'Légal' : language=='es-MX' ? 'Legal' : ''}
+                      {language=='en-US' ? 'Dashboard' : language=='fr-FR' ? 'Tableau de bord' : language=='es-MX' ? 'panel' : ''}
                     </Link>
                     <Link
                       variant="h6"
@@ -119,7 +119,7 @@ function AppAppBar() {
                       sx={{ ...rightLink, color: 'inherit' }}
                       href="/profile"
                     >
-                      Profile
+                      {language=='en-US' ? 'Profile' : language=='fr-FR' ? 'Profil' : language=='es-MX' ? 'Perfil' : ''}
                     </Link>
                     <Link
                       variant="h6"
@@ -127,7 +127,7 @@ function AppAppBar() {
                       sx={{ ...rightLink, color: 'secondary.main' }}
                       href="/auth/signout"
                     >
-                      Logout
+                    {language=='en-US' ? 'Logout' : language=='fr-FR' ? 'Déconnexion' : language=='es-MX' ? 'Cerrar sesión' : ''}
                     </Link>
                   </>
                 ) : (
@@ -139,7 +139,7 @@ function AppAppBar() {
                       sx={rightLink}
                       href="/auth/signin"
                     >
-                      Sign In
+                      {language=='en-US' ? 'Sign In' : language=='fr-FR' ? 'Se connecter' : language=='es-MX' ? 'Iniciar sesión' : ''}
                     </Link>
                     <Link
                       variant="h6"
@@ -147,7 +147,7 @@ function AppAppBar() {
                       sx={{ ...rightLink, color: 'secondary.main' }}
                       href="/auth/signup"
                     >
-                      Sign Up
+                      {language=='en-US' ? 'Sign Up' : language=='fr-FR' ? `S'inscrire` : language=='es-MX' ? 'Inscribirse' : ''}
                     </Link>
                   </>
                 )}
