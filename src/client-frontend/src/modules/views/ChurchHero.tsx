@@ -47,6 +47,7 @@ export default function ChurchHero() {
           size="large"
           component="a"
           sx={{ minWidth: 200 }}
+          href='/contactus'
         >
         {language=='en-US' ? 'CONTACT US'
        : language=='fr-FR' ? 'CONTACTEZ-NOUS' 

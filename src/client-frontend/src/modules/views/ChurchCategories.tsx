@@ -69,6 +69,7 @@ export default function ChurchCategories() {
       url: './images/devo.jpg',
       title: `${language=='en-US' ? 'Contact Us' : language=='fr-FR' ? 'Contactez-nous' : language=='es-MX' ? 'Contáctenos' : ''}`,
       width: '20%',
+      link: '/contactus'
     },
     {
       url: './images/rcw.png',
@@ -86,6 +87,7 @@ export default function ChurchCategories() {
       url: './images/henry.jpg',
       title: `${language=='en-US' ? 'Benevolence' : language=='fr-FR' ? 'Bienveillance' : language=='es-MX' ? 'Benevolencia' : ''}`,
       width: '34%',
+      link: 'https://www.paypal.com/donate/?hosted_button_id=FGM4W785X3XXA'
     },
     {
       url: './images/preach.jpg',

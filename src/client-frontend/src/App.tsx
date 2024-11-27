@@ -13,6 +13,9 @@ import { setLogin } from "./modules/ducks/userSlice"
 import { useEffect } from "react"
 import SignOut from "./modules/pages/SignOut"
 import AccountCreated from "./modules/pages/AccountCreated"
+import Dashboard from "./modules/pages/Dashboard"
+import Profile from "./modules/pages/Profile"
+import ContactUs from "./modules/pages/ContactUs"
 
 function App() {
   const user = useSelector((state: RootState) => state.userAuthAndInfo);
@@ -51,6 +54,9 @@ console.log(language)
             <Route path="/auth/signout" element={<SignOut />} />
             <Route path="/auth/created" element={<AccountCreated />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/contactus" element={<ContactUs />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
         </Routes>
