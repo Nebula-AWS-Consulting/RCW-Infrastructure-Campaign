@@ -16,6 +16,7 @@ import AccountCreated from "./modules/pages/AccountCreated"
 import Dashboard from "./modules/pages/Dashboard"
 import Profile from "./modules/pages/Profile"
 import ContactUs from "./modules/pages/ContactUs"
+import ConfirmNewPassword from "./modules/pages/ConfirmNewPassword"
 
 function App() {
   const user = useSelector((state: RootState) => state.userAuthAndInfo);
@@ -53,7 +54,8 @@ console.log(language)
             <Route path="/auth/signup" element={<SignUp />} />
             <Route path="/auth/signout" element={<SignOut />} />
             <Route path="/auth/created" element={<AccountCreated />} />
-            <Route path="/forgotpassword" element={<ForgotPassword />} />
+            <Route path="/auth/forgotpassword" element={<ForgotPassword />} />
+            <Route path="/auth/confirmpassword" element={<ConfirmNewPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/contactus" element={<ContactUs />} />

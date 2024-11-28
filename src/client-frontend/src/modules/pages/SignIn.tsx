@@ -204,7 +204,7 @@ const getUserUsername = async (email:string) => {
           )}
         </Form>
         <Typography align="center">
-          <Link underline="always" href="/forgotpassword">
+          <Link underline="always" href="/auth/forgotpassword">
             Forgot password?
           </Link>
         </Typography>
