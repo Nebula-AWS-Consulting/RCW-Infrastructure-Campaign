@@ -10,8 +10,8 @@ ses = boto3.client('ses', region_name='us-west-1')
 USER_POOL_ID = "us-west-1_lJ8JcxPXT"  # Replace with your Cognito User Pool ID
 CLIENT_ID = "2p3glok5k66cvh7hhs8lnpegsc"  # Replace with your Cognito App Client ID
 
-SENDER_EMAIL = ''
-RECIPIENT_EMAIL = ''
+SENDER_EMAIL = 'emmanuelurias60@nebulaawsconsulting.com'
+RECIPIENT_EMAIL = 'emmanuelurias60@icloud.com'
 
 # Set up logging
 logger = logging.getLogger()
