@@ -43,6 +43,7 @@ def lambda_handler(event, context):
             access_token = body.get('access_token')
             new_password = body.get('new_password')
             attribute_updates = body.get('attribute_updates', {})
+            message = body.get('message')
 
         # Routing based on the resource path and HTTP method
         if resource_path == "/signup" and http_method == "POST":
@@ -66,7 +67,7 @@ def lambda_handler(event, context):
         elif resource_path == "/user" and http_method == "DELETE":
             return delete_user(email)
         elif resource_path == "/contact-us" and http_method == "POST":
-            return delete_user(email)
+            return contact_us(first_name, email, message)
         else:
             return cors_response(404, {"message": "Resource not found"})
     except Exception as e:
