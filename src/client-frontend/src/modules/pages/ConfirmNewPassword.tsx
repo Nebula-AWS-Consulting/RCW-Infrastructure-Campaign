@@ -11,6 +11,7 @@ import { email, required } from '../form/validation'
 import RFTextField from '../form/RFTextField'
 import FormFeedback from '../form/FormFeedback'
 import { SERVER } from '../../App'
+import withRoot from '../withRoot'
 
 function ConfirmNewPassword() {
   const [sent, setSent] = React.useState(false);
@@ -155,4 +156,4 @@ function ConfirmNewPassword() {
   )
 }
 
-export default ConfirmNewPassword
+export default withRoot(ConfirmNewPassword)
