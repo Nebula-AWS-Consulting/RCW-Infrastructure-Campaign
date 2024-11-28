@@ -48,13 +48,28 @@ function ConfirmNewPassword() {
             );
         
             if (!response.ok) {
-              throw new Error(`Login failed: ${response.statusText}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Error: ${response.statusText}`);
+                }
             }
         
             await response.json();
             navigate('/auth/signin')
-          } catch (error) {
-            throw error;
+          } catch (error: any) {
+            if (error.message === 'Invalid confirmation code') {
+                throw new Error('The confirmation code you entered is invalid. Please check and try again.');
+              } else if (error.message === 'Confirmation code expired') {
+                throw new Error('The confirmation code has expired. Please request a new code.');
+              } else if (error.message === 'User not found') {
+                throw new Error('No account found with the provided email address.');
+              } else if (error.message === 'Attempt limit exceeded, please try again later') {
+                throw new Error('You have exceeded the maximum number of attempts. Please wait and try again later.');
+              } else if (error.message.includes('Password')) {
+                throw new Error('Your new password does not meet the requirements. Please ensure it is strong and try again.');
+              } else {
+                throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+              }
           } finally {
             setSent(false);
           }
