@@ -41,11 +41,18 @@ function SignIn() {
 
   const handleSubmit = async (values: { [index: string]: string }) => {
     setSent(true);
+    setSubmitError('');
+  
     try {
       await loginUser(values.email, values.password);
       navigate('/');
-    } catch (error) {
-      setSubmitError('Sign-in failed. Please try again.');
+    } catch (error: any) {
+      if (error.response) {
+        const errorData = await error.response.json();
+        setSubmitError(errorData.message || 'Sign-in failed. Please try again.');
+      } else {
+        setSubmitError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setSent(false);
     }
@@ -67,7 +74,8 @@ function SignIn() {
     );
   
     if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
+      const errorData = await response.json();
+      throw new Error(errorData.message || `Error: ${response.statusText}`);
     }
   
     const data = await response.json();

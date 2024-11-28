@@ -63,21 +63,25 @@ function SignUp() {
       );
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error: ${response.statusText}`);
       }
-
+  
       await response.json();
-
-      const userName = `${values.firstName} ${values.lastName}`
-
-      confirmUser(values.email)
+  
+      const userName = `${values.firstName} ${values.lastName}`;
+  
+      confirmUser(values.email);
       loginUser(values.email, values.password, userName);
-    } catch (error) {
-      setSubmitError('Sign-up failed. Please try again.');
+      
+      navigate('/auth/created')
+    } catch (error: any) {
+      setSubmitError(
+        error.message === 'User already exists'
+          ? 'This email is already registered. Please log in or use a different email.'
+          : 'Sign-up failed. Please try again.'
+      );
     } finally {
-      if (submitError === '') {
-        navigate('/auth/created')
-      }
       setSent(false);
     }
   };
