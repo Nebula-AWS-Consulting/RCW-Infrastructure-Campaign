@@ -14,6 +14,7 @@ import withRoot from '../withRoot';
 import { setLogin } from '../ducks/userSlice';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { SERVER } from '../../App';
 
 function SignIn() {
   const [sent, setSent] = React.useState(false);
@@ -45,7 +46,7 @@ function SignIn() {
   
     try {
       const response = await fetch(
-        `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/login`,
+        `${SERVER}/login`,
         {
           method: 'POST',
           headers: {
@@ -108,7 +109,7 @@ function SignIn() {
 
 const getUserUsername = async (email:string) => {
   const response = await fetch(
-    `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/user?email=${encodeURIComponent(email)}`,
+    `${SERVER}/user?email=${encodeURIComponent(email)}`,
     {
       method: 'GET',
       headers: {

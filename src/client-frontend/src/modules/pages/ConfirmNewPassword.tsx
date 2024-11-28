@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import { email, required } from '../form/validation'
 import RFTextField from '../form/RFTextField'
 import FormFeedback from '../form/FormFeedback'
+import { SERVER } from '../../App'
 
 function ConfirmNewPassword() {
   const [sent, setSent] = React.useState(false);
@@ -32,7 +33,7 @@ function ConfirmNewPassword() {
         setSent(true);
           try {
             const response = await fetch(
-              `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/confirm-forgot-password`,
+              `${SERVER}/confirm-forgot-password`,
               {
                 method: 'POST',
                 headers: {

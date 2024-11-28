@@ -137,6 +137,34 @@ Resources:
             Method: OPTIONS
             RestApiId:
               Ref: ClientPublicBackendApi
+        ConfirmEmail:
+          Type: Api
+          Properties:
+            Path: /confirm-email
+            Method: POST
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        ConfirmEmailOptions:
+          Type: Api
+          Properties:
+            Path: /confirm-email
+            Method: OPTIONS
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        ConfirmEmailResend:
+          Type: Api
+          Properties:
+            Path: /confirm-email-resend
+            Method: POST
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        ConfirmEmailResendOptions:
+          Type: Api
+          Properties:
+            Path: /confirm-email-resend
+            Method: OPTIONS
+            RestApiId:
+              Ref: ClientPublicBackendApi
         LoginUser:
           Type: Api
           Properties:
@@ -176,6 +204,20 @@ Resources:
           Type: Api
           Properties:
             Path: /confirm-forgot-password
+            Method: OPTIONS
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        ContactUs:
+          Type: Api
+          Properties:
+            Path: /contact-us
+            Method: POST
+            RestApiId:
+              Ref: ClientPublicBackendApi
+        ContactUsOptions:
+          Type: Api
+          Properties:
+            Path: /contact-us
             Method: OPTIONS
             RestApiId:
               Ref: ClientPublicBackendApi

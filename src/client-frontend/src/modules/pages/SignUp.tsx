@@ -15,6 +15,7 @@ import withRoot from '../withRoot';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setLogin } from '../ducks/userSlice';
+import { SERVER } from '../../App';
 
 function SignUp() {
   const [sent, setSent] = React.useState(false);
@@ -47,7 +48,7 @@ function SignUp() {
 
     try {
       const response = await fetch(
-        'https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/signup',
+        `${SERVER}/signup`,
         {
           method: 'POST',
           headers: {
@@ -74,7 +75,7 @@ function SignUp() {
       confirmUser(values.email);
       loginUser(values.email, values.password, userName);
       
-      navigate('/auth/created')
+      navigate('/auth/verify')
     } catch (error: any) {
       setSubmitError(
         error.message === 'User already exists'
@@ -88,7 +89,7 @@ function SignUp() {
 
   const confirmUser = async (email: string) => {
     const response = await fetch(
-        `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/confirm`,
+        `${SERVER}/confirm`,
         {
             method: 'POST',
             headers: {
@@ -108,7 +109,7 @@ function SignUp() {
   const loginUser = async (email: string, password: string, user_name: string) => {
     try {
       const response = await fetch(
-        `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/login`,
+        `${SERVER}/login`,
         {
           method: 'POST',
           headers: {

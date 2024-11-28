@@ -17,6 +17,9 @@ import Dashboard from "./modules/pages/Dashboard"
 import Profile from "./modules/pages/Profile"
 import ContactUs from "./modules/pages/ContactUs"
 import ConfirmNewPassword from "./modules/pages/ConfirmNewPassword"
+import VerifyEmail from "./modules/pages/VerifyEmail"
+
+export const SERVER = 'https://d6l11pil3j.execute-api.us-west-1.amazonaws.com/prod'
 
 function App() {
   const user = useSelector((state: RootState) => state.userAuthAndInfo);
@@ -26,6 +29,7 @@ function App() {
   const isLoggedIn = useSelector(
     (state: RootState) => Boolean(state.userAuthAndInfo.token)
   );
+
 
   useEffect(() => {
     const user = localStorage.getItem('user');
@@ -52,6 +56,7 @@ console.log(language)
             <Route path="/location" element={<Location />} />
             <Route path="/auth/signin" element={<SignIn />} />
             <Route path="/auth/signup" element={<SignUp />} />
+            <Route path="/auth/verify" element={<VerifyEmail />} />
             <Route path="/auth/signout" element={<SignOut />} />
             <Route path="/auth/created" element={<AccountCreated />} />
             <Route path="/auth/forgotpassword" element={<ForgotPassword />} />
