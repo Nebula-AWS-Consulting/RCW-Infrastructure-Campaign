@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { confirmationCode, required } from '../form/validation';
 import { SERVER } from '../../App';
+import { Button } from '@mui/material';
 
 function VerifyEmail() {
   const [sent, setSent] = React.useState(false);
@@ -52,26 +53,62 @@ function VerifyEmail() {
       );
   
       if (!response.ok) {
-        // Parse the error message from the response
         const errorData = await response.json();
-        if (errorData.message === 'User not found') {
-          throw new Error('No account exists with the provided email.');
-        } else if (errorData.message === 'Not authorized to confirm user') {
-          throw new Error('You are not authorized to confirm this user.');
-        } else {
-          throw new Error(errorData.message || 'An unexpected error occurred.');
-        }
+        throw new Error(errorData.message || `Error: ${response.statusText}`);
       }
   
       await response.json();
       navigate('/auth/created');
     } catch (error: any) {
-      setSubmitError(error.message || 'Confirmation failed. Please try again.');
+        if (error.message === 'Invalid confirmation code') {
+            throw new Error('The confirmation code you entered is incorrect. Please check and try again.');
+          } else if (error.message === 'Confirmation code expired') {
+            throw new Error('The confirmation code has expired. Please request a new one.');
+          } else if (error.message === 'Not authorized') {
+            throw new Error('You are not authorized to verify this email. Please log in and try again.');
+          } else if (error.message === 'User not found') {
+            throw new Error('We could not find an account associated with this email. Please check and try again.');
+          } else {
+            throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+          }
     } finally {
       setSent(false);
     }
   };
-  
+
+  const resendCode = async () => {
+    try {
+      const response = await fetch(
+        `${SERVER}/confirm-email-resend`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            access_token: userAccessToken,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error: ${response.statusText}`);
+      }
+
+      await response.json();
+    } catch (error: any) {
+        if (error.message === 'Attempt limit exceeded, please try again later') {
+            throw new Error('You have exceeded the maximum number of attempts. Please wait and try again later.');
+          } else if (error.message === 'Not authorized') {
+            throw new Error('You are not authorized to request a verification code. Please log in and try again.');
+          } else if (error.message === 'User not found') {
+            throw new Error('We could not find an account associated with this email. Please check and try again.');
+          } else {
+            throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+          }
+    }
+  };
 
   return (
     <React.Fragment>
@@ -122,6 +159,16 @@ function VerifyEmail() {
                 >
                   {submitting || sent ? 'In progress…' : 'Verify Email'}
                 </FormButton>
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: '1rem'
+                }}>
+                    <Button sx={{fontSize: '1rem', p: '1rem'}} onClick={() => resendCode()}>
+                        {submitting || sent ? 'In progress…' : 'Resend Code'}
+                    </Button>
+                </Box>
               </Box>
             )}
           </Form>

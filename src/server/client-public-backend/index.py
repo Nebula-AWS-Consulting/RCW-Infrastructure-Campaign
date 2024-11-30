@@ -313,21 +313,31 @@ def delete_user(email):
         logger.error(f"Error in delete_user: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An internal server error occurred"})
 
-def contact_us(name, email, message):
-    if not all([name, email, message]):
-        return cors_response(400, {"message": "Name, email, and message are required"})
+def contact_us(first_name, email, message):
+    if not all([first_name, email, message]):
+        return cors_response(400, {"message": "All fields are required: name, email, and message."})
+
     try:
         ses.send_email(
             Source=SENDER_EMAIL,
             Destination={'ToAddresses': [RECIPIENT_EMAIL]},
             Message={
-                'Subject': {name: 'Contact Us Form Submission'},
+                'Subject': {'Data': 'Contact Us Form Submission'},
                 'Body': {
-                    'Text': {'Data': f'Name: {name}\nEmail: {email}\nMessage: {message}'}
+                    'Text': {'Data': f'Name: {first_name}\nEmail: {email}\nMessage: {message}'}
                 }
             }
         )
-        return cors_response(200, {"message": "Message sent successfully"})
+        return cors_response(200, {"message": "Message sent successfully."})
+    except ses.exceptions.MessageRejected as e:
+        logger.error(f"Message rejected: {str(e)}", exc_info=True)
+        return cors_response(400, {"message": "The message was rejected. Ensure the email address is valid."})
+    except ses.exceptions.MailFromDomainNotVerifiedException as e:
+        logger.error(f"Email address not verified: {str(e)}", exc_info=True)
+        return cors_response(400, {"message": "The sender's email address is not verified. Please contact support."})
+    except ses.exceptions.ConfigurationSetDoesNotExistException as e:
+        logger.error(f"Configuration set issue: {str(e)}", exc_info=True)
+        return cors_response(500, {"message": "There was a configuration issue with the email service. Please try again later."})
     except Exception as e:
-        logger.error(f"Error in contact_us: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        logger.error(f"Unhandled error in contact_us: {str(e)}", exc_info=True)
+        return cors_response(500, {"message": "An unexpected error occurred while sending your message. Please try again later."})

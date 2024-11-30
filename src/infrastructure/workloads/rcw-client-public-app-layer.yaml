@@ -83,6 +83,7 @@ Resources:
                   - "dynamodb:Scan"
                   - "dynamodb:Query"
                 Resource: "arn:aws:dynamodb:*:*:table/AdminTable"
+        
 
         # Cognito User Pool Permissions
         - PolicyName: CognitoAccessPolicy
@@ -93,6 +94,20 @@ Resources:
                 Action:
                   - "cognito-idp:*"
                 Resource: "arn:aws:cognito-idp:*:*:userpool/us-west-1_lJ8JcxPXT"
+
+         # SES Access Policy
+        - PolicyName: SESAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ses:SendEmail"
+                  - "ses:SendRawEmail"
+                Resource:
+                  - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*"
+                  - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/my-first-configuration-set"
+
       Tags:
         - Key: Environment
           Value: !Ref Environment

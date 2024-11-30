@@ -14,20 +14,13 @@ import AppForm from '../views/AppForm';
 import RFTextField from '../form/RFTextField';
 import FormFeedback from '../form/FormFeedback';
 import FormButton from '../form/FormButton';
-
-interface FormData {
-  name: string;
-  email: string;
-  message: string;
-}
+import { SERVER } from '../../App';
+import { useNavigate } from 'react-router-dom';
 
 function ContactUs(){
   const [sent, setSent] = React.useState(false);
   const [submitError, setSubmitError] = React.useState(String);
-
-  const handleSubmit = async (values: FormData) => {
-    console.log('Form Data:', values);
-  };
+  const navigate = useNavigate();
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['name', 'email', 'password'], values);
@@ -40,8 +33,51 @@ function ContactUs(){
     }
   }
 
+  const handleSubmit = async (values: { [index: string]: string }) => {
+    setSent(true);
+    setSubmitError('');
+  
+    try {
+      const response = await fetch(
+        `${SERVER}/contact-us`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            first_name: values.name,
+            email: values.email,
+            message: values.message
+          }),
+        }
+      );
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error: ${response.statusText}`);
+      }
+  
+      await response.json();
+    } catch (error: any) {
+        if (error.message === 'All fields are required: name, email, and message.') {
+            throw new Error('Please fill out all fields: name, email, and message.');
+          } else if (error.message === 'The message was rejected. Ensure the email address is valid.') {
+            throw new Error('Your email address is invalid. Please enter a valid email address.');
+          } else if (error.message === "The sender's email address is not verified. Please contact support.") {
+            throw new Error('The email address you provided is not verified. Please use a verified email or contact support.');
+          } else if (error.message === 'There was a configuration issue with the email service. Please try again later.') {
+            throw new Error('We encountered a technical issue while sending your message. Please try again later.');
+          } else {
+            throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+        }
+    } finally {
+      setSent(false);
+    }
+  };
+
   return (
-    <>
+    <React.Fragment>
     <AppAppBar />
     <AppForm>
         <React.Fragment>
@@ -176,7 +212,7 @@ function ContactUs(){
           </Box>
     </Box>
     <AppFooter />
-    </>
+    </React.Fragment>
   );
 };
 
