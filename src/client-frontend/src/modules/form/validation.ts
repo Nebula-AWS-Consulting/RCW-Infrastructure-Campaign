@@ -30,6 +30,18 @@ export function password(value: string) {
   return null;
 }
 
+export function confirmationCode(value: string) {
+  if (!value) {
+    return 'Confirmation code is required';
+  }
+
+  if (value.length < 6) {
+    return 'Confirmation code must be at least 6 characters';
+  }
+
+  return null;
+}
+
 function isDirty(value: string | number) {
   return value || value === 0;
 }

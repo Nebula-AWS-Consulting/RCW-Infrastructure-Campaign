@@ -12,6 +12,7 @@ interface InitialState {
     access_token: string | null;
     refresh_token: string | null;
   };
+  language: string;
 }
 
 const initialState: InitialState = {
@@ -21,6 +22,7 @@ const initialState: InitialState = {
     access_token: null,
     refresh_token: null,
   },
+  language: localStorage.getItem('language') || 'en-US'
 };
 
 export const userAuthAndInfoSlice = createSlice({
@@ -39,6 +41,10 @@ export const userAuthAndInfoSlice = createSlice({
         refresh_token: null,
       };
     },
+    setLanguage: (state, action) => {
+      state.language = action.payload;
+      localStorage.setItem('language', action.payload);
+    },
   },
 });
 
@@ -49,5 +55,8 @@ export const selectIsLoggedIn = (state: { userAuthAndInfo: InitialState }) => {
   );
 };
 
-export const { setLogin, setLogout } = userAuthAndInfoSlice.actions;
+export const selectLanguage = (state: { userAuthAndInfo: InitialState }) =>
+  state.userAuthAndInfo.language;
+
+export const { setLogin, setLogout, setLanguage } = userAuthAndInfoSlice.actions;
 export default userAuthAndInfoSlice.reducer;

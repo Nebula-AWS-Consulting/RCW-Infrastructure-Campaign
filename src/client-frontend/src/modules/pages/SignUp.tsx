@@ -15,6 +15,7 @@ import withRoot from '../withRoot';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setLogin } from '../ducks/userSlice';
+import { SERVER } from '../../App';
 
 function SignUp() {
   const [sent, setSent] = React.useState(false);
@@ -47,7 +48,7 @@ function SignUp() {
 
     try {
       const response = await fetch(
-        'https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/signup',
+        `${SERVER}/signup`,
         {
           method: 'POST',
           headers: {
@@ -63,28 +64,32 @@ function SignUp() {
       );
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error: ${response.statusText}`);
       }
-
+  
       await response.json();
-
-      const userName = `${values.firstName} ${values.lastName}`
-
-      confirmUser(values.email)
+  
+      const userName = `${values.firstName} ${values.lastName}`;
+  
+      confirmUser(values.email);
       loginUser(values.email, values.password, userName);
-    } catch (error) {
-      setSubmitError('Sign-up failed. Please try again.');
+      
+      navigate('/auth/verify')
+    } catch (error: any) {
+      setSubmitError(
+        error.message === 'User already exists'
+          ? 'This email is already registered. Please log in or use a different email.'
+          : 'Sign-up failed. Please try again.'
+      );
     } finally {
-      if (submitError === '') {
-        navigate('/auth/created')
-      }
       setSent(false);
     }
   };
 
   const confirmUser = async (email: string) => {
     const response = await fetch(
-        `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/confirm`,
+        `${SERVER}/confirm`,
         {
             method: 'POST',
             headers: {
@@ -104,7 +109,7 @@ function SignUp() {
   const loginUser = async (email: string, password: string, user_name: string) => {
     try {
       const response = await fetch(
-        `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/login`,
+        `${SERVER}/login`,
         {
           method: 'POST',
           headers: {

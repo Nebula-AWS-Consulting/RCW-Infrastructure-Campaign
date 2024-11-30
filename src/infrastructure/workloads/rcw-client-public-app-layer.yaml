@@ -83,6 +83,7 @@ Resources:
                   - "dynamodb:Scan"
                   - "dynamodb:Query"
                 Resource: "arn:aws:dynamodb:*:*:table/AdminTable"
+        
 
         # Cognito User Pool Permissions
         - PolicyName: CognitoAccessPolicy
@@ -93,6 +94,20 @@ Resources:
                 Action:
                   - "cognito-idp:*"
                 Resource: "arn:aws:cognito-idp:*:*:userpool/us-west-1_lJ8JcxPXT"
+
+         # SES Access Policy
+        - PolicyName: SESAccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ses:SendEmail"
+                  - "ses:SendRawEmail"
+                Resource:
+                  - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*"
+                  - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/my-first-configuration-set"
+
       Tags:
         - Key: Environment
           Value: !Ref Environment
@@ -139,6 +154,30 @@ Resources:
             Path: /confirm
             Method: OPTIONS
             RestApiId: !Ref ClientPublicBackendApi
+        ConfirmEmail:
+          Type: Api
+          Properties:
+            Path: /confirm-email
+            Method: POST
+            RestApiId: !Ref ClientPublicBackendApi
+        ConfirmEmailOptions:
+          Type: Api
+          Properties:
+            Path: /confirm-email
+            Method: OPTIONS
+            RestApiId: !Ref ClientPublicBackendApi
+        ConfirmEmailResend:
+          Type: Api
+          Properties:
+            Path: /confirm-email-resend
+            Method: POST
+            RestApiId: !Ref ClientPublicBackendApi
+        ConfirmEmailResendOptions:
+          Type: Api
+          Properties:
+            Path: /confirm-email-resend
+            Method: OPTIONS
+            RestApiId: !Ref ClientPublicBackendApi
         LoginUser:
           Type: Api
           Properties:
@@ -173,6 +212,18 @@ Resources:
           Type: Api
           Properties:
             Path: /confirm-forgot-password
+            Method: OPTIONS
+            RestApiId: !Ref ClientPublicBackendApi
+        ContactUs:
+          Type: Api
+          Properties:
+            Path: /contact-us
+            Method: POST
+            RestApiId: !Ref ClientPublicBackendApi
+        ContactUsOptions:
+          Type: Api
+          Properties:
+            Path: /contact-us
             Method: OPTIONS
             RestApiId: !Ref ClientPublicBackendApi
         GetUser:

@@ -14,6 +14,7 @@ import withRoot from '../withRoot';
 import { setLogin } from '../ducks/userSlice';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { SERVER } from '../../App';
 
 function SignIn() {
   const [sent, setSent] = React.useState(false);
@@ -41,81 +42,91 @@ function SignIn() {
 
   const handleSubmit = async (values: { [index: string]: string }) => {
     setSent(true);
+    setSubmitError('');
+  
     try {
-      await loginUser(values.email, values.password);
+      const response = await fetch(
+        `${SERVER}/login`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: values.email,
+            password: values.password
+          }),
+        }
+      );
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error: ${response.statusText}`);
+      }
+    
+      const data = await response.json();
+    
+      const userName = await getUserUsername(values.email);
+    
+      const userData = {
+        user_name: userName,
+        email: email,
+      };
+    
+      const tokenData = {
+        id_token: data.id_token,
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+      };
+    
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('userToken', JSON.stringify(tokenData));
+    
+      dispatch(
+        setLogin({
+          user: userData,
+          token: tokenData,
+        })
+      );
+
       navigate('/');
-    } catch (error) {
-      setSubmitError('Sign-in failed. Please try again.');
+    } catch(error: any) {
+        try {
+          if (error.message === 'Incorrect username or password') {
+            setSubmitError('The password you entered is incorrect.');
+          } else if (error.message === 'User not found') {
+            setSubmitError('No account found with this email address.');
+          } else {
+            setSubmitError(error.message || 'Sign-in failed. Please try again.');
+          }
+        } catch (parseError) {
+          setSubmitError('An unexpected error occurred. Please try again.');
+        }
     } finally {
       setSent(false);
     }
   };
 
-  const loginUser = async (email: string, password: string) => {
-    const response = await fetch(
-      `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/login`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+const getUserUsername = async (email:string) => {
+  const response = await fetch(
+    `${SERVER}/user?email=${encodeURIComponent(email)}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       }
-    );
-  
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
     }
-  
-    const data = await response.json();
-  
-    const userName = await getUserUsername(email);
-  
-    const userData = {
-      user_name: userName,
-      email: email,
-    };
-  
-    const tokenData = {
-      id_token: data.id_token,
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-    };
-  
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('userToken', JSON.stringify(tokenData));
-  
-    dispatch(
-      setLogin({
-        user: userData,
-        token: tokenData,
-      })
-    );
-  };
-
-  const getUserUsername = async (email:string) => {
-    const response = await fetch(
-      `https://c8b5tz2a1a.execute-api.us-west-1.amazonaws.com/prod/user?email=${encodeURIComponent(email)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
-    )
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    const userName = `${data.user_attributes['custom:firstName']} ${data.user_attributes['custom:lastName']}`;
-
-    return userName
+  )
+  if (!response.ok) {
+    throw new Error(`Error: ${response.statusText}`);
   }
+
+  const data = await response.json();
+
+  const userName = `${data.user_attributes['custom:firstName']} ${data.user_attributes['custom:lastName']}`;
+
+  return userName
+}
 
   return (
     <React.Fragment>
@@ -194,7 +205,7 @@ function SignIn() {
           )}
         </Form>
         <Typography align="center">
-          <Link underline="always" href="/forgot-password/">
+          <Link underline="always" href="/auth/forgotpassword">
             Forgot password?
           </Link>
         </Typography>

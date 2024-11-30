@@ -3,6 +3,8 @@ import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import Container from '@mui/material/Container';
 import Typography from '../components/Typography';
+import { useSelector } from 'react-redux';
+import { selectLanguage } from '../ducks/userSlice';
 
 const ImageBackdrop = styled('div')(({ theme }) => ({
   position: 'absolute',
@@ -52,46 +54,55 @@ const ImageIconButton = styled(ButtonBase)(({ theme }) => ({
   },
 }));
 
-const images = [
-  {
-    url: 'https://images.unsplash.com/photo-1534081333815-ae5019106622?auto=format&fit=crop&w=400',
-    title: 'Location',
-    width: '40%',
-    link: '/location'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1531299204812-e6d44d9a185c?auto=format&fit=crop&w=400',
-    title: 'Missions',
-    width: '20%',
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=400',
-    title: 'WorldWide Movement',
-    width: '40%',
-    link: 'https://restoredchurchworldwide.org/'
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1453747063559-36695c8771bd?auto=format&fit=crop&w=400',
-    title: 'Contact Us',
-    width: '38%',
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1523309996740-d5315f9cc28b?auto=format&fit=crop&w=400',
-    title: 'Donate',
-    width: '38%',
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?auto=format&fit=crop&w=400',
-    title: 'About Us',
-    width: '24%',
-  }
-];
 
 export default function ChurchCategories() {
+  const language = useSelector(selectLanguage);
+  
+  const images = [
+    {
+      url: './images/alex.jpg',
+      title: `${language=='en-US' ? 'Location' : language=='fr-FR' ? 'Emplacement' : language=='es-MX' ? 'Ubicación' : ''}`,
+      width: '40%',
+      link: '/location'
+    },
+    {
+      url: './images/devo.jpg',
+      title: `${language=='en-US' ? 'Contact Us' : language=='fr-FR' ? 'Contactez-nous' : language=='es-MX' ? 'Contáctenos' : ''}`,
+      width: '20%',
+      link: '/contactus'
+    },
+    {
+      url: './images/rcw.png',
+      title: `${language=='en-US' ? 'Worldwide Movement' : language=='fr-FR' ? 'Mouvement Mondial' : language=='es-MX' ? 'Movimiento Mundial' : ''}`,
+      width: '40%',
+      link: 'https://restoredchurchworldwide.org/'
+    },
+    {
+      url: './images/happy.jpg',
+      title: `${language=='en-US' ? 'Missions' : language=='fr-FR' ? 'Missions' : language=='es-MX' ? 'Misiones' : ''}`,
+      width: '28%',
+      link: 'https://www.paypal.com/donate/?hosted_button_id=GE88JN9WX35ML'
+    },
+    {
+      url: './images/henry.jpg',
+      title: `${language=='en-US' ? 'Benevolence' : language=='fr-FR' ? 'Bienveillance' : language=='es-MX' ? 'Benevolencia' : ''}`,
+      width: '34%',
+      link: 'https://www.paypal.com/donate/?hosted_button_id=FGM4W785X3XXA'
+    },
+    {
+      url: './images/preach.jpg',
+      title: `${language=='en-US' ? 'Contribution' : language=='fr-FR' ? 'Contribution' : language=='es-MX' ? 'Contribución' : ''}`,
+      width: '38%',
+      link: 'https://www.paypal.com/donate/?hosted_button_id=3K78Y7VSPZMGN'
+    }
+  ];
+
   return (
     <Container component="section" sx={{ mt: 8, mb: 4 }}>
       <Typography variant="h3" marked="center" align="center" component="h2">
-        All are welcome
+        {language=='en-US' ? 'All are welcome'
+        : language=='fr-FR' ? 'Tous sont les bienvenus' 
+        : language=='es-MX' ? 'Todos son bienvenidos' : ''}
       </Typography>
       <Box sx={{ mt: 8, display: 'flex', flexWrap: 'wrap' }}>
         {images.map((image) => (
@@ -112,7 +123,7 @@ export default function ChurchCategories() {
                 backgroundPosition: 'center 40%',
                 backgroundImage: `url(${image.url})`,
               }}
-            />
+              />
             <ImageBackdrop className="imageBackdrop" />
             <Box 
               sx={{
@@ -126,7 +137,7 @@ export default function ChurchCategories() {
                 justifyContent: 'center',
                 color: 'common.white',
               }}
-            >
+              >
               <Typography
                 component="h3"
                 variant="h6"

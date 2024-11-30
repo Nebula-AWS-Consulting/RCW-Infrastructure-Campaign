@@ -13,14 +13,23 @@ import { setLogin } from "./modules/ducks/userSlice"
 import { useEffect } from "react"
 import SignOut from "./modules/pages/SignOut"
 import AccountCreated from "./modules/pages/AccountCreated"
+import Dashboard from "./modules/pages/Dashboard"
+import Profile from "./modules/pages/Profile"
+import ContactUs from "./modules/pages/ContactUs"
+import ConfirmNewPassword from "./modules/pages/ConfirmNewPassword"
+import VerifyEmail from "./modules/pages/VerifyEmail"
+
+export const SERVER = 'https://d6l11pil3j.execute-api.us-west-1.amazonaws.com/prod'
 
 function App() {
   const user = useSelector((state: RootState) => state.userAuthAndInfo);
+  const language = useSelector((state: RootState) => state.userAuthAndInfo.language);
   const dispatch = useDispatch();
 
   const isLoggedIn = useSelector(
     (state: RootState) => Boolean(state.userAuthAndInfo.token)
   );
+
 
   useEffect(() => {
     const user = localStorage.getItem('user');
@@ -38,6 +47,7 @@ function App() {
 
 console.log(user)
 console.log(isLoggedIn)
+console.log(language)
 
   return (
     <div>
@@ -46,9 +56,14 @@ console.log(isLoggedIn)
             <Route path="/location" element={<Location />} />
             <Route path="/auth/signin" element={<SignIn />} />
             <Route path="/auth/signup" element={<SignUp />} />
+            <Route path="/auth/verify" element={<VerifyEmail />} />
             <Route path="/auth/signout" element={<SignOut />} />
             <Route path="/auth/created" element={<AccountCreated />} />
-            <Route path="/forgotpassword" element={<ForgotPassword />} />
+            <Route path="/auth/forgotpassword" element={<ForgotPassword />} />
+            <Route path="/auth/confirmpassword" element={<ConfirmNewPassword />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/contactus" element={<ContactUs />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
         </Routes>

@@ -1,17 +1,21 @@
+import { useSelector } from 'react-redux';
 import Button from '../components/Button';
 import Typography from '../components/Typography';
 import ChurchHeroLayout from './ChurchHeroLayout';
 import { Box } from '@mui/material';
+import { selectLanguage } from '../ducks/userSlice';
 
 const backgroundImage =
   './images/sundaysService.jpg';
 
 export default function ChurchHero() {
+  const language = useSelector(selectLanguage);
+  
   return (
     <ChurchHeroLayout
       sxBackground={{
         backgroundImage: `url(${backgroundImage})`,
-        backgroundColor: '#7fc7d9', // Average color of the background image.
+        backgroundColor: '#7fc7d9',
         backgroundPosition: 'center',
       }}
     >
@@ -22,7 +26,9 @@ export default function ChurchHero() {
         alt="increase priority"
       />
       <Typography color="inherit" align="center" variant="h2" marked="center">
-        RESTORING TRUTH WORLDWIDE
+      {language=='en-US' ? 'RESTORING TRUTH WORLDWIDE'
+       : language=='fr-FR' ? 'RESTAURATION DE LA VÉRITÉ' 
+       : language=='es-MX' ? 'RESTAURANDO LA VERDAD' : ''}
       </Typography>
       <Typography
         color="inherit"
@@ -30,7 +36,9 @@ export default function ChurchHero() {
         variant="h5"
         sx={{ mb: 4, mt: { xs: 4, sm: 10 } }}
       >
-        Come worship this Sunday
+      {language=='en-US' ? 'Come worship this sunday'
+       : language=='fr-FR' ? 'Venez adorer ce dimanche' 
+       : language=='es-MX' ? 'Ven a adorar este domingo' : ''}
       </Typography>
       <Box>
         <Button
@@ -39,12 +47,17 @@ export default function ChurchHero() {
           size="large"
           component="a"
           sx={{ minWidth: 200 }}
+          href='/contactus'
         >
-          Contact Us
+        {language=='en-US' ? 'CONTACT US'
+       : language=='fr-FR' ? 'CONTACTEZ-NOUS' 
+       : language=='es-MX' ? 'CONTÁCTANOS' : ''}
         </Button>
       </Box>
       <Typography variant="body2" color="inherit" sx={{ mt: 2 }}>
-        Discover the experience
+      {language=='en-US' ? 'Discover the experience'
+       : language=='fr-FR' ? `Découvrez l'expérience` 
+       : language=='es-MX' ? 'Descubre la experiencia' : ''}
       </Typography>
     </ChurchHeroLayout>
   );

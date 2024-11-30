@@ -35,7 +35,7 @@ function AccountCreated() {
           Account Created!
         </Typography>
         <Typography variant="h4" align="center" mt={'4rem'}>
-          Username: {user?.user_name}
+          Welcome {user?.user_name}!
         </Typography>
         <Typography variant="body1" sx={{ marginBottom: 2, mt: '4rem' }}>
           Your account has been successfully created. You can now return to Home.
