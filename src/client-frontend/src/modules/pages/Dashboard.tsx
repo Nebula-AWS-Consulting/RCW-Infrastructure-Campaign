@@ -1,9 +1,16 @@
 import React from 'react'
+import AppAppBar from '../views/AppAppBar'
+import AppFooter from '../views/AppFooter'
+import withRoot from '../withRoot'
 
 function Dashboard() {
   return (
-    <div>Dashboard</div>
+    <React.Fragment>
+      <AppAppBar />
+      
+      <AppFooter />
+    </React.Fragment>
   )
 }
 
-export default Dashboard
+export default withRoot(Dashboard)

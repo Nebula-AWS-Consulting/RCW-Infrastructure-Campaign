@@ -10,6 +10,7 @@ import { email, required } from '../form/validation';
 import RFTextField from '../form/RFTextField';
 import { useSelector } from 'react-redux';
 import { selectLanguage } from '../ducks/userSlice';
+import { SERVER } from '../../App';
 
 function ChurchContactUs() {
   const [open, setOpen] = React.useState(false);
@@ -17,7 +18,7 @@ function ChurchContactUs() {
   const language = useSelector(selectLanguage);
 
   const validate = (values: { [index: string]: string }) => {
-    const errors = required(['email', 'phone number'], values);
+    const errors = required(['name', 'email', 'message'], values);
   
     if (!errors.email) {
       const emailError = email(values.email);
@@ -28,10 +29,37 @@ function ChurchContactUs() {
     return errors;
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setOpen(true);
-    
+  const handleSubmit = async (values: { [index: string]: string }) => {
+    setSent(true);
+  
+    try {
+      const response = await fetch(
+        `${SERVER}/contact-us`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            first_name: values.name,
+            email: values.email,
+            message: values.message,
+          }),
+        }
+      );
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error: ${response.statusText}`);
+      }
+  
+      await response.json();
+      setOpen(true);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSent(false);
+    }
   };
 
   const handleClose = () => {
@@ -51,51 +79,108 @@ function ChurchContactUs() {
               px: 3,
             }}
           >
-            <Box component="form" onSubmit={handleSubmit} sx={{ maxWidth: 400 }}>
+            <Box sx={{ maxWidth: 400 }}>
               <Typography variant="h2" component="h2" gutterBottom>
                 {language=='en-US' ? 'Contact Us' : language=='fr-FR' ? 'Contactez-nous' : language=='es-MX' ? 'Contacta con nosotros' : ''}
               </Typography>
               <Typography variant="h5" mb={1}>
-              {language=='en-US' ? 'Get more information.' : language=='fr-FR' ? `Obtenez plus d'informations.` : language=='es-MX' ? 'Obtenga más información.' : ''}
+                {language=='en-US' ? 'Get more information.' : language=='fr-FR' ? `Obtenez plus d'informations.` : language=='es-MX' ? 'Obtenga más información.' : ''}
               </Typography>
               <Typography variant="h5">
-              {language=='en-US' ? 'Set up a bible study.' : language=='fr-FR' ? `Organisez une étude biblique.` : language=='es-MX' ? 'Organice un estudio bíblico.' : ''}
+                {language=='en-US' ? 'Set up a bible study.' : language=='fr-FR' ? `Organisez une étude biblique.` : language=='es-MX' ? 'Organice un estudio bíblico.' : ''}
               </Typography>
               <Form
                 onSubmit={handleSubmit}
                 subscription={{ submitting: true }}
+                validate={validate}
               >
-              {({ handleSubmit: handleSubmit2, submitting }) => (
-                <Box component="form" onSubmit={handleSubmit2} noValidate sx={{ mt: 6 }}>
-                  <Field
-                    noBorder
-                    placeholder={language=='en-US' ? 'Your email' : language=='fr-FR' ? 'Votre email' : language=='es-MX' ? 'Tu correo electrónico' : ''}
-                    component={RFTextField}
-                    disabled={submitting || sent}
-                    fullWidth
-                    name='email'
-                    required
-                  />
-                  <Field
-                    noBorder
-                    placeholder={language=='en-US' ? 'Your Phone Number' : language=='fr-FR' ? 'Votre numéro de téléphone' : language=='es-MX' ? 'Tu número de teléfono' : ''}
-                    sx={{ width: '100%', mt: 1, mb: 3 }}
-                    component={RFTextField}
-                    disabled={submitting || sent}
-                    fullWidth
-                    name='Phone Number'
-                    required
-                  />
-                  <Button
-                    type="submit"
-                    color="primary"
-                    variant="contained"
-                    sx={{ width: '100%' }}
+                {({ handleSubmit: formSubmit, submitting }) => (
+                  <form
+                    onSubmit={formSubmit}
+                    noValidate
+                    style={{ marginTop: 24 }}
                   >
-                    {language=='en-US' ? 'GET IN TOUCH' : language=='fr-FR' ? 'ENTRER EN CONTACT' : language=='es-MX' ? 'PONTE EN CONTACTO' : ''}
-                  </Button>
-                </Box>
-              )}
+                    <Box>
+                      <Field
+                        noBorder
+                        placeholder={
+                          language == 'en-US'
+                            ? 'Your Name'
+                            : language == 'fr-FR'
+                            ? 'Votre nom'
+                            : language == 'es-MX'
+                            ? 'Tu nombre'
+                            : ''
+                        }
+                        sx={{ width: '100%', mt: 1, mb: 0.25 }}
+                        component={RFTextField}
+                        disabled={submitting || sent}
+                        fullWidth
+                        name="name"
+                        required
+                      />
+                      <Field
+                        noBorder
+                        placeholder={
+                          language == 'en-US'
+                            ? 'Your Email'
+                            : language == 'fr-FR'
+                            ? 'Votre email'
+                            : language == 'es-MX'
+                            ? 'Tu correo electrónico'
+                            : ''
+                        }
+                        sx={{ width: '100%', mt: 1, mb: 0.25 }}
+                        component={RFTextField}
+                        disabled={submitting || sent}
+                        fullWidth
+                        name="email"
+                        required
+                      />
+                      <Field
+                        noBorder
+                        placeholder={
+                          language == 'en-US'
+                            ? 'Message'
+                            : language == 'fr-FR'
+                            ? 'Votre message'
+                            : language == 'es-MX'
+                            ? 'Tu mensaje'
+                            : ''
+                        }
+                        component={RFTextField}
+                        sx={{ width: '100%', mt: 1, mb: 3 }}
+                        disabled={submitting || sent}
+                        fullWidth
+                        name="message"
+                        required
+                      />
+                      <Button
+                        type="submit"
+                        color="primary"
+                        variant="contained"
+                        sx={{ width: '100%' }}
+                        disabled={submitting || sent}
+                      >
+                        {submitting || sent
+                          ? language == 'en-US'
+                            ? 'Sending...'
+                            : language == 'fr-FR'
+                            ? 'Envoi...'
+                            : language == 'es-MX'
+                            ? 'Enviando...'
+                            : ''
+                          : language == 'en-US'
+                          ? 'GET IN TOUCH'
+                          : language == 'fr-FR'
+                          ? 'ENTRER EN CONTACT'
+                          : language == 'es-MX'
+                          ? 'PONTE EN CONTACTO'
+                          : ''}
+                      </Button>
+                    </Box>
+                  </form>
+                )}
               </Form>
             </Box>
           </Box>
@@ -142,7 +227,15 @@ function ChurchContactUs() {
       <Snackbar
         open={open}
         closeFunc={handleClose}
-        message={language=='en-US' ? 'We will contact you soon.' : language=='fr-FR' ? 'Nous vous contacterons bientôt.' : language=='es-MX' ? 'Lo contactaremos pronto.' : ''}
+        message={
+          language == 'en-US'
+            ? 'We will contact you soon.'
+            : language == 'fr-FR'
+            ? 'Nous vous contacterons bientôt.'
+            : language == 'es-MX'
+            ? 'Lo contactaremos pronto.'
+            : ''
+        }
       />
     </Container>
   );

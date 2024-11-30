@@ -16,11 +16,13 @@ import FormFeedback from '../form/FormFeedback';
 import FormButton from '../form/FormButton';
 import { SERVER } from '../../App';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { selectLanguage } from '../ducks/userSlice';
 
 function ContactUs(){
   const [sent, setSent] = React.useState(false);
   const [submitError, setSubmitError] = React.useState(String);
-  const navigate = useNavigate();
+  const language = useSelector(selectLanguage);
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['name', 'email', 'password'], values);
@@ -82,10 +84,22 @@ function ContactUs(){
     <AppForm>
         <React.Fragment>
           <Typography variant="h3" gutterBottom marked="center" align="center">
-            Contact Us
+            { language === 'en-US'
+              ? 'Contact Us'
+              : language === 'fr-FR'
+              ? 'Contactez-nous'
+              : language === 'es-MX'
+              ? 'Contactanos'
+              : ''}
           </Typography>
           <Typography variant="body2" align="center" mt={3} width={'80%'} justifySelf={'center'}>
-            We'd love to hear from you! Please fill out the form below and we'll get back to you as soon as possible.
+          { language === 'en-US'
+              ? `We'd love to hear from you! Please fill out the form below and we'll get back to you as soon as possible.`
+              : language === 'fr-FR'
+              ? 'Nous aimerions avoir de vos nouvelles ! Veuillez remplir le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.'
+              : language === 'es-MX'
+              ? '¡Nos encantaría saber de usted! Complete el siguiente formulario y nos comunicaremos con usted lo antes posible.'
+              : ''}
           </Typography>
         </React.Fragment>
         <Form
