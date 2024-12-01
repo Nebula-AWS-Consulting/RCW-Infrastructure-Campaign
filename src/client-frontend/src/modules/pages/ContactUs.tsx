@@ -9,13 +9,11 @@ import withRoot from '../withRoot';
 import { Email, LocationOn, Phone } from '@mui/icons-material';
 import AppAppBar from '../views/AppAppBar';
 import AppFooter from '../views/AppFooter';
-import { email, required } from '../form/validation';
 import AppForm from '../views/AppForm';
 import RFTextField from '../form/RFTextField';
 import FormFeedback from '../form/FormFeedback';
 import FormButton from '../form/FormButton';
 import { SERVER } from '../../App';
-import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectLanguage } from '../ducks/userSlice';
 
@@ -23,17 +21,6 @@ function ContactUs(){
   const [sent, setSent] = React.useState(false);
   const [submitError, setSubmitError] = React.useState(String);
   const language = useSelector(selectLanguage);
-
-  const validate = (values: { [index: string]: string }) => {
-    const errors = required(['name', 'email', 'password'], values);
-  
-    if (!errors.email) {
-      const emailError = email(values.email);
-      if (emailError) {
-        errors.email = emailError;
-      }
-    }
-  }
 
   const handleSubmit = async (values: { [index: string]: string }) => {
     setSent(true);
@@ -63,15 +50,15 @@ function ContactUs(){
       await response.json();
     } catch (error: any) {
         if (error.message === 'All fields are required: name, email, and message.') {
-            throw new Error('Please fill out all fields: name, email, and message.');
+            setSubmitError('Please fill out all fields: name, email, and message.');
           } else if (error.message === 'The message was rejected. Ensure the email address is valid.') {
-            throw new Error('Your email address is invalid. Please enter a valid email address.');
+            setSubmitError('Your email address is invalid. Please enter a valid email address.');
           } else if (error.message === "The sender's email address is not verified. Please contact support.") {
-            throw new Error('The email address you provided is not verified. Please use a verified email or contact support.');
+            setSubmitError('The email address you provided is not verified. Please use a verified email or contact support.');
           } else if (error.message === 'There was a configuration issue with the email service. Please try again later.') {
-            throw new Error('We encountered a technical issue while sending your message. Please try again later.');
+            setSubmitError('We encountered a technical issue while sending your message. Please try again later.');
           } else {
-            throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+            setSubmitError(error.message || 'An unexpected error occurred. Please try again.');
         }
     } finally {
       setSent(false);
@@ -105,7 +92,6 @@ function ContactUs(){
         <Form
           onSubmit={handleSubmit}
           subscription={{ submitting: true }}
-          // validate={validate}
         >
           {({ handleSubmit: handleSubmit2, submitting }) => (
             <Box component="form" onSubmit={handleSubmit2} noValidate sx={{ mt: 6 }}>

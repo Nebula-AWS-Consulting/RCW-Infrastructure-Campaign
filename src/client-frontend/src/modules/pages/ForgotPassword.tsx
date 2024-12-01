@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Field, Form, FormSpy } from 'react-final-form';
+import { Field, Form } from 'react-final-form';
 import Box from '@mui/material/Box';
 import Typography from '../components/Typography';
 import AppFooter from '../views/AppFooter';
@@ -15,6 +15,7 @@ import { SERVER } from '../../App';
 
 function ForgotPassword() {
   const [sent, setSent] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState(String);
   const navigate = useNavigate()
 
   const validate = (values: { [index: string]: string }) => {
@@ -57,11 +58,11 @@ function ForgotPassword() {
         navigate('/auth/confirmpassword')
       } catch (error: any) {
         if (error.message === 'User not found') {
-          throw new Error('No account exists with the provided email address.');
+          setSubmitError('No account exists with the provided email address.');
         } else if (error.message === 'Attempt limit exceeded, please try again later') {
-          throw new Error('You have exceeded the maximum number of attempts. Please wait and try again later.');
+          setSubmitError('You have exceeded the maximum number of attempts. Please wait and try again later.');
         } else {
-          throw new Error(error.message || 'Forgot password failed. Please try again.');
+          setSubmitError(error.message || 'Forgot password failed. Please try again.');
         }
       } finally {
         setSent(false);
@@ -100,15 +101,11 @@ function ForgotPassword() {
                   required
                   size="large"
                 />
-                <FormSpy subscription={{ submitError: true }}>
-                  {({ submitError }) =>
-                    submitError ? (
+                {submitError && (
                       <FormFeedback error sx={{ mt: 2 }}>
                         {submitError}
                       </FormFeedback>
-                    ) : null
-                  }
-                </FormSpy>
+                    )}
                 <FormButton
                   type="submit"
                   sx={{ mt: 3, mb: 2 }}

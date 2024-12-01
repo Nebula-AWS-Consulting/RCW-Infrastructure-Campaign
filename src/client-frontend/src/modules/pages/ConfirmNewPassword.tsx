@@ -2,7 +2,7 @@ import React from 'react'
 import AppAppBar from '../views/AppAppBar'
 import AppFooter from '../views/AppFooter'
 import AppForm from '../views/AppForm'
-import { Field, Form, FormSpy } from 'react-final-form'
+import { Field, Form } from 'react-final-form'
 import { Box } from '@mui/material'
 import FormButton from '../form/FormButton'
 import Typography from '../components/Typography'
@@ -15,6 +15,7 @@ import withRoot from '../withRoot'
 
 function ConfirmNewPassword() {
   const [sent, setSent] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState(String);
   const navigate = useNavigate()
 
   const validate = (values: { [index: string]: string }) => {
@@ -32,6 +33,8 @@ function ConfirmNewPassword() {
 
     const handleSubmit = async (values: { [index: string]: string }) => {
         setSent(true);
+        setSubmitError('');
+
           try {
             const response = await fetch(
               `${SERVER}/confirm-forgot-password`,
@@ -58,19 +61,23 @@ function ConfirmNewPassword() {
             await response.json();
             navigate('/auth/signin')
           } catch (error: any) {
+            let errorMessage = '';
+
             if (error.message === 'Invalid confirmation code') {
-                throw new Error('The confirmation code you entered is invalid. Please check and try again.');
-              } else if (error.message === 'Confirmation code expired') {
-                throw new Error('The confirmation code has expired. Please request a new code.');
-              } else if (error.message === 'User not found') {
-                throw new Error('No account found with the provided email address.');
-              } else if (error.message === 'Attempt limit exceeded, please try again later') {
-                throw new Error('You have exceeded the maximum number of attempts. Please wait and try again later.');
-              } else if (error.message.includes('Password')) {
-                throw new Error('Your new password does not meet the requirements. Please ensure it is strong and try again.');
-              } else {
-                throw new Error(error.message || 'An unexpected error occurred. Please try again.');
-              }
+              errorMessage = 'The confirmation code you entered is invalid. Please check and try again.';
+            } else if (error.message === 'Confirmation code expired') {
+              errorMessage = 'The confirmation code has expired. Please request a new code.';
+            } else if (error.message === 'User not found') {
+              errorMessage = 'No account found with the provided email address.';
+            } else if (error.message === 'Attempt limit exceeded, please try again later') {
+              errorMessage = 'You have exceeded the maximum number of attempts. Please wait and try again later.';
+            } else if (error.message.includes('Password')) {
+              errorMessage = 'Your new password does not meet the requirements. Please ensure it is strong and try again.';
+            } else {
+              errorMessage = error.message || 'An unexpected error occurred. Please try again.';
+            }
+          
+            return { submitError: errorMessage };
           } finally {
             setSent(false);
           }
@@ -128,15 +135,11 @@ function ConfirmNewPassword() {
                         required
                         size="large"
                     />
-                    <FormSpy subscription={{ submitError: true }}>
-                        {({ submitError }) =>
-                        submitError ? (
-                            <FormFeedback error sx={{ mt: 2 }}>
-                            {submitError}
-                            </FormFeedback>
-                        ) : null
-                        }
-                    </FormSpy>
+                    {submitError && (
+                      <FormFeedback error sx={{ mt: 2 }}>
+                        {submitError}
+                      </FormFeedback>
+                    )}
                     <FormButton
                         type="submit"
                         sx={{ mt: 3, mb: 2 }}

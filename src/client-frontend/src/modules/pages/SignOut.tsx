@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setLogout } from '../ducks/userSlice';
 import { useNavigate } from 'react-router-dom';
