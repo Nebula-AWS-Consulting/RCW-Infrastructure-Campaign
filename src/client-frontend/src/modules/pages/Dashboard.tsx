@@ -7,7 +7,7 @@ function Dashboard() {
   return (
     <React.Fragment>
       <AppAppBar />
-      
+      <div>Coming Soon</div>
       <AppFooter />
     </React.Fragment>
   )

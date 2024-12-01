@@ -1,7 +1,7 @@
 import React from 'react';
 import AppAppBar from '../views/AppAppBar';
 import AppForm from '../views/AppForm';
-import { Box, Link } from '@mui/material';
+import { Box } from '@mui/material';
 import AppFooter from '../views/AppFooter';
 import withRoot from '../withRoot';
 import EventCard from '../components/Event';

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Field, Form, FormSpy } from 'react-final-form';
+import { Field, Form } from 'react-final-form';
 import Box from '@mui/material/Box';
 import Typography from '../components/Typography';
 import AppForm from '../views/AppForm';
@@ -61,15 +61,15 @@ function VerifyEmail() {
       navigate('/auth/created');
     } catch (error: any) {
         if (error.message === 'Invalid confirmation code') {
-            throw new Error('The confirmation code you entered is incorrect. Please check and try again.');
+            setSubmitError('The confirmation code you entered is incorrect. Please check and try again.');
           } else if (error.message === 'Confirmation code expired') {
-            throw new Error('The confirmation code has expired. Please request a new one.');
+            setSubmitError('The confirmation code has expired. Please request a new one.');
           } else if (error.message === 'Not authorized') {
-            throw new Error('You are not authorized to verify this email. Please log in and try again.');
+            setSubmitError('You are not authorized to verify this email. Please log in and try again.');
           } else if (error.message === 'User not found') {
-            throw new Error('We could not find an account associated with this email. Please check and try again.');
+            setSubmitError('We could not find an account associated with this email. Please check and try again.');
           } else {
-            throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+            setSubmitError(error.message || 'An unexpected error occurred. Please try again.');
           }
     } finally {
       setSent(false);
@@ -140,15 +140,11 @@ function VerifyEmail() {
                   required
                   size="large"
                 />
-                <FormSpy subscription={{ submitError: true }}>
-                  {({ submitError }) =>
-                    submitError ? (
+                {submitError && (
                       <FormFeedback error sx={{ mt: 2 }}>
                         {submitError}
                       </FormFeedback>
-                    ) : null
-                  }
-                </FormSpy>
+                    )}
                 <FormButton
                   type="submit"
                   sx={{ mt: 3, mb: 2 }}
