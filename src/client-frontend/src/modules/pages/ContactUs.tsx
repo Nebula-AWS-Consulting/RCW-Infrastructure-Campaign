@@ -103,7 +103,7 @@ function ContactUs(){
                   disabled={submitting || sent}
                   required
                   name="name"
-                  label="Name"
+                  label={ language === 'en-US'? 'Name' : language === 'fr-FR' ? 'Nom' : language === 'es-MX' ? 'Nombre' : ''}
                   margin="normal"
                 />
               <Field
@@ -111,7 +111,7 @@ function ContactUs(){
                 component={RFTextField}
                 disabled={submitting || sent}
                 fullWidth
-                label="Email"
+                label={language === 'en-US'? 'Email' : language === 'fr-FR' ? 'E-mail' : language === 'es-MX' ? 'Correo Electrónico' : ''}
                 margin="normal"
                 name="email"
                 required
@@ -123,7 +123,7 @@ function ContactUs(){
                 fullWidth
                 multiline
                 rows={6}
-                label="Message"
+                label={language === 'en-US'? 'Message' : language === 'fr-FR' ? 'Message' : language === 'es-MX' ? 'Mensaje' : ''}
                 margin="normal"
                 name="message"
                 required
