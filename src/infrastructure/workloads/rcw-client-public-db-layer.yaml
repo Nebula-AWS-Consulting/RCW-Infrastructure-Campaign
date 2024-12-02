@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: DynamoDB Table for Admin Data
+
+Parameters:
+  Environment:
+    Type: String
+    Default: Dev
+    Description: Environment name for the VPC
+
+Resources:
+  ### DynamoDB Table for Admin Data ###
+  AdminTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: AdminTable
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: email
+          AttributeType: S  # For GSI
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: EmailIndex
+          KeySchema:
+            - AttributeName: email
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  AdminTableName:
+    Value: !Ref AdminTable
+    Description: "DynamoDB Table for admin data"
