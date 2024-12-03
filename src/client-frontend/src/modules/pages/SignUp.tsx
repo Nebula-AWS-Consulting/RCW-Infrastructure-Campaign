@@ -13,8 +13,8 @@ import FormButton from '../form/FormButton';
 import FormFeedback from '../form/FormFeedback';
 import withRoot from '../withRoot';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { setLogin } from '../ducks/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectLanguage, setLogin } from '../ducks/userSlice';
 import { SERVER } from '../../App';
 
 function SignUp() {
@@ -22,6 +22,8 @@ function SignUp() {
   const [submitError, setSubmitError] = React.useState(String);
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const language = useSelector(selectLanguage);
+
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['email', 'password'], values);
@@ -159,11 +161,11 @@ function SignUp() {
       <AppForm>
         <React.Fragment>
           <Typography variant="h3" gutterBottom marked="center" align="center">
-            Sign Up
+            {language === 'en-US'? 'Sign Up' : language === 'fr-FR' ? `S'inscrire` : language === 'es-MX' ? 'Inscribirse' : ''}
           </Typography>
           <Typography variant="body2" align="center">
             <Link href="/auth/signin" underline="always">
-              Already have an account?
+              {language === 'en-US'? 'Already have an account?' : language === 'fr-FR' ? `Vous avez déjà un compte ?` : language === 'es-MX' ? '¿Ya tienes una cuenta?' : ''}
             </Link>
           </Typography>
         </React.Fragment>
@@ -182,7 +184,7 @@ function SignUp() {
                     disabled={submitting || sent}
                     autoComplete="given-name"
                     fullWidth
-                    label="First name"
+                    label={ language === 'en-US'? 'First Name' : language === 'fr-FR' ? 'Prénom' : language === 'es-MX' ? 'Nombre de Pila' : ''}
                     name="firstName"
                     required
                   />
@@ -193,7 +195,7 @@ function SignUp() {
                     disabled={submitting || sent}
                     autoComplete="family-name"
                     fullWidth
-                    label="Last name"
+                    label={ language === 'en-US'? 'Last Name' : language === 'fr-FR' ? 'Nom de Famille' : language === 'es-MX' ? 'Apellido' : ''}
                     name="lastName"
                     required
                   />
@@ -204,7 +206,7 @@ function SignUp() {
                 component={RFTextField}
                 disabled={submitting || sent}
                 fullWidth
-                label="Email"
+                label={language === 'en-US'? 'Email' : language === 'fr-FR' ? 'E-mail' : language === 'es-MX' ? 'Correo Electrónico' : ''}
                 margin="normal"
                 name="email"
                 required
@@ -216,7 +218,7 @@ function SignUp() {
                 required
                 name="password"
                 autoComplete="new-password"
-                label="Password"
+                label={language === 'en-US'? 'Password' : language === 'fr-FR' ? 'Mot de Passe' : language === 'es-MX' ? 'Contraseña' : ''}
                 type="password"
                 margin="normal"
               />
@@ -231,7 +233,21 @@ function SignUp() {
                 color="secondary"
                 fullWidth
               >
-                {submitting || sent ? 'In progress…' : 'Sign Up'}
+                {submitting || sent
+                          ? language == 'en-US'
+                            ? 'In Progress...'
+                            : language == 'fr-FR'
+                            ? 'En Cours...'
+                            : language == 'es-MX'
+                            ? 'En Curso...'
+                            : ''
+                          : language == 'en-US'
+                          ? 'Sign Up'
+                          : language == 'fr-FR'
+                          ? `S'inscrire`
+                          : language == 'es-MX'
+                          ? 'Inscribirse'
+                          : ''}
               </FormButton>
             </Box>
           )}

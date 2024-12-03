@@ -103,7 +103,7 @@ function ContactUs(){
                   disabled={submitting || sent}
                   required
                   name="name"
-                  label="Name"
+                  label={ language === 'en-US'? 'Name' : language === 'fr-FR' ? 'Nom' : language === 'es-MX' ? 'Nombre' : ''}
                   margin="normal"
                 />
               <Field
@@ -111,7 +111,7 @@ function ContactUs(){
                 component={RFTextField}
                 disabled={submitting || sent}
                 fullWidth
-                label="Email"
+                label={language === 'en-US'? 'Email' : language === 'fr-FR' ? 'E-mail' : language === 'es-MX' ? 'Correo Electrónico' : ''}
                 margin="normal"
                 name="email"
                 required
@@ -123,7 +123,7 @@ function ContactUs(){
                 fullWidth
                 multiline
                 rows={6}
-                label="Message"
+                label={language === 'en-US'? 'Message' : language === 'fr-FR' ? 'Message' : language === 'es-MX' ? 'Mensaje' : ''}
                 margin="normal"
                 name="message"
                 required
@@ -150,7 +150,21 @@ function ContactUs(){
                 color="secondary"
                 fullWidth
               >
-                {submitting || sent ? 'In progress…' : 'Send Message'}
+                {submitting || sent
+                          ? language == 'en-US'
+                            ? 'Sending...'
+                            : language == 'fr-FR'
+                            ? 'Envoi...'
+                            : language == 'es-MX'
+                            ? 'Enviando...'
+                            : ''
+                          : language == 'en-US'
+                          ? 'Send Message'
+                          : language == 'fr-FR'
+                          ? 'Envoyer un Message'
+                          : language == 'es-MX'
+                          ? 'Enviar Mensaje'
+                          : ''}
               </FormButton>
             </Box>
           )}
@@ -162,11 +176,11 @@ function ContactUs(){
             <Box sx={{ textAlign: 'center' }}>
                 <LocationOn color="primary" sx={{ fontSize: 40 }} />
                 <Typography variant="h6" gutterBottom>
-                Address
+                {language === 'en-US'? 'Address' : language === 'fr-FR' ? 'Adresse' : language === 'es-MX' ? 'DIRECCIÓN' : ''}
                 </Typography>
                 <Typography variant="body1">
-                123 Main Street<br />
-                Las Vegas, NV 89101
+                5858 S PECOS RD<br />
+                Las Vegas, NV 89120
                 </Typography>
             </Box>
             </Grid>
@@ -174,10 +188,10 @@ function ContactUs(){
             <Box sx={{ textAlign: 'center' }}>
                 <Phone color="primary" sx={{ fontSize: 40 }} />
                 <Typography variant="h6" gutterBottom>
-                Phone
+                {language === 'en-US'? 'Phone' : language === 'fr-FR' ? 'Téléphone' : language === 'es-MX' ? 'Teléfono' : ''}
                 </Typography>
                 <Typography variant="body1">
-                (123) 456-7890
+                (808) 208-4011
                 </Typography>
             </Box>
             </Grid>
@@ -185,10 +199,10 @@ function ContactUs(){
             <Box sx={{ textAlign: 'center' }}>
                 <Email color="primary" sx={{ fontSize: 40 }} />
                 <Typography variant="h6" gutterBottom>
-                Email
+                {language === 'en-US'? 'Email' : language === 'fr-FR' ? 'E-mail' : language === 'es-MX' ? 'Correo Electrónico' : ''}
                 </Typography>
                 <Typography variant="body1">
-                info@restoredchurchlv.com
+                austin.alexander@rcwmail.com
                 </Typography>
             </Box>
             </Grid>
@@ -197,11 +211,11 @@ function ContactUs(){
     <Box sx={{ mt: 8, pb: 8, pt: 2, background: 'url(/churchContactUsDots.png)' }}>
           <Box sx={{backgroundColor: 'secondary.light', width: '60%', padding: 2, px: 5, borderRadius: 3, justifySelf: 'center'}}>
         <Typography variant="h4" align="center" marked='center' gutterBottom>
-            Find Us Here
+        {language === 'en-US'? 'Find Us Here' : language === 'fr-FR' ? 'Trouvez-nous ici' : language === 'es-MX' ? 'Encuéntranos Aquí' : ''}
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
             <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18... (your Google Maps embed link)"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6448.8672902393255!2d-115.09935009999998!3d36.082915799999995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c8c5540516f777%3A0x785eba397328804!2s5858%20S%20Pecos%20Rd%2C%20Las%20Vegas%2C%20NV%2089120!5e0!3m2!1sen!2sus!4v1733190950611!5m2!1sen!2sus"
             width="100%"
             height="400"
             style={{ border: 0, maxWidth: '600px' }}
