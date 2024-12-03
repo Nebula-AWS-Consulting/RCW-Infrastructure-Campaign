@@ -13,12 +13,14 @@ import { RootState } from '../../store';
 import { confirmationCode, required } from '../form/validation';
 import { SERVER } from '../../App';
 import { Button } from '@mui/material';
+import { selectLanguage } from '../ducks/userSlice';
 
 function VerifyEmail() {
   const [sent, setSent] = React.useState(false);
   const [submitError, setSubmitError] = React.useState(String);
   const userAccessToken = useSelector((state: RootState) => state.userAuthAndInfo.token.access_token);
   const navigate = useNavigate()
+  const language = useSelector(selectLanguage);
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['confirmation_code'], values);
@@ -115,11 +117,19 @@ function VerifyEmail() {
         <AppForm>
           <React.Fragment>
             <Typography variant="h3" gutterBottom marked="center" align="center">
-              Verify your Email
+              {language === 'en-US'? 'Verify your Email' : language === 'fr-FR' ? `Vérifiez votre e-mail` : language === 'es-MX' ? 'Verifica tu correo electrónico' : ''}
             </Typography>
             <Typography variant="body2" align="center" width={'80%'} justifySelf={'center'}>
-              {"We sent you an email with a confirmation code " +
-                'Enter the confirmation code below'}
+              {language === 'en-US'? 'We sent you an email with a confirmation code.' 
+              : language === 'fr-FR' ? `Nous vous avons envoyé un e-mail avec un code de confirmation.` 
+              : language === 'es-MX' ? 'Le enviamos un correo electrónico con un código de confirmación.' 
+              : ''}
+            </Typography>
+            <Typography variant="body2" align="center" width={'80%'} justifySelf={'center'}>
+              {language === 'en-US'? 'Enter the confirmation code below' 
+              : language === 'fr-FR' ? `Entrez le code de confirmation ci-dessous` 
+              : language === 'es-MX' ? 'Ingrese el código de confirmación a continuación' 
+              : ''}
             </Typography>
           </React.Fragment>
           <Form
@@ -134,7 +144,7 @@ function VerifyEmail() {
                   component={RFTextField}
                   disabled={submitting || sent}
                   fullWidth
-                  label="Confirmation Code"
+                  label={language === 'en-US'? 'Confirmation Code' : language === 'fr-FR' ? `Code de Confirmation` : language === 'es-MX' ? 'Código de Confirmación' : ''}
                   margin="normal"
                   name="confirmation_code"
                   required
@@ -153,16 +163,44 @@ function VerifyEmail() {
                   color="secondary"
                   fullWidth
                 >
-                  {submitting || sent ? 'In progress…' : 'Verify Email'}
+                  {submitting || sent
+                          ? language == 'en-US'
+                            ? 'In Progress...'
+                            : language == 'fr-FR'
+                            ? 'En Cours...'
+                            : language == 'es-MX'
+                            ? 'En Curso...'
+                            : ''
+                          : language == 'en-US'
+                          ? 'Verify Email'
+                          : language == 'fr-FR'
+                          ? `Vérifier l'e-mail`
+                          : language == 'es-MX'
+                          ? 'Verificar Correo Electrónico'
+                          : ''}
                 </FormButton>
                 <Box sx={{
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    marginTop: '1rem'
+                    marginTop: '1rem',
                 }}>
-                    <Button sx={{fontSize: '1rem', p: '1rem'}} onClick={() => resendCode()}>
-                        {submitting || sent ? 'In progress…' : 'Resend Code'}
+                    <Button sx={{fontSize: '1rem', p: '1rem', width: '100%'}} onClick={() => resendCode()}>
+                    {submitting || sent
+                          ? language == 'en-US'
+                            ? 'In Progress...'
+                            : language == 'fr-FR'
+                            ? 'En Cours...'
+                            : language == 'es-MX'
+                            ? 'En Curso...'
+                            : ''
+                          : language == 'en-US'
+                          ? 'Resend Code'
+                          : language == 'fr-FR'
+                          ? `Renvoyer le code`
+                          : language == 'es-MX'
+                          ? 'Reenviar Código'
+                          : ''}
                     </Button>
                 </Box>
               </Box>
