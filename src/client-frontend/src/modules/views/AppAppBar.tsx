@@ -13,6 +13,7 @@ import ListItemText from '@mui/material/ListItemText';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { selectIsLoggedIn, selectLanguage } from '../ducks/userSlice';
+import { useNavigate } from 'react-router-dom';
 
 const rightLink = {
   fontSize: 16,
@@ -25,6 +26,7 @@ function AppAppBar() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const isLoggedIn = useSelector((state: RootState) => selectIsLoggedIn(state));
   const language = useSelector(selectLanguage);
+  const navigate = useNavigate()
 
 
   const toggleDrawer = (open: boolean) => () => {
@@ -89,10 +91,10 @@ function AppAppBar() {
                       </>
                     ) : (
                       <>
-                        <ListItem component="a" href="/auth/signin">
+                        <ListItem component="a" onClick={() => navigate('/auth/signin')}>
                           <ListItemText primary={language=='en-US' ? 'Sign In' : language=='fr-FR' ? 'Se connecter' : language=='es-MX' ? 'Iniciar sesión' : ''} />
                         </ListItem>
-                        <ListItem component="a" href="/auth/signup">
+                        <ListItem component="a" onClick={() => navigate('/auth/signup')}>
                           <ListItemText primary={language=='en-US' ? 'Sign Up' : language=='fr-FR' ? `S'inscrire` : language=='es-MX' ? 'Inscribirse' : ''} />
                         </ListItem>
                       </>

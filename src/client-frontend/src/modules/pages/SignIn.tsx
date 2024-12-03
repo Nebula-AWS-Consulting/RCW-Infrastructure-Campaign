@@ -11,8 +11,8 @@ import RFTextField from '../form/RFTextField';
 import FormButton from '../form/FormButton';
 import FormFeedback from '../form/FormFeedback';
 import withRoot from '../withRoot';
-import { setLogin } from '../ducks/userSlice';
-import { useDispatch } from 'react-redux';
+import { selectLanguage, setLogin } from '../ducks/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { SERVER } from '../../App';
 
@@ -21,6 +21,7 @@ function SignIn() {
   const [submitError, setSubmitError] = React.useState(String);
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const language = useSelector(selectLanguage);
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['email', 'password'], values);
@@ -134,16 +135,16 @@ const getUserUsername = async (email:string) => {
       <AppForm>
         <React.Fragment>
           <Typography variant="h3" gutterBottom marked="center" align="center">
-            Sign In
+          {language === 'en-US'? 'Sign In' : language === 'fr-FR' ? 'Se Connecter' : language === 'es-MX' ? 'Iniciar Sesión' : ''}
           </Typography>
           <Typography variant="body2" align="center">
-            {'Not a member yet? '}
+            {language === 'en-US'? 'Not a member yet? ' : language === 'fr-FR' ? 'Pas encore membre ? ' : language === 'es-MX' ? '¿Aún no eres miembro? ' : ''}
             <Link
               href="/auth/signup"
               align="center"
               underline="always"
             >
-              Sign Up here
+              {language === 'en-US'? 'Sign Up Here' : language === 'fr-FR' ? 'Inscrivez-vous ici' : language === 'es-MX' ? 'Regístrate aquí' : ''}
             </Link>
           </Typography>
         </React.Fragment>
@@ -160,7 +161,7 @@ const getUserUsername = async (email:string) => {
                 component={RFTextField}
                 disabled={submitting || sent}
                 fullWidth
-                label="Email"
+                label={language === 'en-US'? 'Email' : language === 'fr-FR' ? 'E-mail' : language === 'es-MX' ? 'Correo Electrónico' : ''}
                 margin="normal"
                 name="email"
                 required
@@ -174,7 +175,7 @@ const getUserUsername = async (email:string) => {
                 required
                 name="password"
                 autoComplete="current-password"
-                label="Password"
+                label={language === 'en-US'? 'Password' : language === 'fr-FR' ? 'Mot de Passe' : language === 'es-MX' ? 'Contraseña' : ''}
                 type="password"
                 margin="normal"
               />
@@ -199,14 +200,28 @@ const getUserUsername = async (email:string) => {
                 color="secondary"
                 fullWidth
               >
-                {submitting || sent ? 'In progress…' : 'Sign In'}
+                {submitting || sent
+                          ? language == 'en-US'
+                            ? 'In Progress...'
+                            : language == 'fr-FR'
+                            ? 'En Cours...'
+                            : language == 'es-MX'
+                            ? 'En Curso...'
+                            : ''
+                          : language == 'en-US'
+                          ? 'Sign In'
+                          : language == 'fr-FR'
+                          ? 'Se Connecter'
+                          : language == 'es-MX'
+                          ? 'Iniciar Sesión'
+                          : ''}
               </FormButton>
             </Box>
           )}
         </Form>
         <Typography align="center">
           <Link underline="always" href="/auth/forgotpassword">
-            Forgot password?
+            {language === 'en-US'? 'Forgot password?' : language === 'fr-FR' ? 'Mot de passe oublié ?' : language === 'es-MX' ? '¿Has olvidado tu contraseña?' : ''}
           </Link>
         </Typography>
       </AppForm>
