@@ -17,23 +17,6 @@ Globals:
       Environment: !Ref Environment
 
 Resources:
-  ### S3 Bucket for app (Website bucket with public access) ###
-  ClientBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: rcw-webpage
-      WebsiteConfiguration:
-        IndexDocument: index.html
-        ErrorDocument: error.html
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: false
-        BlockPublicPolicy: false
-        IgnorePublicAcls: false
-        RestrictPublicBuckets: false
-      Tags:
-        - Key: Environment
-          Value: !Ref Environment
-
   ### S3 Bucket for logs (Secured) ###
   LogBucket:
     Type: AWS::S3::Bucket
@@ -119,8 +102,12 @@ Resources:
       FunctionName: PayPal-Processor
       Role: !GetAtt LambdaExecutionRole.Arn
       CodeUri: s3://rcw-code-bucket/paypal-processor/paypal-processor.zip
+      Runtime: python3.8
       Tags:
         Environment: !Ref Environment
+      Environment:
+        Variables:
+          SPREADSHEET_ID: 1Jpicnmuuuy7aS__mGb-3sLgED9vxvELrvffrDtOHWjo
 
   ### Lambda Function for Client Public Backend ###
   ClientPublicBackendFunction:
@@ -280,10 +267,6 @@ Resources:
         Environment: !Ref Environment
 
 Outputs:
-  ClientBucketName:
-    Value: !Ref ClientBucket
-    Description: "S3 Bucket for the client application"
-
   LogBucketName:
     Value: !Ref LogBucket
     Description: "S3 Bucket for logs"
