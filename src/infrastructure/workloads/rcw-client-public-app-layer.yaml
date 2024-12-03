@@ -17,23 +17,6 @@ Globals:
       Environment: !Ref Environment
 
 Resources:
-  ### S3 Bucket for app (Website bucket with public access) ###
-  ClientBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: rcw-webpage
-      WebsiteConfiguration:
-        IndexDocument: index.html
-        ErrorDocument: error.html
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: false
-        BlockPublicPolicy: false
-        IgnorePublicAcls: false
-        RestrictPublicBuckets: false
-      Tags:
-        - Key: Environment
-          Value: !Ref Environment
-
   ### S3 Bucket for logs (Secured) ###
   LogBucket:
     Type: AWS::S3::Bucket
@@ -283,10 +266,6 @@ Resources:
         Environment: !Ref Environment
 
 Outputs:
-  ClientBucketName:
-    Value: !Ref ClientBucket
-    Description: "S3 Bucket for the client application"
-
   LogBucketName:
     Value: !Ref LogBucket
     Description: "S3 Bucket for logs"
