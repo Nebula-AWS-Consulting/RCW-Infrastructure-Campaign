@@ -91,6 +91,7 @@ Resources:
         - LambdaExecutionRole
         - Arn
       CodeUri: s3://rcw-code-bucket/paypal-processor/paypal-processor.zip
+      Runtime: python3.8
       Tags:
         Environment:
           Ref: Environment
