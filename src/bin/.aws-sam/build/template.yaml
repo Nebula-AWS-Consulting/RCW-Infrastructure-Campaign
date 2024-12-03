@@ -15,22 +15,6 @@ Globals:
       Environment:
         Ref: Environment
 Resources:
-  ClientBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: rcw-webpage
-      WebsiteConfiguration:
-        IndexDocument: index.html
-        ErrorDocument: error.html
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: false
-        BlockPublicPolicy: false
-        IgnorePublicAcls: false
-        RestrictPublicBuckets: false
-      Tags:
-      - Key: Environment
-        Value:
-          Ref: Environment
   LogBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -107,9 +91,13 @@ Resources:
         - LambdaExecutionRole
         - Arn
       CodeUri: s3://rcw-code-bucket/paypal-processor/paypal-processor.zip
+      Runtime: python3.8
       Tags:
         Environment:
           Ref: Environment
+      Environment:
+        Variables:
+          SPREADSHEET_ID: 1Jpicnmuuuy7aS__mGb-3sLgED9vxvELrvffrDtOHWjo
   ClientPublicBackendFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -289,10 +277,6 @@ Resources:
         Environment:
           Ref: Environment
 Outputs:
-  ClientBucketName:
-    Value:
-      Ref: ClientBucket
-    Description: S3 Bucket for the client application
   LogBucketName:
     Value:
       Ref: LogBucket
