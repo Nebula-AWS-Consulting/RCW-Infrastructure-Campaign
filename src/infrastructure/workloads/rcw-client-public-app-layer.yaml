@@ -121,6 +121,9 @@ Resources:
       CodeUri: s3://rcw-code-bucket/paypal-processor/paypal-processor.zip
       Tags:
         Environment: !Ref Environment
+      Environment:
+        Variables:
+          SPREADSHEET_ID: 1Jpicnmuuuy7aS__mGb-3sLgED9vxvELrvffrDtOHWjo
 
   ### Lambda Function for Client Public Backend ###
   ClientPublicBackendFunction:
