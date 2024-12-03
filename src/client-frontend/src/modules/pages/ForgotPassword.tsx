@@ -12,11 +12,14 @@ import FormFeedback from '../form/FormFeedback';
 import withRoot from '../withRoot';
 import { useNavigate } from 'react-router-dom';
 import { SERVER } from '../../App';
+import { useSelector } from 'react-redux';
+import { selectLanguage } from '../ducks/userSlice';
 
 function ForgotPassword() {
   const [sent, setSent] = React.useState(false);
   const [submitError, setSubmitError] = React.useState(String);
   const navigate = useNavigate()
+  const language = useSelector(selectLanguage);
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['email'], values);
@@ -75,11 +78,13 @@ function ForgotPassword() {
         <AppForm>
           <React.Fragment>
             <Typography variant="h3" gutterBottom marked="center" align="center">
-              Forgot your password?
+              {language === 'en-US'? 'Forgot your password?' : language === 'fr-FR' ? `Vous avez oublié votre mot de Passe ?` : language === 'es-MX' ? '¿Olvidaste tu Contraseña?' : ''}
             </Typography>
             <Typography variant="body2" align="center" width={'80%'} justifySelf={'center'}>
-              {"Enter your email address below and we'll " +
-                'send you a link to reset your password.'}
+              {language === 'en-US'? `Enter your email address below and we'll send you a link to reset your password.` 
+              : language === 'fr-FR' ? `Entrez votre adresse e-mail ci-dessous et nous vous enverrons un lien pour réinitialiser votre mot de passe.` 
+              : language === 'es-MX' ? 'Ingrese su dirección de correo electrónico a continuación y le enviaremos un enlace para restablecer su contraseña.' 
+              : ''}
             </Typography>
           </React.Fragment>
           <Form
@@ -95,7 +100,7 @@ function ForgotPassword() {
                   component={RFTextField}
                   disabled={submitting || sent}
                   fullWidth
-                  label="Email"
+                  label={language === 'en-US'? 'Email' : language === 'fr-FR' ? 'E-mail' : language === 'es-MX' ? 'Correo Electrónico' : ''}
                   margin="normal"
                   name="email"
                   required
@@ -114,7 +119,21 @@ function ForgotPassword() {
                   color="secondary"
                   fullWidth
                 >
-                  {submitting || sent ? 'In progress…' : 'Send reset link'}
+                  {submitting || sent
+                          ? language == 'en-US'
+                            ? 'In Progress...'
+                            : language == 'fr-FR'
+                            ? 'En Cours...'
+                            : language == 'es-MX'
+                            ? 'En Curso...'
+                            : ''
+                          : language == 'en-US'
+                          ? 'Send Reset Link'
+                          : language == 'fr-FR'
+                          ? 'Envoyer le lien de Réinitialisation'
+                          : language == 'es-MX'
+                          ? 'Enviar enlace de Reinicio'
+                          : ''}
                 </FormButton>
               </Box>
             )}
