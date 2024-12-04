@@ -78,10 +78,25 @@ Resources:
             Resource:
             - Fn::Sub: arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*
             - Fn::Sub: arn:aws:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/my-first-configuration-set
+      - PolicyName: SSMParameterAccessPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - ssm:GetParameter
+            Resource:
+              Fn::Sub: arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rcw-paypal-processor-gcp-service-account
       Tags:
       - Key: Environment
         Value:
           Ref: Environment
+  PayPalProcessorFunctionLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+      - python3.8
+      ContentUri: s3://rcw-code-bucket/paypal-processor/layer.zip
   PayPalProcessorFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -92,12 +107,15 @@ Resources:
         - Arn
       CodeUri: s3://rcw-code-bucket/paypal-processor/paypal-processor.zip
       Runtime: python3.8
+      Layers:
+      - Ref: PayPalProcessorFunctionLayer
       Tags:
         Environment:
           Ref: Environment
       Environment:
         Variables:
           SPREADSHEET_ID: 1Jpicnmuuuy7aS__mGb-3sLgED9vxvELrvffrDtOHWjo
+          SERVICE_ACCOUNT_PARAMETER_NAME: rcw-paypal-processor-gcp-service-account
   ClientPublicBackendFunction:
     Type: AWS::Serverless::Function
     Properties:
