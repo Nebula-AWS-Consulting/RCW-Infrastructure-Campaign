@@ -15,19 +15,10 @@ Globals:
       Environment:
         Ref: Environment
 Resources:
-  LogBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: rcw-log-bucket
-      AccessControl: Private
-      Tags:
-      - Key: Environment
-        Value:
-          Ref: Environment
-  LambdaExecutionRole:
+  PayPalProcessorLambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: LambdaExecutionRole
+      RoleName: PayPalProcessorLambdaExecutionRole
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -59,241 +50,48 @@ Resources:
             - dynamodb:Scan
             - dynamodb:Query
             Resource: arn:aws:dynamodb:*:*:table/AdminTable
-      - PolicyName: CognitoAccessPolicy
+      - PolicyName: SSMParameterAccessPolicy
         PolicyDocument:
           Version: '2012-10-17'
           Statement:
           - Effect: Allow
             Action:
-            - cognito-idp:*
-            Resource: arn:aws:cognito-idp:*:*:userpool/us-west-1_lJ8JcxPXT
-      - PolicyName: SESAccessPolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - ses:SendEmail
-            - ses:SendRawEmail
+            - ssm:GetParameter
             Resource:
-            - Fn::Sub: arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*
-            - Fn::Sub: arn:aws:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/my-first-configuration-set
+              Fn::Sub: arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rcw-paypal-processor-gcp-service-account
       Tags:
       - Key: Environment
         Value:
           Ref: Environment
+  PayPalProcessorFunctionLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+      - python3.8
+      ContentUri: s3://rcw-code-bucket/paypal-processor/layer.zip
   PayPalProcessorFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: PayPal-Processor
       Role:
         Fn::GetAtt:
-        - LambdaExecutionRole
+        - PayPalProcessorLambdaExecutionRole
         - Arn
       CodeUri: s3://rcw-code-bucket/paypal-processor/paypal-processor.zip
       Runtime: python3.8
+      Layers:
+      - Ref: PayPalProcessorFunctionLayer
       Tags:
         Environment:
           Ref: Environment
       Environment:
         Variables:
           SPREADSHEET_ID: 1Jpicnmuuuy7aS__mGb-3sLgED9vxvELrvffrDtOHWjo
-  ClientPublicBackendFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: ClientPublicBackendFunction
-      Role:
-        Fn::GetAtt:
-        - LambdaExecutionRole
-        - Arn
-      CodeUri: s3://rcw-code-bucket/client-public-backend/client-public-backend.zip
-      Events:
-        SignupPost:
-          Type: Api
-          Properties:
-            Path: /signup
-            Method: POST
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        SignupOptions:
-          Type: Api
-          Properties:
-            Path: /signup
-            Method: OPTIONS
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ConfirmUser:
-          Type: Api
-          Properties:
-            Path: /confirm
-            Method: POST
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ConfirmUserOptions:
-          Type: Api
-          Properties:
-            Path: /confirm
-            Method: OPTIONS
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ConfirmEmail:
-          Type: Api
-          Properties:
-            Path: /confirm-email
-            Method: POST
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ConfirmEmailOptions:
-          Type: Api
-          Properties:
-            Path: /confirm-email
-            Method: OPTIONS
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ConfirmEmailResend:
-          Type: Api
-          Properties:
-            Path: /confirm-email-resend
-            Method: POST
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ConfirmEmailResendOptions:
-          Type: Api
-          Properties:
-            Path: /confirm-email-resend
-            Method: OPTIONS
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        LoginUser:
-          Type: Api
-          Properties:
-            Path: /login
-            Method: POST
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        LoginUserOptions:
-          Type: Api
-          Properties:
-            Path: /login
-            Method: OPTIONS
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ForgotPassword:
-          Type: Api
-          Properties:
-            Path: /forgot-password
-            Method: POST
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ForgotPasswordOptions:
-          Type: Api
-          Properties:
-            Path: /forgot-password
-            Method: OPTIONS
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ConfirmForgotPassword:
-          Type: Api
-          Properties:
-            Path: /confirm-forgot-password
-            Method: POST
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ConfirmForgotPasswordOptions:
-          Type: Api
-          Properties:
-            Path: /confirm-forgot-password
-            Method: OPTIONS
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ContactUs:
-          Type: Api
-          Properties:
-            Path: /contact-us
-            Method: POST
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        ContactUsOptions:
-          Type: Api
-          Properties:
-            Path: /contact-us
-            Method: OPTIONS
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        GetUser:
-          Type: Api
-          Properties:
-            Path: /user
-            Method: GET
-            RestApiId:
-              Ref: ClientPublicBackendApi
-            RequestParameters:
-              method.request.querystring.email: true
-        UpdateUser:
-          Type: Api
-          Properties:
-            Path: /user
-            Method: PATCH
-            RestApiId:
-              Ref: ClientPublicBackendApi
-        DeleteUser:
-          Type: Api
-          Properties:
-            Path: /user
-            Method: DELETE
-            RestApiId:
-              Ref: ClientPublicBackendApi
-            RequestParameters:
-              method.request.querystring.email: true
-        UsersOptions:
-          Type: Api
-          Properties:
-            Path: /user
-            Method: OPTIONS
-            RestApiId:
-              Ref: ClientPublicBackendApi
-      Tags:
-        Environment:
-          Ref: Environment
-  ClientPublicBackendApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name: ClientPublicBackendApi
-      StageName: prod
-      EndpointConfiguration:
-        Type: REGIONAL
-      Cors:
-        AllowMethods:
-        - GET
-        - POST
-        - PATCH
-        - DELETE
-        - OPTIONS
-        AllowHeaders:
-        - Content-Type
-        - Authorization
-        AllowOrigin: '*'
-      Tags:
-        Environment:
-          Ref: Environment
+          SERVICE_ACCOUNT_PARAMETER_NAME: rcw-paypal-processor-gcp-service-account
 Outputs:
-  LogBucketName:
-    Value:
-      Ref: LogBucket
-    Description: S3 Bucket for logs
   PayPalProcessorLambdaFunctionArn:
     Value:
       Fn::GetAtt:
       - PayPalProcessorFunction
       - Arn
     Description: Lambda function ARN for PayPal Processor
-  ClientPublicBackendLambdaFunctionArn:
-    Value:
-      Fn::GetAtt:
-      - ClientPublicBackendFunction
-      - Arn
-    Description: Lambda function ARN for Client Public Backend
-  ClientPublicBackendApiInvokeURL:
-    Value:
-      Fn::Sub: https://${ClientPublicBackendApi}.execute-api.${AWS::Region}.amazonaws.com/prod
-    Description: Invoke URL for the Client Public Backend API
