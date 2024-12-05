@@ -1,12 +1,11 @@
 #!/bin/bash
 
-# Set the path to your SAM template file and output directory
-TEMPLATE_FILE_FRONTEND="../infrastructure/workloads/rcw-client-public-app-layer.yaml"
+TEMPLATE_FILE_PAYPAL_PROCESSOR="../infrastructure/workloads/rcw-paypal-processor.yaml"
 BUILD_DIR=".aws-sam/build"
 
 # Validate the SAM template
 echo "Validating the SAM template..."
-sam validate --template-file "$TEMPLATE_FILE_FRONTEND"
+sam validate --template-file "$TEMPLATE_FILE_PAYPAL_PROCESSOR"
 
 if [ $? -ne 0 ]; then
     echo "SAM template validation failed. Exiting..."
@@ -15,7 +14,7 @@ fi
 
 # Run SAM build
 echo "Building the SAM application..."
-sam build --template-file "$TEMPLATE_FILE_FRONTEND" --build-dir "$BUILD_DIR"
+sam build --template-file "$TEMPLATE_FILE_PAYPAL_PROCESSOR" --build-dir "$BUILD_DIR"
 
 if [ $? -ne 0 ]; then
     echo "SAM build failed. Exiting..."
@@ -26,7 +25,7 @@ fi
 echo "Deploying the SAM application..."
 sam deploy \
     --template-file "$BUILD_DIR/template.yaml" \
-    --stack-name RCW-Architecture-App-Dev \
+    --stack-name RCW-Architecture-Paypal-Processor-Dev \
     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
     --no-execute-changeset \
     --region us-west-1 \
@@ -37,4 +36,4 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Front-end application deployed successfully!"
+echo "Paypal processing application deployed successfully!"
