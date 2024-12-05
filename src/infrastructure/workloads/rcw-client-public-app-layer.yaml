@@ -51,23 +51,7 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource: "*"
-
-        # DynamoDB Access Policy (optional if you still use DynamoDB)
-        - PolicyName: DynamoDBAccessPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:GetItem"
-                  - "dynamodb:PutItem"
-                  - "dynamodb:UpdateItem"
-                  - "dynamodb:DeleteItem"
-                  - "dynamodb:Scan"
-                  - "dynamodb:Query"
-                Resource: "arn:aws:dynamodb:*:*:table/AdminTable"
         
-
         # Cognito User Pool Permissions
         - PolicyName: CognitoAccessPolicy
           PolicyDocument:
@@ -90,43 +74,9 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*"
                   - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/my-first-configuration-set"
-
-          # SSM Parameter Store Access Policy
-        - PolicyName: SSMParameterAccessPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "ssm:GetParameter"
-                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rcw-paypal-processor-gcp-service-account"
       Tags:
         - Key: Environment
           Value: !Ref Environment
-
-  PayPalProcessorFunctionLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      CompatibleRuntimes:
-        - python3.8
-      ContentUri: s3://rcw-code-bucket/paypal-processor/layer.zip
-
-  ### Lambda Function for PayPal Processor ###
-  PayPalProcessorFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: PayPal-Processor
-      Role: !GetAtt LambdaExecutionRole.Arn
-      CodeUri: s3://rcw-code-bucket/paypal-processor/paypal-processor.zip
-      Runtime: python3.8
-      Layers:
-      - !Ref PayPalProcessorFunctionLayer
-      Tags:
-        Environment: !Ref Environment
-      Environment:
-        Variables:
-          SPREADSHEET_ID: 1Jpicnmuuuy7aS__mGb-3sLgED9vxvELrvffrDtOHWjo
-          SERVICE_ACCOUNT_PARAMETER_NAME: rcw-paypal-processor-gcp-service-account
 
   ### Lambda Function for Client Public Backend ###
   ClientPublicBackendFunction:
@@ -289,10 +239,6 @@ Outputs:
   LogBucketName:
     Value: !Ref LogBucket
     Description: "S3 Bucket for logs"
-
-  PayPalProcessorLambdaFunctionArn:
-    Value: !GetAtt PayPalProcessorFunction.Arn
-    Description: "Lambda function ARN for PayPal Processor"
 
   ClientPublicBackendLambdaFunctionArn:
     Value: !GetAtt ClientPublicBackendFunction.Arn
