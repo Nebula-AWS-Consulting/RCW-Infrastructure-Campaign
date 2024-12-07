@@ -1,0 +1,42 @@
+name: Dynamic CloudFormation Update
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  detect-changes-and-deploy:
+    if: ${{ github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Detect changed files
+        id: changes
+        run: |
+          echo "Changed files:"
+          git diff --name-only HEAD~1 > changed_files.txt
+          cat changed_files.txt
+          echo "files=$(cat changed_files.txt)" >> $GITHUB_ENV
+
+      - name: Debug changed files
+        run: echo "${{ env.files }}"
+
+      - name: Deploy Foundation Template
+        if: contains(env.files, 'src/server/index.py')
+        run: aws codepipeline start-pipeline-execution --name ClientBackendPublicPipeline
