@@ -19,7 +19,7 @@ import ContactUs from "./modules/pages/ContactUs"
 import ConfirmNewPassword from "./modules/pages/ConfirmNewPassword"
 import VerifyEmail from "./modules/pages/VerifyEmail"
 
-export const SERVER = 'https://hcq5ysarmg.execute-api.us-west-1.amazonaws.com/prod'
+export const SERVER = 'https://dmqboe5083.execute-api.us-west-1.amazonaws.com/prod'
 
 function App() {
   const user = useSelector((state: RootState) => state.userAuthAndInfo);
