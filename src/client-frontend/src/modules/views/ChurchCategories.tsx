@@ -81,19 +81,19 @@ export default function ChurchCategories() {
       url: './images/happy.jpg',
       title: `${language=='en-US' ? 'Missions' : language=='fr-FR' ? 'Missions' : language=='es-MX' ? 'Misiones' : ''}`,
       width: '28%',
-      link: 'https://www.paypal.com/donate/?hosted_button_id=GE88JN9WX35ML'
+      link: '/missions'
     },
     {
       url: './images/henry.jpg',
       title: `${language=='en-US' ? 'Benevolence' : language=='fr-FR' ? 'Bienveillance' : language=='es-MX' ? 'Benevolencia' : ''}`,
       width: '34%',
-      link: 'https://www.paypal.com/donate/?hosted_button_id=FGM4W785X3XXA'
+      link: '/benevolence'
     },
     {
       url: './images/preach.jpg',
       title: `${language=='en-US' ? 'Contribution' : language=='fr-FR' ? 'Contribution' : language=='es-MX' ? 'Contribución' : ''}`,
       width: '38%',
-      link: 'https://www.paypal.com/donate/?hosted_button_id=3K78Y7VSPZMGN'
+      link: '/contribution'
     }
   ];
 

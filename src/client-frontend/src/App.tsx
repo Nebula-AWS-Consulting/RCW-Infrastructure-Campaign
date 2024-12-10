@@ -18,6 +18,9 @@ import Profile from "./modules/pages/Profile"
 import ContactUs from "./modules/pages/ContactUs"
 import ConfirmNewPassword from "./modules/pages/ConfirmNewPassword"
 import VerifyEmail from "./modules/pages/VerifyEmail"
+import ControPage from "./modules/pages/ControPage"
+import BenevolencePage from "./modules/pages/BenevolencePage"
+import MissionsPage from "./modules/pages/MissionsPage"
 
 export const SERVER = 'https://hcq5ysarmg.execute-api.us-west-1.amazonaws.com/prod'
 
@@ -61,6 +64,9 @@ console.log(language)
             <Route path="/auth/created" element={<AccountCreated />} />
             <Route path="/auth/forgotpassword" element={<ForgotPassword />} />
             <Route path="/auth/confirmpassword" element={<ConfirmNewPassword />} />
+            <Route path="/contribution" element={<ControPage />} />
+            <Route path="/benevolence" element={<BenevolencePage />} />
+            <Route path="/missions" element={<MissionsPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/contactus" element={<ContactUs />} />
