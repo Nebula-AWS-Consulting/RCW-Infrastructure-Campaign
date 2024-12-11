@@ -7,3 +7,4 @@ paypal-processor
 pynamodb_layer
 venv
 .vite
+python

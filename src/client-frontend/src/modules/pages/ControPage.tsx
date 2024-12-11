@@ -4,10 +4,13 @@ import {
   PayPalButtons,
   PayPalButtonsComponentProps,
 } from "@paypal/react-paypal-js";
-import { Box, TextField, RadioGroup, FormControlLabel, Radio } from "@mui/material";
+import { Box, TextField, RadioGroup, FormControlLabel, Radio, InputAdornment } from "@mui/material";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import AppAppBar from "../views/AppAppBar";
 import AppFooter from "../views/AppFooter";
 import withRoot from "../withRoot";
+import AppForm from "../views/AppForm";
+import Typography from "../components/Typography";
 
 interface OrderData {
   id: string;
@@ -64,9 +67,8 @@ interface PayPalCaptureDetails {
     }
 
 const ControPage = () => {
-  const [donationAmount, setDonationAmount] = useState("10.00");
+  const [donationAmount, setDonationAmount] = useState("0.00");
   const [paymentType, setPaymentType] = useState("one-time");
-  const [customId, setCustomId] = useState("");
 
   const initialOptions = {
     clientId: "AV3jWo0UUa7S_pVht6SqMI9grwlpY-xRNhpgd7MisVQM4baWUSQvGSOfqqo1gExGmGPB2Drwz-fFBj8i",
@@ -86,9 +88,14 @@ const ControPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: donationAmount,
-          customId,
+          customId: "Contribution"
         }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
+      }
 
       const orderData: OrderData = await response.json();
 
@@ -108,7 +115,7 @@ const ControPage = () => {
     }
   };
 
-  const handleOnApprove = (
+  const handleOnApprove = async (
     data: PayPalOnApproveData,
     actions: PayPalOnApproveActions,
     paymentType: "one-time" | "subscription",
@@ -116,13 +123,12 @@ const ControPage = () => {
   ): Promise<void> => {
     if (paymentType === "one-time") {
       if (actions?.order?.capture) {
-        return actions.order.capture().then((details) => {
+        const details = await actions.order.capture();
           const name = details.payer?.name?.given_name || "Donor";
           alert(
-            `Thank you, ${name}, for your donation of $${donationAmount}!`
+              `Thank you, ${name}, for your donation of $${donationAmount}!`
           );
           console.log("Transaction Details:", details);
-        });
       } else {
         return Promise.reject(new Error("Capture action is unavailable."));
       }
@@ -139,45 +145,44 @@ const ControPage = () => {
     return Promise.resolve();
   };
   
-  
-
   return (
     <PayPalScriptProvider options={initialOptions}>
       <AppAppBar />
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
-        }}
-      >
-        <h1>Support Our Church</h1>
-        <p>We appreciate your generous contributions!</p>
+      <AppForm>
+        <Typography variant="h5" align="center" mb={2} justifySelf={'center'}>Donate to</Typography>
+        <Typography variant="h4" gutterBottom marked="center" align="center">Restored Church Las Vegas</Typography>
+        <Typography variant="h5" align="center" my={3} width={'80%'} justifySelf={'center'}>Weekly Contribution</Typography>
 
         {/* Donation Amount Input */}
-        <TextField
-          label="Donation Amount"
-          type="number"
-          value={donationAmount}
-          onChange={(e) => setDonationAmount(e.target.value)}
-          sx={{ margin: 2 }}
-        />
+        <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%'
+        }}>
+            <TextField
+                label="Donation Amount"
+                type="number"
+                value={donationAmount}
+                onChange={(e) => setDonationAmount(e.target.value)}
+                sx={{ margin: 2, justifySelf: 'center' }}
+                InputProps={{
+                    startAdornment: (
+                    <InputAdornment position="start">
+                        <AttachMoneyIcon />
+                    </InputAdornment>
+                    ),
+                }}
+                />
+        </Box>
 
-        {/* Custom ID Input */}
-        <TextField
-          label="Custom ID"
-          value={customId}
-          onChange={(e) => setCustomId(e.target.value)}
-          sx={{ margin: 2 }}
-        />
-
-        {/* Payment Type Selection */}
+        {/* Payment Type Selection */}   
         <RadioGroup
           row
           value={paymentType}
           onChange={(e) => setPaymentType(e.target.value)}
+          sx={{ marginBottom: '3rem', justifySelf: 'center'}}
         >
           <FormControlLabel
             value="one-time"
@@ -193,14 +198,14 @@ const ControPage = () => {
 
         {/* PayPal Buttons */}
         <PayPalButtons
-            style={{ layout: "vertical", color: "silver" }}
+            style={{ layout: "vertical", color: "black" }}
             createOrder={createOrder}
             onApprove={(data, actions) => handleOnApprove(data, actions, paymentType as "one-time" | "subscription", donationAmount)}
             onError={(err) => {
                 console.error("PayPal error:", err);
             }}
             />
-      </Box>
+      </AppForm>
       <AppFooter />
     </PayPalScriptProvider>
   );
