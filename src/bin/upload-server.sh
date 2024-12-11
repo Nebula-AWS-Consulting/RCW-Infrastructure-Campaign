@@ -4,8 +4,8 @@
 ZIP_FILE_SERVER="function.zip"
 ZIP_FILE_LAYER="dependencies.zip"
 BUCKET_NAME="rcw-code-bucket"
-SERVER_S3_PATH="/client-public-backend/function.zip"
-LAYER_S3_PATH="/client-public-backend/dependencies.zip"
+SERVER_S3_PATH="client-public-backend/function.zip"
+LAYER_S3_PATH="client-public-backend/dependencies.zip"
 
 # Create zip files
 echo "Creating zip files..."

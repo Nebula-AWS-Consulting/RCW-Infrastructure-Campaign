@@ -31,9 +31,9 @@ interface PayPalOnApproveActions {
     };
     }
 interface PayPalCaptureDetails {
-    id?: string; // Payment transaction ID
-    create_time?: string; // Transaction creation time
-    update_time?: string; // Transaction update time
+    id?: string;
+    create_time?: string;
+    update_time?: string;
     payer?: {
         name?: {
         given_name?: string;
@@ -46,8 +46,8 @@ interface PayPalCaptureDetails {
         card?: {
         name?: string;
         last_digits?: string;
-        brand?: string; // Card brand (e.g., VISA, MASTERCARD)
-        type?: string; // Card type (e.g., CREDIT, DEBIT)
+        brand?: string;
+        type?: string;
         };
         paypal?: {
         email_address?: string;
@@ -71,7 +71,7 @@ const ControPage = () => {
   const [paymentType, setPaymentType] = useState("one-time");
 
   const initialOptions = {
-    clientId: "AV3jWo0UUa7S_pVht6SqMI9grwlpY-xRNhpgd7MisVQM4baWUSQvGSOfqqo1gExGmGPB2Drwz-fFBj8i",
+    clientId: "AfYXn-9V-9VfmWexdtRa8Q6ZYBQ4eU8cW8J01x4_BfCMuEuHN3kOc1eP9V-VYjYcqktNR06NuSr-UqT9",
     currency: "USD",
     intent: "capture",
   };

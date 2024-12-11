@@ -1,17 +1,22 @@
 import boto3
 import json
 import logging
+import requests
 
 # Initialize the Cognito Identity Provider client
 client = boto3.client('cognito-idp', region_name='us-west-1')
 ses = boto3.client('ses', region_name='us-west-1')
 
 # Configuration
-USER_POOL_ID = "us-west-1_lJ8JcxPXT"  # Replace with your Cognito User Pool ID
-CLIENT_ID = "2p3glok5k66cvh7hhs8lnpegsc"  # Replace with your Cognito App Client ID
+USER_POOL_ID = "us-west-1_lJ8JcxPXT"
+CLIENT_ID = "2p3glok5k66cvh7hhs8lnpegsc"
 
 SENDER_EMAIL = 'emmanuelurias60@nebulaawsconsulting.com'
 RECIPIENT_EMAIL = 'emmanuelurias60@icloud.com'
+
+PAYPAL_CLIENT_ID = "AfYXn-9V-9VfmWexdtRa8Q6ZYBQ4eU8cW8J01x4_BfCMuEuHN3kOc1eP9V-VYjYcqktNR06NuSr-UqT9"
+PAYPAL_SECRET = "EBXvJKNZPbxbwURqYfvA2w3m-1vQfnnBrJlc1FnA4WRiR9LO-dFB9qCyReXJTpT7R4aJh0gdL3TJOD_q"
+
 
 # Set up logging
 logger = logging.getLogger()
@@ -68,6 +73,11 @@ def lambda_handler(event, context):
             return delete_user(email)
         elif resource_path == "/contact-us" and http_method == "POST":
             return contact_us(first_name, email, message)
+        elif resource_path == "/create-paypal-order" and http_method == "POST":
+            body = json.loads(event.get('body', "{}"))
+            amount = body.get('amount')
+            currency = body.get('currency', "USD")
+            return create_paypal_order_route(amount, currency)
         else:
             return cors_response(404, {"message": "Resource not found"})
     except Exception as e:
@@ -341,3 +351,56 @@ def contact_us(first_name, email, message):
     except Exception as e:
         logger.error(f"Unhandled error in contact_us: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An unexpected error occurred while sending your message. Please try again later."})
+    
+def get_paypal_access_token():
+    url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
+    headers = {
+        "Accept": "application/json",
+        "Accept-Language": "en_US",
+    }
+    data = {
+        "grant_type": "client_credentials"
+    }
+    auth = (PAYPAL_CLIENT_ID, PAYPAL_SECRET)
+    response = requests.post(url, headers=headers, data=data, auth=auth)
+
+    if response.status_code == 200:
+        return response.json()["access_token"]
+    else:
+        logger.error(f"PayPal token error: {response.json()}")
+        raise Exception("Failed to get PayPal access token")
+    
+def create_paypal_order(amount, currency="USD"):
+    access_token = get_paypal_access_token()
+    url = "https://api-m.sandbox.paypal.com/v2/checkout/orders"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}"
+    }
+    payload = {
+        "intent": "CAPTURE",
+        "purchase_units": [
+            {
+                "amount": {
+                    "currency_code": currency,
+                    "value": str(amount)
+                }
+            }
+        ]
+    }
+    response = requests.post(url, headers=headers, json=payload)
+
+    if response.status_code == 201:
+        return response.json()
+    else:
+        logger.error(f"PayPal order error: {response.json()}")
+        raise Exception("Failed to create PayPal order")
+    
+def create_paypal_order_route(amount, currency):
+    try:
+        order = create_paypal_order(amount, currency)
+        return cors_response(200, {"id": order["id"]})
+    except Exception as e:
+        logger.error(f"Error creating PayPal order: {str(e)}")
+        return cors_response(500, {"message": str(e)})
+
