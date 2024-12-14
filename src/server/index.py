@@ -74,16 +74,20 @@ def lambda_handler(event, context):
         elif resource_path == "/contact-us" and http_method == "POST":
             return contact_us(first_name, email, message)
         elif resource_path == "/create-paypal-order" and http_method == "POST":
-            body = json.loads(event.get('body', "{}"))
             amount = body.get('amount')
             currency = body.get('currency', "USD")
-            return create_paypal_order_route(amount, currency)
+            custom_id = body.get('custom_id')
+            return create_paypal_order_route(amount, custom_id, currency)
+        elif resource_path == "/create-paypal-subscription" and http_method == "POST":
+            plan_id = body.get('plan_id')
+            return create_paypal_subscription_route(plan_id)
+        elif http_method == "OPTIONS":
+            return cors_response(200, {"message": "CORS preflight successful"})
         else:
             return cors_response(404, {"message": "Resource not found"})
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         return cors_response(500, {"message": str(e)})
-
 
 # Helper function to add CORS headers
 def cors_response(status_code, body):
@@ -98,7 +102,6 @@ def cors_response(status_code, body):
         },
         "body": json.dumps(body)
     }
-
 
 # User Sign-Up
 def sign_up(password, email, first_name, last_name):
@@ -234,7 +237,6 @@ def forgot_password(email):
         logger.error(f"Error in forgot_password: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An internal server error occurred"})
 
-
 # Confirm Forgot Password
 def confirm_forgot_password(email, confirmation_code, new_password):
     try:
@@ -260,7 +262,6 @@ def confirm_forgot_password(email, confirmation_code, new_password):
         logger.error(f"Error in confirm_forgot_password: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An internal server error occurred"})
 
-
 # Get User Data
 def get_user(email):
     if not email:
@@ -277,8 +278,6 @@ def get_user(email):
     except Exception as e:
         logger.error(f"Error in get_user: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An internal server error occurred"})
-
-
 
 # Update User Attributes
 def update_user(email, attribute_updates):
@@ -323,6 +322,7 @@ def delete_user(email):
         logger.error(f"Error in delete_user: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An internal server error occurred"})
 
+# Contact Us
 def contact_us(first_name, email, message):
     if not all([first_name, email, message]):
         return cors_response(400, {"message": "All fields are required: name, email, and message."})
@@ -351,7 +351,8 @@ def contact_us(first_name, email, message):
     except Exception as e:
         logger.error(f"Unhandled error in contact_us: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An unexpected error occurred while sending your message. Please try again later."})
-    
+
+# Get Paypal Access Token
 def get_paypal_access_token():
     url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
     headers = {
@@ -369,8 +370,9 @@ def get_paypal_access_token():
     else:
         logger.error(f"PayPal token error: {response.json()}")
         raise Exception("Failed to get PayPal access token")
-    
-def create_paypal_order(amount, currency="USD"):
+
+# Create Paypal Order
+def create_paypal_order(amount, custom_id, currency="USD"):
     access_token = get_paypal_access_token()
     url = "https://api-m.sandbox.paypal.com/v2/checkout/orders"
     headers = {
@@ -384,7 +386,8 @@ def create_paypal_order(amount, currency="USD"):
                 "amount": {
                     "currency_code": currency,
                     "value": str(amount)
-                }
+                },
+                "custom_id": custom_id
             }
         ]
     }
@@ -395,12 +398,42 @@ def create_paypal_order(amount, currency="USD"):
     else:
         logger.error(f"PayPal order error: {response.json()}")
         raise Exception("Failed to create PayPal order")
-    
-def create_paypal_order_route(amount, currency):
+
+# Create Paypal Order Route
+def create_paypal_order_route(amount, custom_id, currency):
     try:
-        order = create_paypal_order(amount, currency)
+        order = create_paypal_order(amount, custom_id, currency)
         return cors_response(200, {"id": order["id"]})
     except Exception as e:
         logger.error(f"Error creating PayPal order: {str(e)}")
         return cors_response(500, {"message": str(e)})
 
+# Create Paypal Subscription
+def create_paypal_subscription(plan_id):
+    access_token = get_paypal_access_token()
+    
+    url = "https://api-m.paypal.com/v1/billing/subscriptions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    payload = {
+        "plan_id": plan_id
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+
+    if response.status_code == 201:
+        return response.json()
+    else:
+        raise Exception(f"PayPal subscription creation failed: {response.text}")
+
+# Create Paypal Subscription Route
+def create_paypal_subscription_route(plan_id):
+    try:
+        subscription = create_paypal_subscription(plan_id)
+        return cors_response(200, {"id": subscription["id"]})
+    except Exception as e:
+        logger.error(f"Error creating PayPal subscription: {str(e)}")
+        return cors_response(500, {"message": str(e)})
