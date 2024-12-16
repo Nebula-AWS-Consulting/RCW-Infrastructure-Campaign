@@ -7,8 +7,7 @@ import ForgotPassword from "./modules/pages/ForgotPassword"
 import Terms from "./modules/pages/Terms"
 import Privacy from "./modules/pages/Privacy"
 import Location from "./modules/pages/Location"
-import { useDispatch, useSelector } from "react-redux"
-import { RootState } from "./store"
+import { useDispatch } from "react-redux"
 import { setLogin } from "./modules/ducks/userSlice"
 import { useEffect } from "react"
 import SignOut from "./modules/pages/SignOut"
@@ -22,17 +21,10 @@ import ControPage from "./modules/pages/ControPage"
 import BenevolencePage from "./modules/pages/BenevolencePage"
 import MissionsPage from "./modules/pages/MissionsPage"
 
-export const SERVER = 'https://hcq5ysarmg.execute-api.us-west-1.amazonaws.com/prod'
+export const SERVER = 'https://gu46mtmjak.execute-api.us-west-1.amazonaws.com/prod'
 
 function App() {
-  const user = useSelector((state: RootState) => state.userAuthAndInfo);
-  const language = useSelector((state: RootState) => state.userAuthAndInfo.language);
   const dispatch = useDispatch();
-
-  const isLoggedIn = useSelector(
-    (state: RootState) => Boolean(state.userAuthAndInfo.token)
-  );
-
 
   useEffect(() => {
     const user = localStorage.getItem('user');
@@ -47,10 +39,6 @@ function App() {
       );
     }
   }, [dispatch]);
-
-console.log(user)
-console.log(isLoggedIn)
-console.log(language)
 
   return (
     <div>

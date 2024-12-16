@@ -1,153 +1,194 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   PayPalScriptProvider,
   PayPalButtons,
   PayPalButtonsComponentProps,
 } from "@paypal/react-paypal-js";
-import { Box, TextField, RadioGroup, FormControlLabel, Radio, InputAdornment } from "@mui/material";
+import { Box, TextField, InputAdornment } from "@mui/material";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import AppAppBar from "../views/AppAppBar";
 import AppFooter from "../views/AppFooter";
 import withRoot from "../withRoot";
 import AppForm from "../views/AppForm";
 import Typography from "../components/Typography";
+import { SERVER } from "../../App";
+import FormFeedback from "../form/FormFeedback";
 
-interface OrderData {
-  id: string;
-  details?: Array<{
-    issue: string;
-    description: string;
-  }>;
-  debug_id?: string;
-}
-interface PayPalOnApproveData {
-    orderID?: string;
-    subscriptionID?: string | null;
-    payerID?: string | null; 
-  }
-interface PayPalOnApproveActions {
-    order?: {
-        capture: () => Promise<PayPalCaptureDetails>;
+const OneTimePaymentComponent = ({
+    donationAmountRef,
+    setShowThankYouBanner,
+    setSubmitError
+  }: {
+    donationAmount: string;
+    donationAmountRef: React.MutableRefObject<string>;
+    setShowThankYouBanner: React.Dispatch<React.SetStateAction<boolean>>;
+    setSubmitError: React.Dispatch<React.SetStateAction<string>>;
+  }) => {
+    const createOrder: PayPalButtonsComponentProps["createOrder"] = async () => {
+      const endpoint = `${SERVER}/create-paypal-order`;
+  
+      try {
+        const amount = parseFloat(donationAmountRef.current);
+        if (isNaN(amount) || amount <= 0) {
+          throw new Error("Invalid donation amount. Please enter a valid number greater than 0.");
+        }
+  
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: amount,
+            custom_id: 'Contribution'
+          }),
+        });
+  
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+  
+        const responseData = await response.json();
+        if (!responseData.id) {
+          throw new Error("Order ID is missing in the response.");
+        }
+        return responseData.id;
+      } catch (error) {
+        console.error("Error creating order:", error);
+        setSubmitError(`${error}`);
+        throw error;
+      }
     };
-    }
-interface PayPalCaptureDetails {
-    id?: string;
-    create_time?: string;
-    update_time?: string;
-    payer?: {
-        name?: {
-        given_name?: string;
-        surname?: string;
-        };
-        email_address?: string;
-        payer_id?: string;
+  
+    const handleOnApprove = async (_data: any, actions: any) => {
+        try {
+          if (actions?.order?.capture) {
+            await actions.order.capture();
+          } else {
+            throw new Error("Capture action is unavailable.");
+          }
+          setShowThankYouBanner(true);
+        } catch (error) {
+          console.error("Error during approval:", error);
+          setSubmitError(`${error}`);
+        }
+      };
+  
+    return (
+      <PayPalButtons
+        style={{ layout: "vertical", color: "black" }}
+        createOrder={createOrder}
+        onApprove={(data, actions) => handleOnApprove(data, actions)}
+        onError={(err) => {
+          console.error("PayPal error:", err);
+          setSubmitError(`${err}`);
+        }}
+      />
+    );
+  };
+
+const SubscriptionPaymentComponent: React.FC<{
+    donationAmount: string;
+    donationAmountRef: React.MutableRefObject<string>;
+    setShowThankYouBanner: React.Dispatch<React.SetStateAction<boolean>>;
+    setSubmitError: React.Dispatch<React.SetStateAction<string>>;
+  }> = ({ donationAmountRef, setShowThankYouBanner, setSubmitError }) => {
+    const createSubscription: PayPalButtonsComponentProps["createSubscription"] = async () => {
+      const endpoint = `${SERVER}/create-paypal-subscription`;
+  
+      try {
+        const amount = parseFloat(donationAmountRef.current);
+        if (isNaN(amount) || amount <= 0) {
+          throw new Error("Invalid donation amount. Please enter a valid number greater than 0.");
+        }
+
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: amount,
+            custom_id: "Contribution",
+          }),
+        });
+  
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+  
+        const responseData = await response.json();
+        if (!responseData.subscription_id) {
+          throw new Error("Subscription ID is missing in the response.");
+        }
+  
+        return responseData.subscription_id;
+      } catch (error) {
+        console.error("Error creating subscription:", error);
+        setSubmitError(`${error}`);
+        throw error;
+      }
     };
-    payment_source?: {
-        card?: {
-        name?: string;
-        last_digits?: string;
-        brand?: string;
-        type?: string;
-        };
-        paypal?: {
-        email_address?: string;
-        };
-        venmo?: {
-        email_address?: string;
-        account_id?: string;
-        user_name?: string;
-        name?: {
-            given_name?: string;
-            surname?: string;
-            full_name?: string;
-        };
-        phone?: string;
-        };
-    };
-    }
+  
+    const handleOnApprove = async (_data: any, actions: any) => {
+        try {
+          if (actions?.order?.capture) {
+            await actions.order.capture();
+          } else {
+            throw new Error("Capture action is unavailable.");
+          }
+          setShowThankYouBanner(true);
+        } catch (error) {
+          console.error("Error during approval:", error);
+          setSubmitError(`${error}`);
+        }
+      };
+  
+    return (
+      <PayPalButtons
+        style={{ layout: "vertical", color: "black" }}
+        createSubscription={createSubscription}
+        onApprove={(data, actions) => handleOnApprove(data, actions)}
+        onError={(err) => {
+          console.error("PayPal error:", err);
+          setSubmitError(`${err}`);
+        }}
+      />
+    );
+  };
+
 
 const ControPage = () => {
   const [donationAmount, setDonationAmount] = useState("0.00");
-  const [paymentType, setPaymentType] = useState("one-time");
+  const donationAmountRef = useRef(donationAmount);
+  const [submitError, setSubmitError] = useState('')
+  const [paymentType, setPaymentType] = useState<"one-time" | "subscription">(
+    "one-time"
+  );
+  const paymentTypeRef = useRef(paymentType);
+  const [showThankYouBanner, setShowThankYouBanner] = useState(false);
 
   const initialOptions = {
-    clientId: "AfYXn-9V-9VfmWexdtRa8Q6ZYBQ4eU8cW8J01x4_BfCMuEuHN3kOc1eP9V-VYjYcqktNR06NuSr-UqT9",
-    currency: "USD",
-    intent: "capture",
-  };
+      clientId: "AfYXn-9V-9VfmWexdtRa8Q6ZYBQ4eU8cW8J01x4_BfCMuEuHN3kOc1eP9V-VYjYcqktNR06NuSr-UqT9",
+      currency: "USD",
+      intent: "capture",
+      vault: true,
+    };
 
-  const createOrder: PayPalButtonsComponentProps["createOrder"] = async () => {
-    const endpoint =
-      paymentType === "one-time"
-        ? "/my-server/create-paypal-order"
-        : "/my-server/create-paypal-subscription";
+    useEffect(() => {
+        donationAmountRef.current = donationAmount;
+        paymentTypeRef.current = paymentType;
+      }, [donationAmount, paymentType]);
 
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: donationAmount,
-          customId: "Contribution"
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Server error: ${response.status} - ${errorText}`);
-      }
-
-      const orderData: OrderData = await response.json();
-
-      if (!orderData.id) {
-        const errorDetail = orderData?.details?.[0];
-        const errorMessage = errorDetail
-          ? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})`
-          : "Unexpected error occurred, please try again.";
-
-        throw new Error(errorMessage);
-      }
-
-      return orderData.id;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  };
-
-  const handleOnApprove = async (
-    data: PayPalOnApproveData,
-    actions: PayPalOnApproveActions,
-    paymentType: "one-time" | "subscription",
-    donationAmount: string
-  ): Promise<void> => {
-    if (paymentType === "one-time") {
-      if (actions?.order?.capture) {
-        const details = await actions.order.capture();
-          const name = details.payer?.name?.given_name || "Donor";
-          alert(
-              `Thank you, ${name}, for your donation of $${donationAmount}!`
-          );
-          console.log("Transaction Details:", details);
-      } else {
-        return Promise.reject(new Error("Capture action is unavailable."));
-      }
-    } else if (paymentType === "subscription") {
-      if (data.subscriptionID) {
-        alert(`Thank you for subscribing! Your subscription ID is ${data.subscriptionID}`);
-        console.log("Subscription Data:", data);
-      } else {
-        console.error("Subscription ID is null or undefined.");
-      }
-      return Promise.resolve();
-    }
-  
-    return Promise.resolve();
-  };
-  
   return (
     <PayPalScriptProvider options={initialOptions}>
       <AppAppBar />
+        {/* Thank You Message */}
+        {showThankYouBanner && (
+        <FormFeedback isDefault sx={{ mb: '-2rem', mt: 4, textAlign: 'center', width: '60%', justifySelf: 'center', borderRadius: 2 }}>
+            <Typography variant="h6" color="white">
+            Thank you for donating!
+            </Typography>
+        </FormFeedback>
+        )}
       <AppForm>
         <Typography variant="h5" align="center" mb={2} justifySelf={'center'}>Donate to</Typography>
         <Typography variant="h4" gutterBottom marked="center" align="center">Restored Church Las Vegas</Typography>
@@ -165,47 +206,107 @@ const ControPage = () => {
                 label="Donation Amount"
                 type="number"
                 value={donationAmount}
-                onChange={(e) => setDonationAmount(e.target.value)}
+                onChange={(e) => {
+                    const value = e.target.value;
+                    setDonationAmount(value);
+                }}
                 sx={{ margin: 2, justifySelf: 'center' }}
                 InputProps={{
                     startAdornment: (
-                    <InputAdornment position="start">
+                        <InputAdornment position="start">
                         <AttachMoneyIcon />
                     </InputAdornment>
                     ),
                 }}
+                helperText={Number(donationAmount) <= 0 && "Please enter a valid amount."}
+                error={Number(donationAmount) <= 0}
                 />
         </Box>
 
         {/* Payment Type Selection */}   
-        <RadioGroup
-          row
-          value={paymentType}
-          onChange={(e) => setPaymentType(e.target.value)}
-          sx={{ marginBottom: '3rem', justifySelf: 'center'}}
+        <Box
+        sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginBottom: "3rem",
+            marginTop: "1rem",
+            border: "1px solid #ccc",
+            borderRadius: "8px",
+            overflow: "hidden",
+            width: "300px",
+            mx: "auto",
+        }}
         >
-          <FormControlLabel
-            value="one-time"
-            control={<Radio />}
-            label="One-Time Payment"
-          />
-          <FormControlLabel
-            value="subscription"
-            control={<Radio />}
-            label="Subscription"
-          />
-        </RadioGroup>
-
-        {/* PayPal Buttons */}
-        <PayPalButtons
-            style={{ layout: "vertical", color: "black" }}
-            createOrder={createOrder}
-            onApprove={(data, actions) => handleOnApprove(data, actions, paymentType as "one-time" | "subscription", donationAmount)}
-            onError={(err) => {
-                console.error("PayPal error:", err);
+        <Box
+            sx={{
+                flex: 1,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                cursor: "pointer",
+                padding: "10px 0",
+                backgroundColor: paymentType === "one-time" ? "#1e1e1f" : "",
+                color: paymentType === "one-time" ? "white" : "#1e1e1f",
+                borderRight: "1px solid #ccc",
+                "&:hover": {
+                    backgroundColor: "#ff3366",
+                    color: "white",
+                },
             }}
-            />
-      </AppForm>
+            onClick={() => setPaymentType("one-time")}
+            >
+            <Typography variant="h5">
+                One-Time
+            </Typography>
+        </Box>
+        <Box
+            sx={{
+                flex: 1,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                cursor: "pointer",
+                padding: "10px 0",
+                backgroundColor: paymentType === "subscription" ? "#1e1e1f" : "",
+                color: paymentType === "subscription" ? "white" : "#1e1e1f",
+                "&:hover": {
+                    backgroundColor: "#ff3366",
+                    color: "white",
+                },
+            }}
+            onClick={() => setPaymentType("subscription")}
+            >
+            <Typography variant="h5">
+                Subscription
+            </Typography>
+        </Box>
+        </Box>
+                {/* Error Message */}
+                {submitError && (
+                <FormFeedback error sx={{ mt: 2, mb: 2 }}>
+                    {submitError}
+                </FormFeedback>
+                )}
+
+                {/* PayPal Buttons */}
+                {paymentType === "one-time" && (
+                    <OneTimePaymentComponent
+                    donationAmount={donationAmount}
+                    donationAmountRef={donationAmountRef}
+                    setShowThankYouBanner={setShowThankYouBanner}
+                    setSubmitError={setSubmitError}
+                    />
+                )}
+                {paymentType === "subscription" && (
+                    <SubscriptionPaymentComponent
+                    donationAmount={donationAmount}
+                    donationAmountRef={donationAmountRef}
+                    setShowThankYouBanner={setShowThankYouBanner}
+                    setSubmitError={setSubmitError}
+                    />
+                )}
+        </AppForm>
       <AppFooter />
     </PayPalScriptProvider>
   );

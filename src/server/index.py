@@ -24,14 +24,9 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     try:
-        # Log the incoming event for debugging
-        logger.info(f"Event: {json.dumps(event)}")
-
-        # Determine the HTTP method and path from the event
         http_method = event['httpMethod']
         resource_path = event['path']
 
-        # Handle preflight OPTIONS request
         if http_method == "OPTIONS":
             return cors_response(200, {})
         
@@ -79,8 +74,9 @@ def lambda_handler(event, context):
             custom_id = body.get('custom_id')
             return create_paypal_order_route(amount, custom_id, currency)
         elif resource_path == "/create-paypal-subscription" and http_method == "POST":
-            plan_id = body.get('plan_id')
-            return create_paypal_subscription_route(plan_id)
+            custom_id = body.get('custom_id')
+            amount = body.get('amount')
+            return create_paypal_subscription_route(amount, custom_id)
         elif http_method == "OPTIONS":
             return cors_response(200, {"message": "CORS preflight successful"})
         else:
@@ -363,13 +359,20 @@ def get_paypal_access_token():
         "grant_type": "client_credentials"
     }
     auth = (PAYPAL_CLIENT_ID, PAYPAL_SECRET)
-    response = requests.post(url, headers=headers, data=data, auth=auth)
 
-    if response.status_code == 200:
-        return response.json()["access_token"]
-    else:
-        logger.error(f"PayPal token error: {response.json()}")
-        raise Exception("Failed to get PayPal access token")
+    try:
+        response = requests.post(url, headers=headers, data=data, auth=auth, timeout=10)
+
+        if response.status_code == 200:
+            token_data = response.json()
+            return token_data["access_token"]
+        else:
+            error_details = response.json()
+            logger.error(f"PayPal token error: {error_details}")
+            raise Exception(f"Failed to get PayPal access token: {error_details.get('error', 'Unknown error')} - {error_details.get('error_description', 'No description')}.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error while fetching PayPal access token: {e}")
+        raise Exception("Failed to connect to PayPal API for access token retrieval.")
 
 # Create Paypal Order
 def create_paypal_order(amount, custom_id, currency="USD"):
@@ -391,49 +394,191 @@ def create_paypal_order(amount, custom_id, currency="USD"):
             }
         ]
     }
-    response = requests.post(url, headers=headers, json=payload)
 
-    if response.status_code == 201:
-        return response.json()
-    else:
-        logger.error(f"PayPal order error: {response.json()}")
-        raise Exception("Failed to create PayPal order")
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+
+        if response.status_code == 201:
+            return response.json()
+        else:
+            error_details = response.json()
+            logger.error(f"PayPal order error: {error_details}")
+            raise Exception(f"Failed to create PayPal order: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error while creating PayPal order: {e}")
+        raise Exception("Failed to connect to PayPal API for order creation.")
 
 # Create Paypal Order Route
-def create_paypal_order_route(amount, custom_id, currency):
+def create_paypal_order_route(amount, custom_id, currency="USD"):
     try:
+        if amount <= 0:
+            raise ValueError("Amount must be greater than zero.")
+
+        if not isinstance(custom_id, str) or not custom_id.strip():
+            raise ValueError("Custom ID must be a non-empty string.")
+
         order = create_paypal_order(amount, custom_id, currency)
+
+        if "id" not in order:
+            raise Exception("Missing order ID in PayPal response.")
+
         return cors_response(200, {"id": order["id"]})
+
+    except ValueError as ve:
+        logger.error(f"Validation error: {str(ve)}")
+        return cors_response(400, {"message": str(ve)})
+
     except Exception as e:
         logger.error(f"Error creating PayPal order: {str(e)}")
-        return cors_response(500, {"message": str(e)})
+        return cors_response(500, {"message": "An error occurred while processing your request."})
 
-# Create Paypal Subscription
-def create_paypal_subscription(plan_id):
+# Create Paypal Product
+def create_paypal_product():
     access_token = get_paypal_access_token()
-    
-    url = "https://api-m.paypal.com/v1/billing/subscriptions"
+    url = "https://api-m.sandbox.paypal.com/v1/catalogs/products"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}"
     }
-
     payload = {
-        "plan_id": plan_id
+        "name": "Donation Product",
+        "description": "A product for donation subscriptions.",
+        "type": "SERVICE",
+        "category": "CHARITY"
     }
 
-    response = requests.post(url, headers=headers, json=payload)
-
-    if response.status_code == 201:
-        return response.json()
-    else:
-        raise Exception(f"PayPal subscription creation failed: {response.text}")
-
-# Create Paypal Subscription Route
-def create_paypal_subscription_route(plan_id):
     try:
-        subscription = create_paypal_subscription(plan_id)
-        return cors_response(200, {"id": subscription["id"]})
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        
+        if response.status_code == 201:
+            return response.json().get("id")
+        else:
+            error_details = response.json()
+            logger.error(f"PayPal product creation failed: {error_details}")
+            raise Exception(f"Failed to create PayPal product: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error while creating PayPal product: {e}")
+        raise Exception("Failed to connect to PayPal API for product creation.")
+
+# Create Paypal Plan
+def create_paypal_plan(product_id, amount):
+    if not product_id:
+        raise ValueError("Product ID is required to create a PayPal plan.")
+
+    access_token = get_paypal_access_token()
+    url = "https://api-m.sandbox.paypal.com/v1/billing/plans"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}"
+    }
+    payload = {
+        "product_id": product_id,
+        "name": "Weekly Donation Plan",
+        "description": "A plan for weekly donations.",
+        "status": "ACTIVE",
+        "billing_cycles": [
+            {
+                "frequency": {
+                    "interval_unit": "WEEK",
+                    "interval_count": 1
+                },
+                "tenure_type": "REGULAR",
+                "sequence": 1,
+                "total_cycles": 0,
+                "pricing_scheme": {
+                    "fixed_price": {
+                        "value": f"{amount:.2f}",
+                        "currency_code": "USD"
+                    }
+                }
+            }
+        ],
+        "payment_preferences": {
+            "auto_bill_outstanding": True,
+            "setup_fee": {
+                "value": "0.00",
+                "currency_code": "USD"
+            },
+            "setup_fee_failure_action": "CONTINUE",
+            "payment_failure_threshold": 3
+        }
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+
+        if response.status_code == 201:
+            return response.json().get("id")
+        else:
+            error_details = response.json()
+            logger.error(f"PayPal Plan Creation Failed: {error_details}")
+            raise Exception(f"Failed to create PayPal plan: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error while creating PayPal plan: {e}")
+        raise Exception("Failed to connect to PayPal API for plan creation.")
+
+# Create Paypal Subscription
+def create_paypal_subscription(plan_id, custom_id):
+    if not plan_id:
+        raise ValueError("Plan ID is required to create a PayPal subscription.")
+
+    access_token = get_paypal_access_token()
+    url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}"
+    }
+    payload = {
+        "plan_id": plan_id,
+        "custom_id": custom_id
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        
+        if response.status_code == 201:
+            return response.json()
+        else:
+            error_details = response.json()
+            logger.error(f"PayPal subscription creation failed: {error_details}")
+            raise Exception(f"Failed to create PayPal subscription: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error while creating PayPal subscription: {e}")
+        raise Exception("Failed to connect to PayPal API for subscription creation.")
+
+# Create Paypal Subscription route
+def create_paypal_subscription_route(amount, custom_id):
+    try:
+        if amount <= 0:
+            raise ValueError("Amount must be greater than zero.")
+
+        if not custom_id or not custom_id.strip():
+            raise ValueError("Custom ID must be a non-empty string.")
+
+        product_id = create_paypal_product()
+        
+        plan_id = create_paypal_plan(product_id, amount)
+        
+        subscription = create_paypal_subscription(plan_id, custom_id)
+        
+        subscription_id = subscription.get("id")
+        if not subscription_id:
+            raise ValueError("Subscription ID is missing from the PayPal response.")
+        
+        approval_url = next(
+            (link["href"] for link in subscription.get("links", []) if link["rel"] == "approve"),
+            None
+        )
+        if not approval_url:
+            raise ValueError("Approval URL is missing from the PayPal response.")
+
+        return cors_response(200, {
+            "subscription_id": subscription_id,
+            "approval_url": approval_url
+        })
+    except ValueError as ve:
+        logger.error(f"Validation error: {str(ve)}")
+        return cors_response(400, {"message": str(ve)})
     except Exception as e:
         logger.error(f"Error creating PayPal subscription: {str(e)}")
-        return cors_response(500, {"message": str(e)})
+        return cors_response(500, {"message": "An error occurred while processing your request."})
