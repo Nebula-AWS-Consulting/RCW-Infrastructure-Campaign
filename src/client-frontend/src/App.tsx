@@ -21,7 +21,7 @@ import ControPage from "./modules/pages/ControPage"
 import BenevolencePage from "./modules/pages/BenevolencePage"
 import MissionsPage from "./modules/pages/MissionsPage"
 
-export const SERVER = 'https://gu46mtmjak.execute-api.us-west-1.amazonaws.com/prod'
+export const SERVER = 'https://6wsmdtapnd.execute-api.us-west-1.amazonaws.com/prod'
 
 function App() {
   const dispatch = useDispatch();

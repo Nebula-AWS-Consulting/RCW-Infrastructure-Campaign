@@ -128,32 +128,34 @@ const SubscriptionPaymentComponent: React.FC<{
       }
     };
   
-    const handleOnApprove = async (_data: any, actions: any) => {
-        try {
-          if (actions?.order?.capture) {
-            await actions.order.capture();
-          } else {
-            throw new Error("Capture action is unavailable.");
-          }
+    const handleOnApprove = async (
+      data: { subscriptionID?: string | null },
+      _actions: any
+    ): Promise<void> => {
+      try {
+        if (data.subscriptionID) {
           setShowThankYouBanner(true);
-        } catch (error) {
-          console.error("Error during approval:", error);
-          setSubmitError(`${error}`);
+        } else {
+          throw new Error("Subscription ID is missing in the approval data.");
         }
-      };
-  
-    return (
-      <PayPalButtons
-        style={{ layout: "vertical", color: "black" }}
-        createSubscription={createSubscription}
-        onApprove={(data, actions) => handleOnApprove(data, actions)}
-        onError={(err) => {
-          console.error("PayPal error:", err);
-          setSubmitError(`${err}`);
-        }}
-      />
-    );
-  };
+      } catch (error) {
+        console.error("Error during approval:", error);
+        setSubmitError(`${error}`);
+      }
+    };
+
+  return (
+    <PayPalButtons
+      style={{ layout: "vertical", color: "black" }}
+      createSubscription={createSubscription}
+      onApprove={(data, actions) => handleOnApprove(data, actions)}
+      onError={(err) => {
+        console.error("PayPal error:", err);
+        setSubmitError(`${err}`);
+      }}
+    />
+  );
+};
 
 
 const BenevolencePage = () => {

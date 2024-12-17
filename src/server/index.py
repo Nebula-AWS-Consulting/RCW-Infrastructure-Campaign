@@ -2,6 +2,7 @@ import boto3
 import json
 import logging
 import requests
+import jwt
 
 # Initialize the Cognito Identity Provider client
 client = boto3.client('cognito-idp', region_name='us-west-1')
@@ -76,7 +77,8 @@ def lambda_handler(event, context):
         elif resource_path == "/create-paypal-subscription" and http_method == "POST":
             custom_id = body.get('custom_id')
             amount = body.get('amount')
-            return create_paypal_subscription_route(amount, custom_id)
+            user_id = body.get('user_id')
+            return create_paypal_subscription_route(amount, custom_id, user_id, email)
         elif http_method == "OPTIONS":
             return cors_response(200, {"message": "CORS preflight successful"})
         else:
@@ -200,9 +202,16 @@ def log_in(email, password):
                 'PASSWORD': password
             }
         )
+
+        id_token = response['AuthenticationResult']['IdToken']
+        
+        decoded_token = jwt.decode(id_token, options={"verify_signature": False})
+        user_id = decoded_token.get("sub")
+        
         return cors_response(200, {
             "message": "User logged in successfully",
-            "id_token": response['AuthenticationResult']['IdToken'],
+            "user_id": user_id,
+            "id_token": id_token,
             "access_token": response['AuthenticationResult']['AccessToken'],
             "refresh_token": response['AuthenticationResult']['RefreshToken']
         })
@@ -518,7 +527,7 @@ def create_paypal_plan(product_id, amount):
         raise Exception("Failed to connect to PayPal API for plan creation.")
 
 # Create Paypal Subscription
-def create_paypal_subscription(plan_id, custom_id):
+def create_paypal_subscription(plan_id, custom_id, user_id, email):
     if not plan_id:
         raise ValueError("Plan ID is required to create a PayPal subscription.")
 
@@ -528,6 +537,9 @@ def create_paypal_subscription(plan_id, custom_id):
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}"
     }
+    
+    custom_id = f"purpose:{custom_id}|user_id:{user_id}|email:{email}"
+
     payload = {
         "plan_id": plan_id,
         "custom_id": custom_id
@@ -537,7 +549,12 @@ def create_paypal_subscription(plan_id, custom_id):
         response = requests.post(url, headers=headers, json=payload, timeout=10)
         
         if response.status_code == 201:
-            return response.json()
+            subscription = response.json()
+            
+            subscription['user_id'] = user_id
+            subscription['user_email'] = email
+            
+            return subscription
         else:
             error_details = response.json()
             logger.error(f"PayPal subscription creation failed: {error_details}")
@@ -547,7 +564,7 @@ def create_paypal_subscription(plan_id, custom_id):
         raise Exception("Failed to connect to PayPal API for subscription creation.")
 
 # Create Paypal Subscription route
-def create_paypal_subscription_route(amount, custom_id):
+def create_paypal_subscription_route(amount, custom_id, user_id, email):
     try:
         if amount <= 0:
             raise ValueError("Amount must be greater than zero.")
@@ -559,7 +576,7 @@ def create_paypal_subscription_route(amount, custom_id):
         
         plan_id = create_paypal_plan(product_id, amount)
         
-        subscription = create_paypal_subscription(plan_id, custom_id)
+        subscription = create_paypal_subscription(plan_id, custom_id, user_id, email)
         
         subscription_id = subscription.get("id")
         if not subscription_id:
