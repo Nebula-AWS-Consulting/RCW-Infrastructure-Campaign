@@ -71,10 +71,11 @@ function SignIn() {
     
       const userData = {
         user_name: userName,
-        email: email,
+        email: values.email
       };
     
       const tokenData = {
+        user_id: data.user_id,
         id_token: data.id_token,
         access_token: data.access_token,
         refresh_token: data.refresh_token,

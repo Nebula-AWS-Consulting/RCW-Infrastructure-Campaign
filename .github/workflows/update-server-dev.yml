@@ -1,0 +1,51 @@
+name: Detect Changes in Server and Run Script
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    types:
+      - closed
+    branches:
+      - dev
+
+jobs:
+  check-changes-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Detect changes in src/server
+        id: detect-changes
+        run: |
+          echo "Detecting changes in the src/server folder..."
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^src/server/' || echo "no-changes" > changes_detected.txt
+
+      - name: Check if there are changes
+        id: check-changes
+        run: |
+          if grep -q 'no-changes' changes_detected.txt; then
+            echo "No changes detected in src/server. Skipping upload."
+            echo "should_run=false" >> $GITHUB_ENV
+          else
+            echo "Changes detected in src/server. Proceeding with upload."
+            echo "should_run=true" >> $GITHUB_ENV
+
+      - name: Run upload-server.sh
+        if: env.should_run == 'true'
+        run: |
+          echo "Running upload-server.sh..."
+          chmod +x src/bin/upload-server.sh
+          src/bin/upload-server.sh

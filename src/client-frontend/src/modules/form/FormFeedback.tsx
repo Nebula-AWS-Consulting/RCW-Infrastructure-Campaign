@@ -6,11 +6,12 @@ import Typography from '../components/Typography';
 interface FormFeedbackProps extends React.HTMLAttributes<HTMLDivElement> {
   error?: boolean;
   success?: boolean;
+  isDefault?: boolean;
   sx?: SxProps<Theme>;
 }
 
 const Root = styled('div', {
-  shouldForwardProp: (prop) => prop !== 'error' && prop !== 'success',
+  shouldForwardProp: (prop) => prop !== 'error' && prop !== 'success' && prop !== 'isDefault',
 })<FormFeedbackProps>(({ theme }) => ({
   padding: theme.spacing(2),
   variants: [
@@ -28,14 +29,21 @@ const Root = styled('div', {
         color: theme.palette.success.dark,
       },
     },
+    {
+      props: ({ isDefault }) => isDefault,
+      style: {
+        backgroundColor: theme.palette.secondary.main,
+        color: theme.palette.success.dark
+      },
+    },
   ],
 }));
 
 export default function FormFeedback(props: FormFeedbackProps) {
-  const { className, children, error, success, ...others } = props;
+  const { className, children, error, success, isDefault, ...others } = props;
 
   return (
-    <Root error={error} success={success} className={className} {...others}>
+    <Root error={error} success={success} isDefault={isDefault} className={className} {...others}>
       <Typography color="inherit">{children}</Typography>
     </Root>
   );
