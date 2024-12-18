@@ -19,12 +19,16 @@ import { RootState } from "../../store";
 const OneTimePaymentComponent = ({
     donationAmountRef,
     setShowThankYouBanner,
-    setSubmitError
+    setSubmitError,
+    user,
+    token
   }: {
     donationAmount: string;
     donationAmountRef: React.MutableRefObject<string>;
     setShowThankYouBanner: React.Dispatch<React.SetStateAction<boolean>>;
     setSubmitError: React.Dispatch<React.SetStateAction<string>>;
+    user: { user_name: string | null; email: string | null };
+    token: {user_id: string | null; id_token: string | null; access_token: string | null; refresh_token: string | null;}
   }) => {
     const createOrder: PayPalButtonsComponentProps["createOrder"] = async () => {
       const endpoint = `${SERVER}/create-paypal-order`;
@@ -34,13 +38,16 @@ const OneTimePaymentComponent = ({
         if (isNaN(amount) || amount <= 0) {
           throw new Error("Invalid donation amount. Please enter a valid number greater than 0.");
         }
-  
+
+        const userId = token?.user_id ? token.user_id : "guest";
+        const userEmail = user?.email ? user.email : "guest@example.com";
+
         const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             amount: amount,
-            custom_id: 'Contribution'
+            custom_id: `purpose:Contribution|user_id:${userId}`,
           }),
         });
   
@@ -113,6 +120,7 @@ const SubscriptionPaymentComponent: React.FC<{
             custom_id: "Contribution",
             user_id: token?.user_id || "guest",
             email: user?.email || "guest@example.com",
+            user_name: user?.user_name || "guest"
           }),
         });
   
@@ -175,6 +183,7 @@ const ControPage = () => {
   const [showThankYouBanner, setShowThankYouBanner] = useState(false);
   const user = useSelector((state: RootState) => state.userAuthAndInfo.user ?? { user_name: null, email: null });
   const token = useSelector((state: RootState) => state.userAuthAndInfo.token ?? { user_id: null, id_token: null, access_token: null, refresh_token: null });
+  console.log(user)
 
   const initialOptions = {
       clientId: "AfYXn-9V-9VfmWexdtRa8Q6ZYBQ4eU8cW8J01x4_BfCMuEuHN3kOc1eP9V-VYjYcqktNR06NuSr-UqT9",
@@ -306,6 +315,8 @@ const ControPage = () => {
                     donationAmountRef={donationAmountRef}
                     setShowThankYouBanner={setShowThankYouBanner}
                     setSubmitError={setSubmitError}
+                    user={user}
+                    token={token}
                     />
                 )}
                 {paymentType === "subscription" && (

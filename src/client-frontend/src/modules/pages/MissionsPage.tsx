@@ -13,16 +13,22 @@ import AppForm from "../views/AppForm";
 import Typography from "../components/Typography";
 import { SERVER } from "../../App";
 import FormFeedback from "../form/FormFeedback";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
 
 const OneTimePaymentComponent = ({
     donationAmountRef,
     setShowThankYouBanner,
-    setSubmitError
+    setSubmitError,
+    user,
+    token
   }: {
     donationAmount: string;
     donationAmountRef: React.MutableRefObject<string>;
     setShowThankYouBanner: React.Dispatch<React.SetStateAction<boolean>>;
     setSubmitError: React.Dispatch<React.SetStateAction<string>>;
+    user: { user_name: string | null; email: string | null };
+    token: {user_id: string | null; id_token: string | null; access_token: string | null; refresh_token: string | null;}
   }) => {
     const createOrder: PayPalButtonsComponentProps["createOrder"] = async () => {
       const endpoint = `${SERVER}/create-paypal-order`;
@@ -38,7 +44,9 @@ const OneTimePaymentComponent = ({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             amount: amount,
-            custom_id: 'Benevolence'
+            custom_id: 'Benevolence',
+            user_id: token?.user_id || "guest",
+            email: user?.email || "guest@example.com",
           }),
         });
   
@@ -91,6 +99,8 @@ const MissionsPage = () => {
   const donationAmountRef = useRef(donationAmount);
   const [submitError, setSubmitError] = useState('')
   const [showThankYouBanner, setShowThankYouBanner] = useState(false);
+  const user = useSelector((state: RootState) => state.userAuthAndInfo.user ?? { user_name: null, email: null });
+  const token = useSelector((state: RootState) => state.userAuthAndInfo.token ?? { user_id: null, id_token: null, access_token: null, refresh_token: null });
 
   const initialOptions = {
       clientId: "AfYXn-9V-9VfmWexdtRa8Q6ZYBQ4eU8cW8J01x4_BfCMuEuHN3kOc1eP9V-VYjYcqktNR06NuSr-UqT9",
@@ -160,6 +170,8 @@ const MissionsPage = () => {
                   donationAmountRef={donationAmountRef}
                   setShowThankYouBanner={setShowThankYouBanner}
                   setSubmitError={setSubmitError}
+                  user={user}
+                  token={token}
                   />
         </AppForm>
       <AppFooter />

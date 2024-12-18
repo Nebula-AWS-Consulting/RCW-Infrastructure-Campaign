@@ -3,6 +3,7 @@ import json
 import logging
 import requests
 import jwt
+import base64
 
 # Initialize the Cognito Identity Provider client
 client = boto3.client('cognito-idp', region_name='us-west-1')
@@ -45,6 +46,9 @@ def lambda_handler(event, context):
             new_password = body.get('new_password')
             attribute_updates = body.get('attribute_updates', {})
             message = body.get('message')
+            custom_id = body.get('custom_id')
+            amount = body.get('amount')
+            user_id = body.get('user_id')
 
         # Routing based on the resource path and HTTP method
         if resource_path == "/signup" and http_method == "POST":
@@ -70,15 +74,11 @@ def lambda_handler(event, context):
         elif resource_path == "/contact-us" and http_method == "POST":
             return contact_us(first_name, email, message)
         elif resource_path == "/create-paypal-order" and http_method == "POST":
-            amount = body.get('amount')
             currency = body.get('currency', "USD")
-            custom_id = body.get('custom_id')
             return create_paypal_order_route(amount, custom_id, currency)
         elif resource_path == "/create-paypal-subscription" and http_method == "POST":
-            custom_id = body.get('custom_id')
-            amount = body.get('amount')
-            user_id = body.get('user_id')
-            return create_paypal_subscription_route(amount, custom_id, user_id, email)
+            user_name = body.get('user_name')
+            return create_paypal_subscription_route(amount, custom_id, user_id, email, user_name)
         elif http_method == "OPTIONS":
             return cors_response(200, {"message": "CORS preflight successful"})
         else:
@@ -391,6 +391,7 @@ def create_paypal_order(amount, custom_id, currency="USD"):
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}"
     }
+
     payload = {
         "intent": "CAPTURE",
         "purchase_units": [
@@ -527,7 +528,7 @@ def create_paypal_plan(product_id, amount):
         raise Exception("Failed to connect to PayPal API for plan creation.")
 
 # Create Paypal Subscription
-def create_paypal_subscription(plan_id, custom_id, user_id, email):
+def create_paypal_subscription(plan_id, custom_id, user_id, email, user_name):
     if not plan_id:
         raise ValueError("Plan ID is required to create a PayPal subscription.")
 
@@ -537,8 +538,9 @@ def create_paypal_subscription(plan_id, custom_id, user_id, email):
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}"
     }
-    
-    custom_id = f"purpose:{custom_id}|user_id:{user_id}|email:{email}"
+    purpose = custom_id
+
+    custom_id = f"purpose:{purpose}|user_id:{user_id}|email:{email}|user_name:{user_name}"
 
     payload = {
         "plan_id": plan_id,
@@ -564,7 +566,7 @@ def create_paypal_subscription(plan_id, custom_id, user_id, email):
         raise Exception("Failed to connect to PayPal API for subscription creation.")
 
 # Create Paypal Subscription route
-def create_paypal_subscription_route(amount, custom_id, user_id, email):
+def create_paypal_subscription_route(amount, custom_id, user_id, email, user_name):
     try:
         if amount <= 0:
             raise ValueError("Amount must be greater than zero.")
@@ -576,7 +578,7 @@ def create_paypal_subscription_route(amount, custom_id, user_id, email):
         
         plan_id = create_paypal_plan(product_id, amount)
         
-        subscription = create_paypal_subscription(plan_id, custom_id, user_id, email)
+        subscription = create_paypal_subscription(plan_id, custom_id, user_id, email, user_name)
         
         subscription_id = subscription.get("id")
         if not subscription_id:

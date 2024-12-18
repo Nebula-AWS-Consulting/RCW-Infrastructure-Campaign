@@ -7,6 +7,16 @@ BUCKET_NAME="rcw-code-bucket"
 SERVER_S3_PATH="client-public-backend/function.zip"
 LAYER_S3_PATH="client-public-backend/dependencies.zip"
 
+# Install dependencies into the python folder
+echo "Installing dependencies..."
+if [ -f "requirements.txt" ]; then
+    mkdir -p python
+    pip install -r requirements.txt --target=python/lib/python3.8/site-packages/
+else
+    echo "requirements.txt not found. Skipping dependency installation."
+fi
+
+
 # Create zip files
 echo "Creating zip files..."
 zip -r9 "$ZIP_FILE_SERVER" index.py
