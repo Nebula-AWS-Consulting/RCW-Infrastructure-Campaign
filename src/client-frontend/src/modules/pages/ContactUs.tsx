@@ -113,7 +113,6 @@ function ContactUs(){
                   required
                   name="name"
                   label={ language === 'en-US'? 'Name' : language === 'fr-FR' ? 'Nom' : language === 'es-MX' ? 'Nombre' : ''}
-                  label={ language === 'en-US'? 'Name' : language === 'fr-FR' ? 'Nom' : language === 'es-MX' ? 'Nombre' : ''}
                   margin="normal"
                 />
               <Field
@@ -121,7 +120,6 @@ function ContactUs(){
                 component={RFTextField}
                 disabled={submitting || sent}
                 fullWidth
-                label={language === 'en-US'? 'Email' : language === 'fr-FR' ? 'E-mail' : language === 'es-MX' ? 'Correo Electrónico' : ''}
                 label={language === 'en-US'? 'Email' : language === 'fr-FR' ? 'E-mail' : language === 'es-MX' ? 'Correo Electrónico' : ''}
                 margin="normal"
                 name="email"
@@ -134,7 +132,6 @@ function ContactUs(){
                 fullWidth
                 multiline
                 rows={6}
-                label={language === 'en-US'? 'Message' : language === 'fr-FR' ? 'Message' : language === 'es-MX' ? 'Mensaje' : ''}
                 label={language === 'en-US'? 'Message' : language === 'fr-FR' ? 'Message' : language === 'es-MX' ? 'Mensaje' : ''}
                 margin="normal"
                 name="message"
@@ -177,21 +174,6 @@ function ContactUs(){
                           : language == 'es-MX'
                           ? 'Enviar Mensaje'
                           : ''}
-                {submitting || sent
-                          ? language == 'en-US'
-                            ? 'Sending...'
-                            : language == 'fr-FR'
-                            ? 'Envoi...'
-                            : language == 'es-MX'
-                            ? 'Enviando...'
-                            : ''
-                          : language == 'en-US'
-                          ? 'Send Message'
-                          : language == 'fr-FR'
-                          ? 'Envoyer un Message'
-                          : language == 'es-MX'
-                          ? 'Enviar Mensaje'
-                          : ''}
               </FormButton>
             </Box>
           )}
@@ -203,7 +185,6 @@ function ContactUs(){
             <Box sx={{ textAlign: 'center' }}>
                 <LocationOn color="primary" sx={{ fontSize: 40 }} />
                 <Typography variant="h6" gutterBottom>
-                {language === 'en-US'? 'Address' : language === 'fr-FR' ? 'Adresse' : language === 'es-MX' ? 'DIRECCIÓN' : ''}
                 {language === 'en-US'? 'Address' : language === 'fr-FR' ? 'Adresse' : language === 'es-MX' ? 'DIRECCIÓN' : ''}
                 </Typography>
                 <Typography variant="body1">
@@ -217,7 +198,6 @@ function ContactUs(){
                 <Phone color="primary" sx={{ fontSize: 40 }} />
                 <Typography variant="h6" gutterBottom>
                 {language === 'en-US'? 'Phone' : language === 'fr-FR' ? 'Téléphone' : language === 'es-MX' ? 'Teléfono' : ''}
-                {language === 'en-US'? 'Phone' : language === 'fr-FR' ? 'Téléphone' : language === 'es-MX' ? 'Teléfono' : ''}
                 </Typography>
                 <Typography variant="body1">
                 {import.meta.env.VITE_CONTACT_NUMBER}
@@ -229,19 +209,17 @@ function ContactUs(){
                 <Email color="primary" sx={{ fontSize: 40 }} />
                 <Typography variant="h6" gutterBottom>
                 {language === 'en-US'? 'Email' : language === 'fr-FR' ? 'E-mail' : language === 'es-MX' ? 'Correo Electrónico' : ''}
-                {language === 'en-US'? 'Email' : language === 'fr-FR' ? 'E-mail' : language === 'es-MX' ? 'Correo Electrónico' : ''}
                 </Typography>
                 <Typography variant="body1">
                 {import.meta.env.VITE_CONTACT_EMAIL}
                 </Typography> 
-            </Box> {/* ENV Var */}
+            </Box>
             </Grid>
         </Grid>
     </Box>
     <Box sx={{ mt: 8, pb: 8, pt: 2, background: 'url(/churchContactUsDots.png)' }}>
           <Box sx={{backgroundColor: 'secondary.light', width: '60%', padding: 2, px: 5, borderRadius: 3, justifySelf: 'center'}}>
         <Typography variant="h4" align="center" marked='center' gutterBottom>
-        {language === 'en-US'? 'Find Us Here' : language === 'fr-FR' ? 'Trouvez-nous ici' : language === 'es-MX' ? 'Encuéntranos Aquí' : ''}
         {language === 'en-US'? 'Find Us Here' : language === 'fr-FR' ? 'Trouvez-nous ici' : language === 'es-MX' ? 'Encuéntranos Aquí' : ''}
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -253,7 +231,7 @@ function ContactUs(){
             allowFullScreen={false}
             loading="lazy"
             ></iframe>
-        </Box> {/* ENV Var */}
+        </Box>
           </Box>
     </Box>
     <AppFooter />
