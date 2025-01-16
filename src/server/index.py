@@ -13,12 +13,20 @@ def get_ssm_parameter(name):
     response = ssm.get_parameter(Name=name, WithDecryption=True)
     return response['Parameter']['Value']
 
-USER_POOL_ID = get_ssm_parameter('/rcw-client-backend/USER_POOL_ID')
-CLIENT_ID = get_ssm_parameter('/rcw-client-backend/CLIENT_ID')
-PAYPAL_CLIENT_ID = get_ssm_parameter('/rcw-client-backend/PAYPAL_CLIENT_ID')
-PAYPAL_SECRET = get_ssm_parameter('/rcw-client-backend/PAYPAL_SECRET')
-SENDER_EMAIL = get_ssm_parameter('/rcw-client-backend/SESIdentitySenderParameter')
-RECIPIENT_EMAIL = get_ssm_parameter('/rcw-client-backend/SESRecipientParameter')
+# USER_POOL_ID = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/USER_POOL_ID')
+# USER_POOL_CLIENT_ID = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/CLIENT_ID')
+# PAYPAL_CLIENT_ID = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/PAYPAL_CLIENT_ID')
+# PAYPAL_SECRET = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/PAYPAL_SECRET')
+# SENDER_EMAIL = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/SESIdentitySenderParameter')
+# RECIPIENT_EMAIL = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/SESRecipientParameter')
+# ALLOW_ORIGIN = process.env.DOMAIN_NAME
+
+USER_POOL_ID = 'us-west-1_lJ8JcxPXT'
+USER_POOL_CLIENT_ID = '2p3glok5k66cvh7hhs8lnpegsc'
+PAYPAL_CLIENT_ID = 'AfYXn-9V-9VfmWexdtRa8Q6ZYBQ4eU8cW8J01x4_BfCMuEuHN3kOc1eP9V-VYjYcqktNR06NuSr-UqT9'
+PAYPAL_SECRET = 'EBXvJKNZPbxbwURqYfvA2w3m-1vQfnnBrJlc1FnA4WRiR9LO-dFB9qCyReXJTpT7R4aJh0gdL3TJOD_q'
+SENDER_EMAIL = 'emmanuelurias60@nebulaawsconsulting.com'
+RECIPIENT_EMAIL = 'emmanuelurias60@icloud.com'
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -47,7 +55,6 @@ def lambda_handler(event, context):
             message = body.get('message')
             custom_id = body.get('custom_id')
             amount = body.get('amount')
-            user_id = body.get('user_id')
 
         # Routing based on the resource path and HTTP method
         if resource_path == "/signup" and http_method == "POST":
@@ -77,7 +84,7 @@ def lambda_handler(event, context):
             return create_paypal_order_route(amount, custom_id, currency)
         elif resource_path == "/create-paypal-subscription" and http_method == "POST":
             user_name = body.get('user_name')
-            return create_paypal_subscription_route(amount, custom_id, user_id, email, user_name)
+            return create_paypal_subscription_route(amount, custom_id)
         elif http_method == "OPTIONS":
             return cors_response(200, {"message": "CORS preflight successful"})
         else:
@@ -106,7 +113,7 @@ def sign_up(password, email, first_name, last_name):
         return cors_response(400, {"message": "Email, password, first name, and last name are required"})
     try:
         client.sign_up(
-            ClientId=CLIENT_ID,
+            ClientId=USER_POOL_CLIENT_ID,
             Username=email,
             Password=password,
             UserAttributes=[
@@ -194,7 +201,7 @@ def log_in(email, password):
         return cors_response(400, {"message": "Email and password are required"})
     try:
         response = client.initiate_auth(
-            ClientId=CLIENT_ID,
+            ClientId=USER_POOL_CLIENT_ID,
             AuthFlow='USER_PASSWORD_AUTH',
             AuthParameters={
                 'USERNAME': email,
@@ -226,7 +233,7 @@ def log_in(email, password):
 def forgot_password(email):
     try:
         client.forgot_password(
-            ClientId=CLIENT_ID,
+            ClientId=USER_POOL_CLIENT_ID,
             Username=email
         )
         return cors_response(200, {"message": "Password reset initiated. Check your email for the code."})
@@ -245,7 +252,7 @@ def forgot_password(email):
 def confirm_forgot_password(email, confirmation_code, new_password):
     try:
         client.confirm_forgot_password(
-            ClientId=CLIENT_ID,
+            ClientId=USER_POOL_CLIENT_ID,
             Username=email,
             ConfirmationCode=confirmation_code,
             Password=new_password
@@ -527,7 +534,7 @@ def create_paypal_plan(product_id, amount):
         raise Exception("Failed to connect to PayPal API for plan creation.")
 
 # Create Paypal Subscription
-def create_paypal_subscription(plan_id, custom_id, user_id, email, user_name):
+def create_paypal_subscription(plan_id, custom_id):
     if not plan_id:
         raise ValueError("Plan ID is required to create a PayPal subscription.")
 
@@ -537,9 +544,6 @@ def create_paypal_subscription(plan_id, custom_id, user_id, email, user_name):
         "Content-Type": "application/json",
         "Authorization": f"Bearer {access_token}"
     }
-    purpose = custom_id
-
-    custom_id = f"purpose:{purpose}|user_id:{user_id}|email:{email}|user_name:{user_name}"
 
     payload = {
         "plan_id": plan_id,
@@ -551,10 +555,6 @@ def create_paypal_subscription(plan_id, custom_id, user_id, email, user_name):
         
         if response.status_code == 201:
             subscription = response.json()
-            
-            subscription['user_id'] = user_id
-            subscription['user_email'] = email
-            
             return subscription
         else:
             error_details = response.json()
@@ -565,7 +565,7 @@ def create_paypal_subscription(plan_id, custom_id, user_id, email, user_name):
         raise Exception("Failed to connect to PayPal API for subscription creation.")
 
 # Create Paypal Subscription route
-def create_paypal_subscription_route(amount, custom_id, user_id, email, user_name):
+def create_paypal_subscription_route(amount, custom_id):
     try:
         if amount <= 0:
             raise ValueError("Amount must be greater than zero.")
@@ -577,7 +577,7 @@ def create_paypal_subscription_route(amount, custom_id, user_id, email, user_nam
         
         plan_id = create_paypal_plan(product_id, amount)
         
-        subscription = create_paypal_subscription(plan_id, custom_id, user_id, email, user_name)
+        subscription = create_paypal_subscription(plan_id, custom_id)
         
         subscription_id = subscription.get("id")
         if not subscription_id:

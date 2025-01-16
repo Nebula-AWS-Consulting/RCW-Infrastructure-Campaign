@@ -24,34 +24,35 @@ function Location() {
           }}>
             <EventCard 
                 name='Sunday Service'
-                location='Cornerstone Park'
+                location={import.meta.env.VITE_SUNDAY_CARD_LOCATION}
                 date='Sundays'
-                time='5PM'
+                time={import.meta.env.VITE_SUNDAY_CARD_TIME}
                 size='large'
+                description={import.meta.env.VITE_SUNDAY_CARD_DESCRIPTION}
             />
             <EventCard 
                 name='Campus Devo'
-                location='UNLV'
+                location={import.meta.env.VITE_DEVO_CARD_LOCATION}
                 date='Fridays'
-                time='7:30PM'
+                time={import.meta.env.VITE_DEVO_CARD_TIME}
                 size='large'
-                description=''
+                description={import.meta.env.VITE_DEVO_CARD_DESCRIPTION}
             />
             <EventCard 
                 name='Bible Talk'
-                location='Contact Us'
+                location={import.meta.env.VITE_BT_CARD_LOCATION}
                 date='Fridays'
-                time='7:30PM'
+                time={import.meta.env.VITE_BT_CARD_TIME}
                 size='large'
-                description=''
+                description={import.meta.env.VITE_BT_CARD_DESCRIPTION}
             />
             <EventCard 
                 name='Mid-Week'
-                location='UNLV'
+                location={import.meta.env.VITE_MIDWEEK_CARD_LOCATION}
                 date='Wednesdays'
-                time='7:30PM'
+                time={import.meta.env.VITE_MIDWEEK_CARD_TIME}
                 size='large'
-                description='Alternates every other week so make sure to contact us for more info'
+                description={import.meta.env.VITE_MIDWEEK_CARD_DESCRIPTION}
             />
           </Box>
         </React.Fragment>

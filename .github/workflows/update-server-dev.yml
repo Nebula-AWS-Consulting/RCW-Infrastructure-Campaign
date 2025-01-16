@@ -48,5 +48,5 @@ jobs:
         if: env.should_run == 'true'
         run: |
           echo "Running upload-server.sh..."
-          chmod +x src/bin/upload-server.sh
-          src/bin/upload-server.sh
+          chmod +x src/bin/upload-dev-server.sh
+          src/bin/upload-dev-server.sh

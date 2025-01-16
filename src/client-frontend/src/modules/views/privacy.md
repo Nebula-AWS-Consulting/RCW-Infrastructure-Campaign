@@ -1,7 +1,7 @@
-Privacy Policy for Restored Church Las Vegas
+Privacy Policy for Restored Church Worldwide
 Effective Date: November 22, 2024
 
-Restored Church Las Vegas ("we," "our," or "us") values your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, attend our events, or engage with our services.
+Restored Church Worldwide ("we," "our," or "us") values your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, attend our events, or engage with our services.
 
 1. ### Information We Collect
 
@@ -29,7 +29,7 @@ Restored Church Las Vegas ("we," "our," or "us") values your privacy and is comm
 
     We do not sell or rent your personal information to third parties. However, we may share your information:
 - With trusted service providers who assist us in operating our website or managing our church operations (e.g., payment processors, email platforms)
-- When required by law, such as to comply with legal obligations or protect the rights of Restored Church Las Vegas
+- When required by law, such as to comply with legal obligations or protect the rights of Restored Church Worldwide
 4. ### Cookies and Tracking Technologies
 We may use cookies and similar technologies to enhance your browsing experience. Cookies are small files stored on your device that help us analyze web traffic and improve our website. You can control or disable cookies through your browser settings, though this may affect your experience on our site.
 
@@ -52,8 +52,4 @@ We do not knowingly collect personal information from children under 13 without 
 We may update this Privacy Policy periodically to reflect changes in our practices or for other operational, legal, or regulatory reasons. The updated policy will be posted on this page, and the "Effective Date" will be revised accordingly.
 
 10. ### Contact Us
-If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at:
-
-Restored Church Las Vegas
-- Email: emmanuelurias60@icloud.com
-- Phone: (702) 410-0057
+If you have any questions or concerns about this Privacy Policy or our data practices, please contact us

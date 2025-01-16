@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Form, Field, FormSpy } from 'react-final-form';
 import {
   Grid,
@@ -21,6 +21,7 @@ function ContactUs(){
   const [sent, setSent] = React.useState(false);
   const [submitError, setSubmitError] = React.useState(String);
   const language = useSelector(selectLanguage);
+  const [showThankYouBanner, setShowThankYouBanner] = useState(false);
 
   const handleSubmit = async (values: { [index: string]: string }) => {
     setSent(true);
@@ -62,6 +63,7 @@ function ContactUs(){
         }
     } finally {
       setSent(false);
+      setShowThankYouBanner(true)
     }
   };
 
@@ -95,6 +97,13 @@ function ContactUs(){
         >
           {({ handleSubmit: handleSubmit2, submitting }) => (
             <Box component="form" onSubmit={handleSubmit2} noValidate sx={{ mt: 6 }}>
+                {showThankYouBanner && (
+                <FormFeedback isDefault sx={{ mb: '1rem', mt: 2, textAlign: 'center', width: '80%', justifySelf: 'center', borderRadius: 2 }}>
+                    <Typography variant="h6" color="white">
+                    We will contact you soon!
+                    </Typography>
+                </FormFeedback>
+                )}
                 <Field
                   fullWidth
                   autoFocus
@@ -179,8 +188,8 @@ function ContactUs(){
                 {language === 'en-US'? 'Address' : language === 'fr-FR' ? 'Adresse' : language === 'es-MX' ? 'DIRECCIÓN' : ''}
                 </Typography>
                 <Typography variant="body1">
-                5858 S PECOS RD<br />
-                Las Vegas, NV 89120
+                {import.meta.env.VITE_CONTACT_US_STREET_LOCATION}<br />
+                {import.meta.env.VITE_CONTACT_US_CITY_LOCATION}
                 </Typography>
             </Box>
             </Grid>
@@ -191,7 +200,7 @@ function ContactUs(){
                 {language === 'en-US'? 'Phone' : language === 'fr-FR' ? 'Téléphone' : language === 'es-MX' ? 'Teléfono' : ''}
                 </Typography>
                 <Typography variant="body1">
-                (808) 208-4011
+                {import.meta.env.VITE_CONTACT_NUMBER}
                 </Typography>
             </Box>
             </Grid>
@@ -202,9 +211,9 @@ function ContactUs(){
                 {language === 'en-US'? 'Email' : language === 'fr-FR' ? 'E-mail' : language === 'es-MX' ? 'Correo Electrónico' : ''}
                 </Typography>
                 <Typography variant="body1">
-                austin.alexander@rcwmail.com
-                </Typography>
-            </Box>
+                {import.meta.env.VITE_CONTACT_EMAIL}
+                </Typography> 
+            </Box> {/* ENV Var */}
             </Grid>
         </Grid>
     </Box>
@@ -215,14 +224,14 @@ function ContactUs(){
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
             <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6448.8672902393255!2d-115.09935009999998!3d36.082915799999995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c8c5540516f777%3A0x785eba397328804!2s5858%20S%20Pecos%20Rd%2C%20Las%20Vegas%2C%20NV%2089120!5e0!3m2!1sen!2sus!4v1733190950611!5m2!1sen!2sus"
+            src={import.meta.env.VITE_GOOGLE_MAP_IMBED}
             width="100%"
             height="400"
             style={{ border: 0, maxWidth: '600px' }}
             allowFullScreen={false}
             loading="lazy"
             ></iframe>
-        </Box>
+        </Box> {/* ENV Var */}
           </Box>
     </Box>
     <AppFooter />
