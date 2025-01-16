@@ -11,7 +11,7 @@ LAYER_S3_PATH="client-public-backend/dependencies.zip"
 echo "Installing dependencies..."
 if [ -f "requirements.txt" ]; then
     mkdir -p python
-    pip install -r requirements.txt --target=python/lib/python3.8/site-packages/
+    pip install -r requirements.txt --target=python/lib/python3.12/site-packages/
 else
     echo "requirements.txt not found. Skipping dependency installation."
 fi

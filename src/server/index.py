@@ -3,9 +3,16 @@ import json
 import logging
 import requests
 import jwt
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 client = boto3.client('cognito-idp', region_name='us-west-1')
 ses = boto3.client('ses', region_name='us-west-1')
+
+environment = os.getenv('ENVIRONMENT')
+domain_name = os.getenv('DOMAIN_NAME')
 
 # Configuration
 def get_ssm_parameter(name):
@@ -13,20 +20,13 @@ def get_ssm_parameter(name):
     response = ssm.get_parameter(Name=name, WithDecryption=True)
     return response['Parameter']['Value']
 
-# USER_POOL_ID = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/USER_POOL_ID')
-# USER_POOL_CLIENT_ID = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/CLIENT_ID')
-# PAYPAL_CLIENT_ID = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/PAYPAL_CLIENT_ID')
-# PAYPAL_SECRET = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/PAYPAL_SECRET')
-# SENDER_EMAIL = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/SESIdentitySenderParameter')
-# RECIPIENT_EMAIL = get_ssm_parameter('/rcw-client-backend-${process.env.ENVIRONMENT}/SESRecipientParameter')
-# ALLOW_ORIGIN = process.env.DOMAIN_NAME
-
-USER_POOL_ID = 'us-west-1_lJ8JcxPXT'
-USER_POOL_CLIENT_ID = '2p3glok5k66cvh7hhs8lnpegsc'
-PAYPAL_CLIENT_ID = 'AfYXn-9V-9VfmWexdtRa8Q6ZYBQ4eU8cW8J01x4_BfCMuEuHN3kOc1eP9V-VYjYcqktNR06NuSr-UqT9'
-PAYPAL_SECRET = 'EBXvJKNZPbxbwURqYfvA2w3m-1vQfnnBrJlc1FnA4WRiR9LO-dFB9qCyReXJTpT7R4aJh0gdL3TJOD_q'
-SENDER_EMAIL = 'emmanuelurias60@nebulaawsconsulting.com'
-RECIPIENT_EMAIL = 'emmanuelurias60@icloud.com'
+USER_POOL_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/USER_POOL_ID')
+USER_POOL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/CLIENT_ID')
+PAYPAL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/PAYPAL_CLIENT_ID')
+PAYPAL_SECRET = get_ssm_parameter(f'/rcw-client-backend-{environment}/PAYPAL_SECRET')
+SENDER_EMAIL = get_ssm_parameter(f'/rcw-client-backend-{environment}/SESIdentitySenderParameter')
+RECIPIENT_EMAIL = get_ssm_parameter(f'/rcw-client-backend-{environment}/SESRecipientParameter')
+ALLOW_ORIGIN = domain_name
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
