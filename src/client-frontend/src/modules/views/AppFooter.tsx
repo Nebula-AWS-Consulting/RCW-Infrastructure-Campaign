@@ -13,8 +13,8 @@ function Copyright() {
   return (
     <React.Fragment>
       {'© '}
-      <Link color="inherit" href="https://restoredchurchlv.com/">
-        restoredchurchlv
+      <Link color="inherit" href={`https://${import.meta.env.VITE_DOMAIN}.org/`}>
+      {import.meta.env.VITE_DOMAIN}
       </Link>{' '}
       {new Date().getFullYear()}
     </React.Fragment>
@@ -75,7 +75,7 @@ export default function AppFooter() {
               <Grid item sx={{ display: 'flex' }}>
                 <Box
                   component="a"
-                  href="https://www.facebook.com/restoredchurchlv/"
+                  href={import.meta.env.VITE_FACEBOOK_URL}
                   sx={iconStyle}
                   borderRadius={'8px'}
                 >
@@ -86,7 +86,7 @@ export default function AppFooter() {
                 </Box>
                 <Box
                   component="a"
-                  href="https://www.instagram.com/restoredchurchlv/"
+                  href={import.meta.env.VITE_INSTAGRAM_URL}
                   sx={iconStyle}
                   borderRadius={'8px'}
                 >

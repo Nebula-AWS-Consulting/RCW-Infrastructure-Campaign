@@ -1,32 +1,41 @@
 import boto3
 import json
 import logging
+import requests
+import jwt
+import os
+from dotenv import load_dotenv
 
-# Initialize the Cognito Identity Provider client
+load_dotenv()
+
 client = boto3.client('cognito-idp', region_name='us-west-1')
 ses = boto3.client('ses', region_name='us-west-1')
 
+environment = os.getenv('ENVIRONMENT')
+domain_name = os.getenv('DOMAIN_NAME')
+
 # Configuration
-USER_POOL_ID = "us-west-1_lJ8JcxPXT"  # Replace with your Cognito User Pool ID
-CLIENT_ID = "2p3glok5k66cvh7hhs8lnpegsc"  # Replace with your Cognito App Client ID
+def get_ssm_parameter(name):
+    ssm = boto3.client('ssm')
+    response = ssm.get_parameter(Name=name, WithDecryption=True)
+    return response['Parameter']['Value']
 
-SENDER_EMAIL = 'emmanuelurias60@nebulaawsconsulting.com'
-RECIPIENT_EMAIL = 'emmanuelurias60@icloud.com'
+USER_POOL_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/USER_POOL_ID')
+USER_POOL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/CLIENT_ID')
+PAYPAL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/PAYPAL_CLIENT_ID')
+PAYPAL_SECRET = get_ssm_parameter(f'/rcw-client-backend-{environment}/PAYPAL_SECRET')
+SENDER_EMAIL = get_ssm_parameter(f'/rcw-client-backend-{environment}/SESIdentitySenderParameter')
+RECIPIENT_EMAIL = get_ssm_parameter(f'/rcw-client-backend-{environment}/SESRecipientParameter')
+ALLOW_ORIGIN = domain_name
 
-# Set up logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     try:
-        # Log the incoming event for debugging
-        logger.info(f"Event: {json.dumps(event)}")
-
-        # Determine the HTTP method and path from the event
         http_method = event['httpMethod']
         resource_path = event['path']
 
-        # Handle preflight OPTIONS request
         if http_method == "OPTIONS":
             return cors_response(200, {})
         
@@ -44,6 +53,8 @@ def lambda_handler(event, context):
             new_password = body.get('new_password')
             attribute_updates = body.get('attribute_updates', {})
             message = body.get('message')
+            custom_id = body.get('custom_id')
+            amount = body.get('amount')
 
         # Routing based on the resource path and HTTP method
         if resource_path == "/signup" and http_method == "POST":
@@ -68,12 +79,19 @@ def lambda_handler(event, context):
             return delete_user(email)
         elif resource_path == "/contact-us" and http_method == "POST":
             return contact_us(first_name, email, message)
+        elif resource_path == "/create-paypal-order" and http_method == "POST":
+            currency = body.get('currency', "USD")
+            return create_paypal_order_route(amount, custom_id, currency)
+        elif resource_path == "/create-paypal-subscription" and http_method == "POST":
+            user_name = body.get('user_name')
+            return create_paypal_subscription_route(amount, custom_id)
+        elif http_method == "OPTIONS":
+            return cors_response(200, {"message": "CORS preflight successful"})
         else:
             return cors_response(404, {"message": "Resource not found"})
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         return cors_response(500, {"message": str(e)})
-
 
 # Helper function to add CORS headers
 def cors_response(status_code, body):
@@ -89,14 +107,13 @@ def cors_response(status_code, body):
         "body": json.dumps(body)
     }
 
-
 # User Sign-Up
 def sign_up(password, email, first_name, last_name):
     if not all([email, password, first_name, last_name]):
         return cors_response(400, {"message": "Email, password, first name, and last name are required"})
     try:
         client.sign_up(
-            ClientId=CLIENT_ID,
+            ClientId=USER_POOL_CLIENT_ID,
             Username=email,
             Password=password,
             UserAttributes=[
@@ -184,16 +201,23 @@ def log_in(email, password):
         return cors_response(400, {"message": "Email and password are required"})
     try:
         response = client.initiate_auth(
-            ClientId=CLIENT_ID,
+            ClientId=USER_POOL_CLIENT_ID,
             AuthFlow='USER_PASSWORD_AUTH',
             AuthParameters={
                 'USERNAME': email,
                 'PASSWORD': password
             }
         )
+
+        id_token = response['AuthenticationResult']['IdToken']
+        
+        decoded_token = jwt.decode(id_token, options={"verify_signature": False})
+        user_id = decoded_token.get("sub")
+        
         return cors_response(200, {
             "message": "User logged in successfully",
-            "id_token": response['AuthenticationResult']['IdToken'],
+            "user_id": user_id,
+            "id_token": id_token,
             "access_token": response['AuthenticationResult']['AccessToken'],
             "refresh_token": response['AuthenticationResult']['RefreshToken']
         })
@@ -209,7 +233,7 @@ def log_in(email, password):
 def forgot_password(email):
     try:
         client.forgot_password(
-            ClientId=CLIENT_ID,
+            ClientId=USER_POOL_CLIENT_ID,
             Username=email
         )
         return cors_response(200, {"message": "Password reset initiated. Check your email for the code."})
@@ -224,12 +248,11 @@ def forgot_password(email):
         logger.error(f"Error in forgot_password: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An internal server error occurred"})
 
-
 # Confirm Forgot Password
 def confirm_forgot_password(email, confirmation_code, new_password):
     try:
         client.confirm_forgot_password(
-            ClientId=CLIENT_ID,
+            ClientId=USER_POOL_CLIENT_ID,
             Username=email,
             ConfirmationCode=confirmation_code,
             Password=new_password
@@ -250,7 +273,6 @@ def confirm_forgot_password(email, confirmation_code, new_password):
         logger.error(f"Error in confirm_forgot_password: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An internal server error occurred"})
 
-
 # Get User Data
 def get_user(email):
     if not email:
@@ -267,8 +289,6 @@ def get_user(email):
     except Exception as e:
         logger.error(f"Error in get_user: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An internal server error occurred"})
-
-
 
 # Update User Attributes
 def update_user(email, attribute_updates):
@@ -341,3 +361,241 @@ def contact_us(first_name, email, message):
     except Exception as e:
         logger.error(f"Unhandled error in contact_us: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An unexpected error occurred while sending your message. Please try again later."})
+
+# Get Paypal Access Token
+def get_paypal_access_token():
+    url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
+    headers = {
+        "Accept": "application/json",
+        "Accept-Language": "en_US",
+    }
+    data = {
+        "grant_type": "client_credentials"
+    }
+    auth = (PAYPAL_CLIENT_ID, PAYPAL_SECRET)
+
+    try:
+        response = requests.post(url, headers=headers, data=data, auth=auth, timeout=10)
+
+        if response.status_code == 200:
+            token_data = response.json()
+            return token_data["access_token"]
+        else:
+            error_details = response.json()
+            logger.error(f"PayPal token error: {error_details}")
+            raise Exception(f"Failed to get PayPal access token: {error_details.get('error', 'Unknown error')} - {error_details.get('error_description', 'No description')}.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error while fetching PayPal access token: {e}")
+        raise Exception("Failed to connect to PayPal API for access token retrieval.")
+
+# Create Paypal Order
+def create_paypal_order(amount, custom_id, currency="USD"):
+    access_token = get_paypal_access_token()
+    url = "https://api-m.sandbox.paypal.com/v2/checkout/orders"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    payload = {
+        "intent": "CAPTURE",
+        "purchase_units": [
+            {
+                "amount": {
+                    "currency_code": currency,
+                    "value": str(amount)
+                },
+                "custom_id": custom_id
+            }
+        ]
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+
+        if response.status_code == 201:
+            return response.json()
+        else:
+            error_details = response.json()
+            logger.error(f"PayPal order error: {error_details}")
+            raise Exception(f"Failed to create PayPal order: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error while creating PayPal order: {e}")
+        raise Exception("Failed to connect to PayPal API for order creation.")
+
+# Create Paypal Order Route
+def create_paypal_order_route(amount, custom_id, currency="USD"):
+    try:
+        if amount <= 0:
+            raise ValueError("Amount must be greater than zero.")
+
+        if not isinstance(custom_id, str) or not custom_id.strip():
+            raise ValueError("Custom ID must be a non-empty string.")
+
+        order = create_paypal_order(amount, custom_id, currency)
+
+        if "id" not in order:
+            raise Exception("Missing order ID in PayPal response.")
+
+        return cors_response(200, {"id": order["id"]})
+
+    except ValueError as ve:
+        logger.error(f"Validation error: {str(ve)}")
+        return cors_response(400, {"message": str(ve)})
+
+    except Exception as e:
+        logger.error(f"Error creating PayPal order: {str(e)}")
+        return cors_response(500, {"message": "An error occurred while processing your request."})
+
+# Create Paypal Product
+def create_paypal_product():
+    access_token = get_paypal_access_token()
+    url = "https://api-m.sandbox.paypal.com/v1/catalogs/products"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}"
+    }
+    payload = {
+        "name": "Donation Product",
+        "description": "A product for donation subscriptions.",
+        "type": "SERVICE",
+        "category": "CHARITY"
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        
+        if response.status_code == 201:
+            return response.json().get("id")
+        else:
+            error_details = response.json()
+            logger.error(f"PayPal product creation failed: {error_details}")
+            raise Exception(f"Failed to create PayPal product: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error while creating PayPal product: {e}")
+        raise Exception("Failed to connect to PayPal API for product creation.")
+
+# Create Paypal Plan
+def create_paypal_plan(product_id, amount):
+    if not product_id:
+        raise ValueError("Product ID is required to create a PayPal plan.")
+
+    access_token = get_paypal_access_token()
+    url = "https://api-m.sandbox.paypal.com/v1/billing/plans"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}"
+    }
+    payload = {
+        "product_id": product_id,
+        "name": "Weekly Donation Plan",
+        "description": "A plan for weekly donations.",
+        "status": "ACTIVE",
+        "billing_cycles": [
+            {
+                "frequency": {
+                    "interval_unit": "WEEK",
+                    "interval_count": 1
+                },
+                "tenure_type": "REGULAR",
+                "sequence": 1,
+                "total_cycles": 0,
+                "pricing_scheme": {
+                    "fixed_price": {
+                        "value": f"{amount:.2f}",
+                        "currency_code": "USD"
+                    }
+                }
+            }
+        ],
+        "payment_preferences": {
+            "auto_bill_outstanding": True,
+            "setup_fee": {
+                "value": "0.00",
+                "currency_code": "USD"
+            },
+            "setup_fee_failure_action": "CONTINUE",
+            "payment_failure_threshold": 3
+        }
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+
+        if response.status_code == 201:
+            return response.json().get("id")
+        else:
+            error_details = response.json()
+            logger.error(f"PayPal Plan Creation Failed: {error_details}")
+            raise Exception(f"Failed to create PayPal plan: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error while creating PayPal plan: {e}")
+        raise Exception("Failed to connect to PayPal API for plan creation.")
+
+# Create Paypal Subscription
+def create_paypal_subscription(plan_id, custom_id):
+    if not plan_id:
+        raise ValueError("Plan ID is required to create a PayPal subscription.")
+
+    access_token = get_paypal_access_token()
+    url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    payload = {
+        "plan_id": plan_id,
+        "custom_id": custom_id
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        
+        if response.status_code == 201:
+            subscription = response.json()
+            return subscription
+        else:
+            error_details = response.json()
+            logger.error(f"PayPal subscription creation failed: {error_details}")
+            raise Exception(f"Failed to create PayPal subscription: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error while creating PayPal subscription: {e}")
+        raise Exception("Failed to connect to PayPal API for subscription creation.")
+
+# Create Paypal Subscription route
+def create_paypal_subscription_route(amount, custom_id):
+    try:
+        if amount <= 0:
+            raise ValueError("Amount must be greater than zero.")
+
+        if not custom_id or not custom_id.strip():
+            raise ValueError("Custom ID must be a non-empty string.")
+
+        product_id = create_paypal_product()
+        
+        plan_id = create_paypal_plan(product_id, amount)
+        
+        subscription = create_paypal_subscription(plan_id, custom_id)
+        
+        subscription_id = subscription.get("id")
+        if not subscription_id:
+            raise ValueError("Subscription ID is missing from the PayPal response.")
+        
+        approval_url = next(
+            (link["href"] for link in subscription.get("links", []) if link["rel"] == "approve"),
+            None
+        )
+        if not approval_url:
+            raise ValueError("Approval URL is missing from the PayPal response.")
+
+        return cors_response(200, {
+            "subscription_id": subscription_id,
+            "approval_url": approval_url
+        })
+    except ValueError as ve:
+        logger.error(f"Validation error: {str(ve)}")
+        return cors_response(400, {"message": str(ve)})
+    except Exception as e:
+        logger.error(f"Error creating PayPal subscription: {str(e)}")
+        return cors_response(500, {"message": "An error occurred while processing your request."})

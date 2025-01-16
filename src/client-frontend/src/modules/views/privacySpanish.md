@@ -1,7 +1,7 @@
-## Política de Privacidad de Restored Church Las Vegas  
+## Política de Privacidad de Restored Church Worldwide  
 **Fecha de Vigencia:** 22 de noviembre de 2024  
 
-Restored Church Las Vegas ("nosotros" o "nuestro") valora su privacidad y se compromete a proteger su información personal. Esta Política de Privacidad explica cómo recopilamos, usamos, divulgamos y protegemos su información cuando visita nuestro sitio web, asiste a nuestros eventos o utiliza nuestros servicios.  
+Restored Church Worldwide ("nosotros" o "nuestro") valora su privacidad y se compromete a proteger su información personal. Esta Política de Privacidad explica cómo recopilamos, usamos, divulgamos y protegemos su información cuando visita nuestro sitio web, asiste a nuestros eventos o utiliza nuestros servicios.  
 
 ---
 
@@ -39,7 +39,7 @@ Usamos su información para los siguientes propósitos:
 
 No vendemos ni alquilamos su información personal a terceros. Sin embargo, podemos compartir su información:  
 - Con proveedores de servicios de confianza que nos ayudan a operar nuestro sitio web o gestionar las operaciones de nuestra iglesia (por ejemplo, procesadores de pagos, plataformas de correo electrónico)  
-- Cuando sea requerido por la ley, como para cumplir con obligaciones legales o proteger los derechos de Restored Church Las Vegas  
+- Cuando sea requerido por la ley, como para cumplir con obligaciones legales o proteger los derechos de Restored Church Worldwide  
 
 ---
 
@@ -84,8 +84,4 @@ Podemos actualizar esta Política de Privacidad periódicamente para reflejar ca
 
 ### 10. Contáctenos  
 
-Si tiene alguna pregunta o inquietud sobre esta Política de Privacidad o nuestras prácticas de datos, contáctenos en:  
-
-**Restored Church Las Vegas**  
-- Correo electrónico: emmanuelurias60@icloud.com  
-- Teléfono: (702) 410-0057  
+Si tiene alguna pregunta o inquietud sobre esta Política de Privacidad o nuestras prácticas de datos, contáctenos

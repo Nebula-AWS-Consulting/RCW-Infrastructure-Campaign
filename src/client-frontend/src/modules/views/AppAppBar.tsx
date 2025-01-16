@@ -59,7 +59,7 @@ function AppAppBar() {
             sx={{ fontSize: 24 }}
             href="/"
           >
-            {isSmallScreen ? 'RCW Las Vegas' : 'Restored Church Las Vegas'}
+            {isSmallScreen ? `RCW ${import.meta.env.VITE_CHURCH_CITY}` : `Restored Church ${import.meta.env.VITE_CHURCH_CITY}`}
           </Link>
 
           {/* Right Side Links */}
@@ -79,13 +79,13 @@ function AppAppBar() {
                   <List>
                     {isLoggedIn ? (
                       <>
-                        <ListItem>
+                        <ListItem component="a" onClick={() => navigate('/dashboard')}>
                           <ListItemText primary={language=='en-US' ? 'Dashboard' : language=='fr-FR' ? 'Tableau De Bord' : language=='es-MX' ? 'Panel' : ''} />
                         </ListItem>
-                        <ListItem >
+                        <ListItem component="a" onClick={() => navigate('/profile')}>
                           <ListItemText primary={language=='en-US' ? 'Profile' : language=='fr-FR' ? 'Profil' : language=='es-MX' ? 'Perfil' : ''} />
                         </ListItem>
-                        <ListItem>
+                        <ListItem component="a" onClick={() => navigate('/auth/signout')}>
                           <ListItemText primary={language=='en-US' ? 'Logout' : language=='fr-FR' ? 'Déconnexion' : language=='es-MX' ? 'Cerrar Sesión' : ''} />
                         </ListItem>
                       </>

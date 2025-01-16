@@ -8,6 +8,7 @@ export interface User {
 interface InitialState {
   user: User | null;
   token: {
+    user_id: string | null;
     id_token: string | null;
     access_token: string | null;
     refresh_token: string | null;
@@ -18,6 +19,7 @@ interface InitialState {
 const initialState: InitialState = {
   user: null,
   token: {
+    user_id: null,
     id_token: null,
     access_token: null,
     refresh_token: null,
@@ -36,6 +38,7 @@ export const userAuthAndInfoSlice = createSlice({
     setLogout: (state) => {
       state.user = null;
       state.token = {
+        user_id: null,
         id_token: null,
         access_token: null,
         refresh_token: null,

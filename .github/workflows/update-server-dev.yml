@@ -1,11 +1,14 @@
 name: Detect Changes in Server and Run Script
 
 on:
+  push:
+    branches:
+      - dev
   pull_request:
     types:
       - closed
     branches:
-      - main
+      - dev
 
 jobs:
   check-changes-and-run:
@@ -39,10 +42,11 @@ jobs:
           else
             echo "Changes detected in src/server. Proceeding with upload."
             echo "should_run=true" >> $GITHUB_ENV
+          fi
 
       - name: Run upload-server.sh
         if: env.should_run == 'true'
         run: |
           echo "Running upload-server.sh..."
-          chmod +x src/bin/upload-server.sh
-          src/bin/upload-server.sh
+          chmod +x src/bin/upload-dev-server.sh
+          src/bin/upload-dev-server.sh

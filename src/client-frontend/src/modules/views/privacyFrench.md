@@ -1,7 +1,7 @@
-## Politique de Confidentialité de Restored Church Las Vegas  
+## Politique de Confidentialité de Restored Church Worldwide  
 **Date d’Entrée en Vigueur :** 22 novembre 2024  
 
-Restored Church Las Vegas (« nous », « notre ») accorde une grande importance à votre vie privée et s’engage à protéger vos informations personnelles. Cette Politique de Confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous visitez notre site internet, participez à nos événements ou utilisez nos services.  
+Restored Church Worldwide (« nous », « notre ») accorde une grande importance à votre vie privée et s’engage à protéger vos informations personnelles. Cette Politique de Confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous visitez notre site internet, participez à nos événements ou utilisez nos services.  
 
 ---
 
@@ -39,7 +39,7 @@ Nous utilisons vos informations aux fins suivantes :
 
 Nous ne vendons ni ne louons vos informations personnelles à des tiers. Cependant, nous pouvons partager vos informations :  
 - Avec des prestataires de services de confiance qui nous assistent dans l’exploitation de notre site internet ou la gestion de nos opérations d’église (par exemple, des processeurs de paiement, des plateformes d’e-mails)  
-- Lorsque requis par la loi, par exemple pour nous conformer à des obligations légales ou protéger les droits de Restored Church Las Vegas  
+- Lorsque requis par la loi, par exemple pour nous conformer à des obligations légales ou protéger les droits de Restored Church Worldwide  
 
 ---
 
@@ -84,8 +84,4 @@ Nous pouvons mettre à jour cette Politique de Confidentialité périodiquement 
 
 ### 10. Contactez-Nous  
 
-Si vous avez des questions ou des préoccupations concernant cette Politique de Confidentialité ou nos pratiques en matière de données, veuillez nous contacter :  
-
-**Restored Church Las Vegas**  
-- E-mail : emmanuelurias60@icloud.com  
-- Téléphone : (702) 410-0057  
+Si vous avez des questions ou des préoccupations concernant cette Politique de Confidentialité ou nos pratiques en matière de données, veuillez nous contacter

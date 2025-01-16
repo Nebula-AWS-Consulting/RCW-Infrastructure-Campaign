@@ -7,8 +7,7 @@ import ForgotPassword from "./modules/pages/ForgotPassword"
 import Terms from "./modules/pages/Terms"
 import Privacy from "./modules/pages/Privacy"
 import Location from "./modules/pages/Location"
-import { useDispatch, useSelector } from "react-redux"
-import { RootState } from "./store"
+import { useDispatch } from "react-redux"
 import { setLogin } from "./modules/ducks/userSlice"
 import { useEffect } from "react"
 import SignOut from "./modules/pages/SignOut"
@@ -18,18 +17,14 @@ import Profile from "./modules/pages/Profile"
 import ContactUs from "./modules/pages/ContactUs"
 import ConfirmNewPassword from "./modules/pages/ConfirmNewPassword"
 import VerifyEmail from "./modules/pages/VerifyEmail"
+import ControPage from "./modules/pages/ControPage"
+import BenevolencePage from "./modules/pages/BenevolencePage"
+import MissionsPage from "./modules/pages/MissionsPage"
 
-export const SERVER = 'https://dmqboe5083.execute-api.us-west-1.amazonaws.com/prod'
+export const SERVER = import.meta.env.VITE_API_LINK
 
 function App() {
-  const user = useSelector((state: RootState) => state.userAuthAndInfo);
-  const language = useSelector((state: RootState) => state.userAuthAndInfo.language);
   const dispatch = useDispatch();
-
-  const isLoggedIn = useSelector(
-    (state: RootState) => Boolean(state.userAuthAndInfo.token)
-  );
-
 
   useEffect(() => {
     const user = localStorage.getItem('user');
@@ -45,10 +40,6 @@ function App() {
     }
   }, [dispatch]);
 
-console.log(user)
-console.log(isLoggedIn)
-console.log(language)
-
   return (
     <div>
         <Routes>
@@ -61,6 +52,9 @@ console.log(language)
             <Route path="/auth/created" element={<AccountCreated />} />
             <Route path="/auth/forgotpassword" element={<ForgotPassword />} />
             <Route path="/auth/confirmpassword" element={<ConfirmNewPassword />} />
+            <Route path="/contribution" element={<ControPage />} />
+            <Route path="/benevolence" element={<BenevolencePage />} />
+            <Route path="/missions" element={<MissionsPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/contactus" element={<ContactUs />} />
