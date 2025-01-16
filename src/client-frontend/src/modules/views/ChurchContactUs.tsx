@@ -229,7 +229,7 @@ function ChurchContactUs() {
         closeFunc={handleClose}
         message={
           language == 'en-US'
-            ? 'We will contact you soon.'
+            ? 'We will contact you soon!'
             : language == 'fr-FR'
             ? 'Nous vous contacterons bientôt.'
             : language == 'es-MX'

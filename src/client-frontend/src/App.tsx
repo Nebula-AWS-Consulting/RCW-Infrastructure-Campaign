@@ -21,7 +21,7 @@ import ControPage from "./modules/pages/ControPage"
 import BenevolencePage from "./modules/pages/BenevolencePage"
 import MissionsPage from "./modules/pages/MissionsPage"
 
-export const SERVER = 'https://6wsmdtapnd.execute-api.us-west-1.amazonaws.com/prod'
+export const SERVER = import.meta.env.VITE_API_LINK
 
 function App() {
   const dispatch = useDispatch();

@@ -41,13 +41,14 @@ const OneTimePaymentComponent = ({
 
         const userId = token?.user_id ? token.user_id : "guest";
         const userEmail = user?.email ? user.email : "guest@example.com";
+        const userName = user?.user_name ? user.user_name : "guest";
 
         const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             amount: amount,
-            custom_id: `purpose:Contribution|user_id:${userId}|email:${userEmail}`
+            custom_id: `purpose:Contribution|user_id:${userId}|email:${userEmail}|user_name:${userName}`
           }),
         });
   
@@ -112,15 +113,16 @@ const SubscriptionPaymentComponent: React.FC<{
           throw new Error("Invalid donation amount. Please enter a valid number greater than 0.");
         }
 
+        const userId = token?.user_id ? token.user_id : "guest";
+        const userEmail = user?.email ? user.email : "guest@example.com";
+        const userName = user?.user_name ? user.user_name : "guest";
+
         const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             amount: amount,
-            custom_id: "Contribution",
-            user_id: token?.user_id || "guest",
-            email: user?.email || "guest@example.com",
-            user_name: user?.user_name || "guest"
+            custom_id: `purpose:Contribution|user_id:${userId}|email:${userEmail}|user_name:${userName}`
           }),
         });
   
@@ -210,7 +212,7 @@ const ControPage = () => {
         )}
       <AppForm>
         <Typography variant="h5" align="center" mb={2} justifySelf={'center'}>Donate to</Typography>
-        <Typography variant="h4" gutterBottom marked="center" align="center">Restored Church Las Vegas</Typography>
+        <Typography variant="h4" gutterBottom marked="center" align="center">{`Restored Church ${import.meta.env.VITE_CHURCH_CITY}`}</Typography>
         <Typography variant="h5" align="center" my={3} width={'80%'} justifySelf={'center'}>Weekly Contribution</Typography>
 
         {/* Donation Amount Input */}
