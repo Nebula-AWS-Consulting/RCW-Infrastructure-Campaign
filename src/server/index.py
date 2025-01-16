@@ -333,7 +333,6 @@ def delete_user(email):
         logger.error(f"Error in delete_user: {str(e)}", exc_info=True)
         return cors_response(500, {"message": "An internal server error occurred"})
 
-# Contact Us
 def contact_us(first_name, email, message):
     if not all([first_name, email, message]):
         return cors_response(400, {"message": "All fields are required: name, email, and message."})
