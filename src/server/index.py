@@ -174,12 +174,21 @@ def confirm_user(email):
         )
         return cors_response(200, {"message": "User confirmed successfully"})
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "We could not find a user with this email address.",
+            "errorType": "UserNotFound"
+        })
     except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {"message": "Not authorized to confirm user"})
+        return cors_response(403, {
+            "message": "You do not have the necessary permissions to confirm this user.",
+            "errorType": "NotAuthorized"
+        })
     except Exception as e:
         logger.error(f"Error in confirm_user: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "Something went wrong while confirming the user. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 def confirm_email(access_token, confirmation_code):
     try:
@@ -245,12 +254,21 @@ def log_in(email, password):
             "refresh_token": response['AuthenticationResult']['RefreshToken']
         })
     except client.exceptions.NotAuthorizedException:
-        return cors_response(401, {"message": "Incorrect username or password"})
+        return cors_response(401, {
+            "message": "The email or password provided is incorrect. Please try again.",
+            "errorType": "NotAuthorized"
+        })
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "We couldn't find a user with this email address. Please check the email entered or sign up if you don't have an account.",
+            "errorType": "UserNotFound"
+        })
     except Exception as e:
         logger.error(f"Error in log_in: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "An unexpected error occurred while attempting to log in. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # Forgot Password (Initiate)
 def forgot_password(email):
