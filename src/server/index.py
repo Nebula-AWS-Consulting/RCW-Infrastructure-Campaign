@@ -199,16 +199,31 @@ def confirm_email(access_token, confirmation_code):
         )
         return cors_response(200, {"message": "Email confirmed successfully."})
     except client.exceptions.CodeMismatchException:
-        return cors_response(400, {"message": "Invalid confirmation code"})
+        return cors_response(400, {
+            "message": "The confirmation code you entered is incorrect. Please check and try again.",
+            "errorType": "CodeMismatch"
+        })
     except client.exceptions.ExpiredCodeException:
-        return cors_response(400, {"message": "Confirmation code expired"})
+        return cors_response(400, {
+            "message": "The confirmation code has expired. Please request a new code and try again.",
+            "errorType": "ExpiredCode"
+        })
     except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {"message": "Not authorized"})
+        return cors_response(403, {
+            "message": "You are not authorized to perform this action. Please ensure you are logged in and try again.",
+            "errorType": "NotAuthorized"
+        })
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "We couldn't find a user associated with this request. Please check your details and try again.",
+            "errorType": "UserNotFound"
+        })
     except Exception as e:
         logger.error(f"Error in confirm_email: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "An unexpected error occurred while confirming your email. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 def confirm_email_resend(access_token):
     try:
@@ -218,14 +233,26 @@ def confirm_email_resend(access_token):
         )
         return cors_response(200, {"message": "Verification code sent successfully."})
     except client.exceptions.LimitExceededException:
-        return cors_response(429, {"message": "Attempt limit exceeded, please try again later"})
+        return cors_response(429, {
+            "message": "You have exceeded the number of allowed attempts. Please wait before trying again.",
+            "errorType": "LimitExceeded"
+        })
     except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {"message": "Not authorized"})
+        return cors_response(403, {
+            "message": "You are not authorized to request a new verification code. Please log in and try again.",
+            "errorType": "NotAuthorized"
+        })
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "We could not find a user associated with this request. Please check your details and try again.",
+            "errorType": "UserNotFound"
+        })
     except Exception as e:
         logger.error(f"Error in confirm_email_resend: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "An unexpected error occurred while trying to resend the verification code. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # User Log-In
 def log_in(email, password):

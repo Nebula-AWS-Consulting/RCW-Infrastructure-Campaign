@@ -62,7 +62,11 @@ function SignIn() {
     
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Error: ${response.statusText}`);
+        throw { 
+          message: errorData.message, 
+          errorType: errorData.errorType, 
+          status: response.status 
+        };
       }
     
       const data = await response.json();
@@ -92,19 +96,17 @@ function SignIn() {
       );
 
       navigate('/');
-    } catch(error: any) {
-        try {
-          if (error.message === 'Incorrect username or password') {
-            setSubmitError('The password you entered is incorrect.');
-          } else if (error.message === 'User not found') {
-            setSubmitError('No account found with this email address.');
-          } else {
-            setSubmitError(error.message || 'Sign-in failed. Please try again.');
-          }
-        } catch (parseError) {
-          setSubmitError('An unexpected error occurred. Please try again.');
-        }
-    } finally {
+    } catch (error: any) {
+        const userFriendlyMessages: { [key: string]: string } = {
+          NotAuthorized: 'The email or password provided is incorrect. Please try again.',
+          UserNotFound: 'We could not find an account associated with this email address.',
+          InternalError: 'An unexpected error occurred while attempting to log in. Please try again later.',
+      };
+        const errorType = error.errorType || 'InternalError';
+        const message = userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+      
+        setSubmitError(message);
+  } finally {
       setSent(false);
     }
   };

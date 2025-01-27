@@ -56,24 +56,29 @@ function VerifyEmail() {
   
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Error: ${response.statusText}`);
+        throw { 
+          message: errorData.message, 
+          errorType: errorData.errorType, 
+          status: response.status 
+        };
       }
   
       await response.json();
       navigate('/auth/created');
     } catch (error: any) {
-        if (error.message === 'Invalid confirmation code') {
-            setSubmitError('The confirmation code you entered is incorrect. Please check and try again.');
-          } else if (error.message === 'Confirmation code expired') {
-            setSubmitError('The confirmation code has expired. Please request a new one.');
-          } else if (error.message === 'Not authorized') {
-            setSubmitError('You are not authorized to verify this email. Please log in and try again.');
-          } else if (error.message === 'User not found') {
-            setSubmitError('We could not find an account associated with this email. Please check and try again.');
-          } else {
-            setSubmitError(error.message || 'An unexpected error occurred. Please try again.');
-          }
-    } finally {
+        const userFriendlyMessages: { [key: string]: string } = {
+            CodeMismatch: 'The confirmation code you entered is incorrect. Please try again.',
+            ExpiredCode: 'The confirmation code has expired. Please request a new one and try again.',
+            NotAuthorized: 'You are not authorized to confirm this email. Please log in and try again.',
+            UserNotFound: 'We could not find an account associated with this request. Please verify your details.',
+            InternalError: 'An unexpected error occurred. Please try again later.'
+        };
+    
+        const errorType = error.errorType || 'InternalError';
+        const message = userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+    
+        setSubmitError(message);
+  } finally {
       setSent(false);
     }
   };
@@ -95,21 +100,28 @@ function VerifyEmail() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Error: ${response.statusText}`);
+        throw { 
+          message: errorData.message, 
+          errorType: errorData.errorType, 
+          status: response.status 
+        };
       }
 
       await response.json();
     } catch (error: any) {
-        if (error.message === 'Attempt limit exceeded, please try again later') {
-            throw new Error('You have exceeded the maximum number of attempts. Please wait and try again later.');
-          } else if (error.message === 'Not authorized') {
-            throw new Error('You are not authorized to request a verification code. Please log in and try again.');
-          } else if (error.message === 'User not found') {
-            throw new Error('We could not find an account associated with this email. Please check and try again.');
-          } else {
-            throw new Error(error.message || 'An unexpected error occurred. Please try again.');
-          }
-    }
+      const userFriendlyMessages: { [key: string]: string } = {
+          LimitExceeded: 'You have reached the maximum number of attempts. Please wait a while before trying again.',
+          NotAuthorized: 'You are not authorized to request a new verification code. Please log in and try again.',
+          UserNotFound: 'We could not find an account associated with this request. Please verify your details.',
+          InternalError: 'An unexpected error occurred. Please try again later.'
+      };
+      const errorType = error.errorType || 'InternalError';
+      const message = userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+  
+      setSubmitError(message);
+  } finally {
+    setSent(false);
+  }
   };
 
   return (
