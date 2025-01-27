@@ -203,9 +203,6 @@ function SignUp() {
     } finally {
       setSent(false);
     }
-    finally {
-      setSent(false);
-    }
   };
 
   return (
