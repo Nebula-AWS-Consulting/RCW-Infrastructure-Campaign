@@ -79,11 +79,21 @@ function SignUp() {
       
       navigate('/auth/verify')
     } catch (error: any) {
-      setSubmitError(
-        error.message === 'User already exists'
-          ? 'This email is already registered. Please log in or use a different email.'
-          : 'Sign-up failed. Please try again.'
-      );
+        const userFriendlyMessages: { [key: string]: string } = {
+          UserAlreadyExists: 'This email is already registered. Please log in or use a different email.',
+          InvalidPassword: 'Your password must meet the required complexity standards. Please try again.',
+          InvalidParameter: 'One or more fields are invalid. Please check and try again.',
+          TooManyRequests: 'You have made too many requests. Please wait and try again later.',
+          CodeDeliveryFailure: 'We could not send the confirmation email. Please check your email address and try again.',
+          LambdaValidationFailed: 'There was an issue with validating your sign-up. Please try again.',
+          InternalError: 'An unexpected error occurred. Please try again later.',
+          AliasExists: 'This email or phone number is already linked to an existing account. Please log in or use a different email.'
+        };
+      
+        const errorType = error?.response?.data?.errorType || 'InternalError';
+        const message = userFriendlyMessages[errorType] || 'An unexpected error occurred. Please try again later.';
+        
+        setSubmitError(message);
     } finally {
       setSent(false);
     }

@@ -124,23 +124,46 @@ def sign_up(password, email, first_name, last_name):
         )
         return cors_response(200, {"message": "User signed up successfully"})
     except client.exceptions.UsernameExistsException:
-        return cors_response(409, {"message": "User already exists"})
+        return cors_response(409, {
+            "message": "User already exists",
+            "errorType": "UserAlreadyExists"
+        })
+    except client.exceptions.AliasExistsException:
+        return cors_response(409, {
+            "message": "A user with this email or phone number already exists.",
+            "errorType": "AliasExists"
+        })
     except client.exceptions.InvalidPasswordException as e:
-        message = e.response['Error']['Message']
-        return cors_response(400, {"message": message})
+        return cors_response(400, {
+            "message": e.response['Error']['Message'],
+            "errorType": "InvalidPassword"
+        })
     except client.exceptions.InvalidParameterException as e:
-        message = e.response['Error']['Message']
-        return cors_response(400, {"message": message})
+        return cors_response(400, {
+            "message": e.response['Error']['Message'],
+            "errorType": "InvalidParameter"
+        })
     except client.exceptions.TooManyRequestsException:
-        return cors_response(429, {"message": "Too many requests. Please try again later."})
+        return cors_response(429, {
+            "message": "Too many requests. Please try again later.",
+            "errorType": "TooManyRequests"
+        })
     except client.exceptions.CodeDeliveryFailureException:
-        return cors_response(500, {"message": "Failed to send confirmation code. Please try again."})
+        return cors_response(500, {
+            "message": "Failed to send confirmation code. Please try again.",
+            "errorType": "CodeDeliveryFailure"
+        })
     except client.exceptions.UserLambdaValidationException as e:
-        message = e.response['Error']['Message']
-        return cors_response(400, {"message": message})
+        return cors_response(400, {
+            "message": e.response['Error']['Message'],
+            "errorType": "LambdaValidationFailed"
+        })
     except Exception as e:
         logger.error(f"Error in sign_up: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "An internal server error occurred",
+            "errorType": "InternalError"
+        })
 
 # Confirm User
 def confirm_user(email):
