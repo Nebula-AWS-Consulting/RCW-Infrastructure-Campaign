@@ -146,45 +146,42 @@ function SignUp() {
 
   const loginUser = async (email: string, password: string, user_name: string) => {
     try {
-      const response = await fetch(
-        `${SERVER}/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email,
-            password
-          })
-        }
-      );
-  
+      const response = await fetch(`${SERVER}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw { 
-          message: errorData.message, 
-          errorType: errorData.errorType, 
-          status: response.status 
+        throw {
+          message: errorData.message,
+          errorType: errorData.errorType,
+          status: response.status,
         };
       }
-  
+
       const data = await response.json();
-  
+
       const userData = {
         user_name: user_name,
-        email: email
+        email: email,
       };
-  
+
       const tokenData = {
         id_token: data.id_token,
         access_token: data.access_token,
         refresh_token: data.refresh_token,
       };
-  
+
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('userToken', JSON.stringify(tokenData));
-  
+
       dispatch(
         setLogin({
           user: userData,
@@ -192,15 +189,17 @@ function SignUp() {
         })
       );
     } catch (error: any) {
-        const userFriendlyMessages: { [key: string]: string } = {
-          NotAuthorized: 'The email or password provided is incorrect. Please try again.',
-          UserNotFound: 'We could not find an account associated with this email address.',
-          InternalError: 'An unexpected error occurred while attempting to log in. Please try again later.',
+      const userFriendlyMessages: { [key: string]: string } = {
+        NotAuthorized: 'The email or password provided is incorrect. Please try again.',
+        UserNotFound: 'We could not find an account associated with this email address.',
+        InternalError: 'An unexpected error occurred while attempting to log in. Please try again later.',
       };
-        const errorType = error.errorType || 'InternalError';
-        const message = userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
-      
-        setSubmitError(message);
+
+      const errorType = error.errorType || 'InternalError';
+      const message =
+        userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+
+      setSubmitError(message);
     } finally {
       setSent(false);
     }
