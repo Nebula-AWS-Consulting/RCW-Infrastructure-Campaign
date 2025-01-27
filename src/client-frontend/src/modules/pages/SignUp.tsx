@@ -201,9 +201,7 @@ function SignUp() {
         const message = userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
       
         setSubmitError(message);
-      throw error;
-    }
-    finally {
+    } finally {
       setSent(false);
     }
   };
