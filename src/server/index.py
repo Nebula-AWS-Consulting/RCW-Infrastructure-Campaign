@@ -20,8 +20,8 @@ def get_ssm_parameter(name):
     response = ssm.get_parameter(Name=name, WithDecryption=True)
     return response['Parameter']['Value']
 
-USER_POOL_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/USER_POOL_ID')
-USER_POOL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/CLIENT_ID')
+USER_POOL_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/COGNITO_USER_POOL_ID')
+USER_POOL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/COGNITO_CLIENT_ID')
 PAYPAL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/PAYPAL_CLIENT_ID')
 PAYPAL_SECRET = get_ssm_parameter(f'/rcw-client-backend-{environment}/PAYPAL_SECRET')
 SENDER_EMAIL = get_ssm_parameter(f'/rcw-client-backend-{environment}/SESIdentitySenderParameter')
@@ -98,10 +98,10 @@ def cors_response(status_code, body):
     return {
         "statusCode": status_code,
         "headers": {
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": f"{ALLOW_ORIGIN}",
             "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization"
-            # "Access-Control-Allow-Credentials": "true"
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Access-Control-Allow-Credentials": "true"
 
         },
         "body": json.dumps(body)
