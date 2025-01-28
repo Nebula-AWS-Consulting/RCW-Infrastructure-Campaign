@@ -45,22 +45,28 @@ function ContactUs(){
   
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Error: ${response.statusText}`);
+        throw {
+          message: errorData.message,
+          errorType: errorData.errorType,
+          status: response.status,
+        };
       }
   
       await response.json();
     } catch (error: any) {
-        if (error.message === 'All fields are required: name, email, and message.') {
-            setSubmitError('Please fill out all fields: name, email, and message.');
-          } else if (error.message === 'The message was rejected. Ensure the email address is valid.') {
-            setSubmitError('Your email address is invalid. Please enter a valid email address.');
-          } else if (error.message === "The sender's email address is not verified. Please contact support.") {
-            setSubmitError('The email address you provided is not verified. Please use a verified email or contact support.');
-          } else if (error.message === 'There was a configuration issue with the email service. Please try again later.') {
-            setSubmitError('We encountered a technical issue while sending your message. Please try again later.');
-          } else {
-            setSubmitError(error.message || 'An unexpected error occurred. Please try again.');
-        }
+        const userFriendlyMessages: { [key: string]: string } = {
+          ValidationError: 'All fields are required. Please complete the form and try again.',
+          MessageRejected: 'The email message was rejected. Please ensure your email address is valid.',
+          EmailNotVerified: 'The sender’s email address has not been verified. Please contact support for help.',
+          ConfigurationError: 'There was a configuration issue with the email service. Please try again later.',
+          InternalError: 'An unexpected error occurred. Please try again later.',
+        };
+    
+        const errorType = error.errorType || 'InternalError';
+        const message =
+          userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+    
+        setSubmitError(message);
     } finally {
       setSent(false);
       setShowThankYouBanner(true)

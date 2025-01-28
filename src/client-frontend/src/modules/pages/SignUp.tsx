@@ -90,8 +90,10 @@ function SignUp() {
           TooManyRequests: 'You have made too many requests. Please wait and try again later.',
           CodeDeliveryFailure: 'We could not send the confirmation email. Please check your email address and try again.',
           LambdaValidationFailed: 'There was an issue with validating your sign-up. Please try again.',
-          InternalError: 'An unexpected error occurred. Please try again later.',
           AliasExists: 'This email or phone number is already linked to an existing account. Please log in or use a different email.',
+          UserNotFound: 'We could not find an account associated with this email address.',
+          NotAuthorized: 'You do not have the necessary permissions to confirm this account.',
+          InternalError: 'An unexpected error occurred. Please try again later.'
         };
       
         const errorType = error.errorType || 'InternalError';
@@ -128,17 +130,7 @@ function SignUp() {
       }
 
       await response.json();
-    } catch (error: any) {      
-        const userFriendlyMessages: { [key: string]: string } = {
-          UserNotFound: 'We could not find an account associated with this email address.',
-          NotAuthorized: 'You do not have the necessary permissions to confirm this account.',
-          InternalError: 'An unexpected error occurred. Please try again later.',
-        };
-      
-        const errorType = error.errorType || 'InternalError';
-        const message = userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
-      
-        setSubmitError(message);
+    } catch (error: any) {
   } finally {
     setSent(false);
   }
@@ -189,17 +181,6 @@ function SignUp() {
         })
       );
     } catch (error: any) {
-      const userFriendlyMessages: { [key: string]: string } = {
-        NotAuthorized: 'The email or password provided is incorrect. Please try again.',
-        UserNotFound: 'We could not find an account associated with this email address.',
-        InternalError: 'An unexpected error occurred while attempting to log in. Please try again later.',
-      };
-
-      const errorType = error.errorType || 'InternalError';
-      const message =
-        userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
-
-      setSubmitError(message);
     } finally {
       setSent(false);
     }

@@ -36,7 +36,10 @@ const OneTimePaymentComponent = ({
       try {
         const amount = parseFloat(donationAmountRef.current);
         if (isNaN(amount) || amount <= 0) {
-          throw new Error("Invalid donation amount. Please enter a valid number greater than 0.");
+          throw {
+            message: 'Invalid input: Ensure the amount is greater than zero.',
+            errorType: 'ValidationError',
+          }
         }
 
         const userId = token?.user_id ? token.user_id : "guest";
@@ -53,33 +56,70 @@ const OneTimePaymentComponent = ({
         });
   
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Server error: ${response.status} - ${errorText}`);
+          const errorData = await response.json();
+          throw {
+            message: errorData.message,
+            errorType: errorData.errorType,
+            status: response.status,
+            details: errorData.details || {},
+          };
         }
   
         const responseData = await response.json();
         if (!responseData.id) {
-          throw new Error("Order ID is missing in the response.");
+          throw {
+            message: 'The order ID is missing in the response. Please try again later.',
+            errorType: 'MissingOrderId',
+            status: 500,
+            details: responseData || {}
+          }
         }
+
         return responseData.id;
-      } catch (error) {
-        console.error("Error creating order:", error);
-        setSubmitError(`${error}`);
-        throw error;
+      } catch (error: any) {
+          const userFriendlyMessages: { [key: string]: string } = {
+            AccessTokenError: 'Failed to retrieve PayPal access token. Please try again later.',
+            PayPalAPIError: 'Failed to create PayPal order. Please check the details and try again.',
+            TimeoutError: 'The request to the PayPal API timed out. Please try again later.',
+            ConnectionError: 'Unable to connect to the PayPal API. Please check your network and try again.',
+            RequestError: 'An unexpected error occurred while connecting to the PayPal API. Please try again later.',
+            MissingOrderId: 'The order ID is missing in the response. Please try again later.',
+            ValidationError: 'Invalid input: Ensure the amount is greater than zero.',
+            InternalError: 'An unexpected error occurred. Please try again later.'
+          };
+      
+          const errorType = error.errorType || 'InternalError';
+          const message =
+            userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+      
+          setSubmitError(message);
       }
     };
   
-    const handleOnApprove = async (_data: any, actions: any) => {
+      const handleOnApprove = async (_data: any, actions: any) => {
         try {
           if (actions?.order?.capture) {
             await actions.order.capture();
           } else {
-            throw new Error("Capture action is unavailable.");
+            throw {
+              message: 'Failed to capture the payment. Please try again later.',
+              errorType: 'CaptureFailed',
+              status: 500,
+              details: actions || {}
+            };
           }
           setShowThankYouBanner(true);
-        } catch (error) {
-          console.error("Error during approval:", error);
-          setSubmitError(`${error}`);
+        } catch (error: any) {
+          const userFriendlyMessages: { [key: string]: string } = {
+            CaptureFailed: 'Failed to capture the payment. Please try again later.',
+            InternalError: 'An unexpected error occurred. Please try again later.'
+          };
+
+          const errorType = error.errorType || 'InternalError';
+          const message =
+            userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+
+          setSubmitError(message);
         }
       };
   
@@ -110,7 +150,10 @@ const SubscriptionPaymentComponent: React.FC<{
       try {
         const amount = parseFloat(donationAmountRef.current);
         if (isNaN(amount) || amount <= 0) {
-          throw new Error("Invalid donation amount. Please enter a valid number greater than 0.");
+          throw {
+            message: 'Invalid input: Ensure the amount is greater than zero.',
+            errorType: 'ValidationError',
+          }
         }
 
         const userId = token?.user_id ? token.user_id : "guest";
@@ -127,21 +170,42 @@ const SubscriptionPaymentComponent: React.FC<{
         });
   
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Server error: ${response.status} - ${errorText}`);
+          const errorData = await response.json();
+          throw {
+            message: errorData.message,
+            errorType: errorData.errorType,
+            status: response.status,
+            details: errorData.details || {},
+          };
         }
   
         const responseData = await response.json();
         if (!responseData.subscription_id) {
-          throw new Error("Subscription ID is missing in the response.");
+          throw {
+            message: 'The order ID is missing in the response. Please try again later.',
+            errorType: 'MissingOrderId',
+            status: 500,
+            details: responseData || {}
+          }
         }
 
         return responseData.subscription_id;
-      } catch (error) {
-        console.error("Error creating subscription:", error);
-        setSubmitError(`${error}`);
-        throw error;
-      }
+      } catch (error: any) {
+        const userFriendlyMessages: { [key: string]: string } = {
+          ValidationError: 'Invalid input: Ensure the amount is greater than zero.',
+          ProductCreationError: 'Failed to create PayPal product. Please try again later.',
+          PlanCreationError: 'Failed to create PayPal plan. Please try again later.',
+          IncompleteResponse: 'The PayPal response was incomplete. Please contact support.',
+          MissingOrderId: 'The order ID is missing in the response. Please try again later.',
+          InternalError: 'An unexpected error occurred. Please try again later.'
+        };
+    
+        const errorType = error.errorType || 'InternalError';
+        const message =
+          userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+    
+        setSubmitError(message);
+    }
     };
   
     const handleOnApprove = async (
@@ -152,11 +216,24 @@ const SubscriptionPaymentComponent: React.FC<{
           if (data.subscriptionID) {
             setShowThankYouBanner(true);
           } else {
-            throw new Error("Subscription ID is missing in the approval data.");
+              throw {
+                message: 'The order ID is missing in the response. Please try again later.',
+                errorType: 'MissingOrderId',
+                status: 500,
+                details: data || {}
+              }
           }
-        } catch (error) {
-          console.error("Error during approval:", error);
-          setSubmitError(`${error}`);
+        } catch (error: any) {
+            const userFriendlyMessages: { [key: string]: string } = {
+              CaptureFailed: 'Failed to capture the payment. Please try again later.',
+              InternalError: 'An unexpected error occurred. Please try again later.'
+            };
+
+            const errorType = error.errorType || 'InternalError';
+            const message =
+              userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+
+            setSubmitError(message);
         }
       };
   
