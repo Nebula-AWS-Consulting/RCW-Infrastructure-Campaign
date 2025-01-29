@@ -16,7 +16,6 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectLanguage, setLogin } from '../ducks/userSlice';
 import { SERVER } from '../../App';
-import { RootState } from '../../store';
 
 function SignUp() {
   const [sent, setSent] = React.useState(false);
@@ -80,8 +79,8 @@ function SignUp() {
       const userName = `${values.firstName} ${values.lastName}`;
   
       confirmUser(values.email);
-      loginUser(values.email, values.password, userName);
-      sendCode()
+      const accessToken = await loginUser(values.email, values.password, userName);
+      sendCode(accessToken)
       
       navigate('/auth/verify')
     } catch (error: any) {
@@ -138,8 +137,12 @@ function SignUp() {
   }
 };
 
-  const sendCode = async () => {
-    const userAccessToken = useSelector((state: RootState) => state.userAuthAndInfo.token.access_token);
+  const sendCode = async (userAccessToken: string | null) => {
+    if (!userAccessToken) {
+      setSubmitError('Unable to send verification code. User is not logged in.');
+      return;
+    }
+
     try {
       const response = await fetch(
         `${SERVER}/confirm-email-resend`,
@@ -224,6 +227,8 @@ function SignUp() {
           token: tokenData,
         })
       );
+
+      return data.access_token;
     } catch (error: any) {
       const userFriendlyMessages: { [key: string]: string } = {
         NotAuthorized: 'The email or password provided is incorrect. Please try again.',
