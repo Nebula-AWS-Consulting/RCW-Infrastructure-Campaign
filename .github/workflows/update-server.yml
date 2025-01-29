@@ -28,17 +28,15 @@ jobs:
         id: detect-changes
         run: |
           echo "Detecting changes in the src/server folder..."
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^src/server/' || echo "no-changes" > changes_detected.txt
 
-      - name: Check if there are changes
-        id: check-changes
-        run: |
-          if grep -q 'no-changes' changes_detected.txt; then
-            echo "No changes detected in src/server. Skipping upload."
-            echo "should_run=false" >> $GITHUB_ENV
-          else
-            echo "Changes detected in src/server. Proceeding with upload."
+          BASE_COMMIT=$(git merge-base origin/main HEAD)
+          
+          if git diff --name-only $BASE_COMMIT HEAD | grep '^src/server/' > changes_detected.txt; then
+            echo "Changes detected in src/server."
             echo "should_run=true" >> $GITHUB_ENV
+          else
+            echo "No changes detected in src/server."
+            echo "should_run=false" >> $GITHUB_ENV
           fi
 
       - name: Run upload-server.sh

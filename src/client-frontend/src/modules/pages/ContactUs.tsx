@@ -224,7 +224,7 @@ function ContactUs(){
         </Grid>
     </Box>
     <Box sx={{ mt: 8, pb: 8, pt: 2, background: 'url(/churchContactUsDots.png)' }}>
-          <Box sx={{backgroundColor: 'secondary.light', width: '60%', padding: 2, px: 5, borderRadius: 3, justifySelf: 'center'}}>
+          <Box sx={{backgroundColor: 'secondary.light', width: '90%', padding: 2, px: 5, borderRadius: 3, justifySelf: 'center'}}>
         <Typography variant="h4" align="center" marked='center' gutterBottom>
         {language === 'en-US'? 'Find Us Here' : language === 'fr-FR' ? 'Trouvez-nous ici' : language === 'es-MX' ? 'Encuéntranos Aquí' : ''}
         </Typography>
