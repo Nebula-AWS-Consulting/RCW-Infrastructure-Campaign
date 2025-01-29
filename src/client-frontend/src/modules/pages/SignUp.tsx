@@ -24,9 +24,6 @@ function SignUp() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const language = useSelector(selectLanguage);
-  const userAccessToken = useSelector((state: RootState) => state.userAuthAndInfo.token.access_token);
-
-
 
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['email', 'password'], values);
@@ -141,6 +138,8 @@ function SignUp() {
 };
 
   const sendCode = async () => {
+    const userAccessToken = useSelector((state: RootState) => state.userAuthAndInfo.token.access_token);
+
     try {
       const response = await fetch(
         `${SERVER}/confirm-email-resend`,
