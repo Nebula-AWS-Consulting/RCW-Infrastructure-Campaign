@@ -157,10 +157,10 @@ function SignUp() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw { 
-          message: errorData.message, 
-          errorType: errorData.errorType, 
-          status: response.status 
+        throw {
+          message: errorData.message,
+          errorType: errorData.errorType,
+          status: response.status,
         };
       }
 
