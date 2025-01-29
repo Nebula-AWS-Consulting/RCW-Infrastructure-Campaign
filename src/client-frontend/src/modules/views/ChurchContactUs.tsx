@@ -50,13 +50,29 @@ function ChurchContactUs() {
   
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Error: ${response.statusText}`);
+        throw {
+          message: errorData.message,
+          errorType: errorData.errorType,
+          status: response.status,
+        };
       }
   
       await response.json();
       setOpen(true);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+        const userFriendlyMessages: { [key: string]: string } = {
+          ValidationError: 'All fields are required. Please complete the form and try again.',
+          MessageRejected: 'The email message was rejected. Please ensure your email address is valid.',
+          EmailNotVerified: 'The sender’s email address has not been verified. Please contact support for help.',
+          ConfigurationError: 'There was a configuration issue with the email service. Please try again later.',
+          InternalError: 'An unexpected error occurred. Please try again later.',
+        };
+    
+        const errorType = error.errorType || 'InternalError';
+        const message =
+          userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+    
+        alert(message);
     } finally {
       setSent(false);
     }

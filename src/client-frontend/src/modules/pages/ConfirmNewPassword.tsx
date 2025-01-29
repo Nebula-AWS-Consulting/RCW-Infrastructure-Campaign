@@ -55,32 +55,31 @@ function ConfirmNewPassword() {
             );
         
             if (!response.ok) {
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || `Error: ${response.statusText}`);
-                }
+              const errorData = await response.json();
+              throw { 
+                message: errorData.message, 
+                errorType: errorData.errorType, 
+                status: response.status 
+              };
             }
         
             await response.json();
             navigate('/auth/signin')
           } catch (error: any) {
-            let errorMessage = '';
-
-            if (error.message === 'Invalid confirmation code') {
-              errorMessage = 'The confirmation code you entered is invalid. Please check and try again.';
-            } else if (error.message === 'Confirmation code expired') {
-              errorMessage = 'The confirmation code has expired. Please request a new code.';
-            } else if (error.message === 'User not found') {
-              errorMessage = 'No account found with the provided email address.';
-            } else if (error.message === 'Attempt limit exceeded, please try again later') {
-              errorMessage = 'You have exceeded the maximum number of attempts. Please wait and try again later.';
-            } else if (error.message.includes('Password')) {
-              errorMessage = 'Your new password does not meet the requirements. Please ensure it is strong and try again.';
-            } else {
-              errorMessage = error.message || 'An unexpected error occurred. Please try again.';
-            }
+              const userFriendlyMessages: { [key: string]: string } = {
+                CodeMismatch: 'The confirmation code is incorrect. Please try again.',
+                ExpiredCode: 'The confirmation code has expired. Please request a new one.',
+                InvalidPassword: 'The new password does not meet the required criteria. Please try again.',
+                UserNotFound: 'We could not find an account associated with this email address. Please check and try again.',
+                LimitExceeded: 'Too many attempts have been made. Please wait a while before trying again.',
+                InternalError: 'An unexpected error occurred. Please try again later.',
+              };
           
-            return { submitError: errorMessage };
+              const errorType = error.errorType || 'InternalError';
+              const message =
+                userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+          
+              setSubmitError(message);
           } finally {
             setSent(false);
           }
