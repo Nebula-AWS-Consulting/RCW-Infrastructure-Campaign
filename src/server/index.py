@@ -20,8 +20,8 @@ def get_ssm_parameter(name):
     response = ssm.get_parameter(Name=name, WithDecryption=True)
     return response['Parameter']['Value']
 
-USER_POOL_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/USER_POOL_ID')
-USER_POOL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/CLIENT_ID')
+USER_POOL_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/COGNITO_USER_POOL_ID')
+USER_POOL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/COGNITO_CLIENT_ID')
 PAYPAL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/PAYPAL_CLIENT_ID')
 PAYPAL_SECRET = get_ssm_parameter(f'/rcw-client-backend-{environment}/PAYPAL_SECRET')
 SENDER_EMAIL = get_ssm_parameter(f'/rcw-client-backend-{environment}/SESIdentitySenderParameter')
@@ -100,8 +100,8 @@ def cors_response(status_code, body):
         "headers": {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization"
-            # "Access-Control-Allow-Credentials": "true"
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            #"Access-Control-Allow-Credentials": "true"
 
         },
         "body": json.dumps(body)
@@ -124,23 +124,46 @@ def sign_up(password, email, first_name, last_name):
         )
         return cors_response(200, {"message": "User signed up successfully"})
     except client.exceptions.UsernameExistsException:
-        return cors_response(409, {"message": "User already exists"})
+        return cors_response(409, {
+            "message": "User already exists",
+            "errorType": "UserAlreadyExists"
+        })
+    except client.exceptions.AliasExistsException:
+        return cors_response(409, {
+            "message": "A user with this email or phone number already exists.",
+            "errorType": "AliasExists"
+        })
     except client.exceptions.InvalidPasswordException as e:
-        message = e.response['Error']['Message']
-        return cors_response(400, {"message": message})
+        return cors_response(400, {
+            "message": e.response['Error']['Message'],
+            "errorType": "InvalidPassword"
+        })
     except client.exceptions.InvalidParameterException as e:
-        message = e.response['Error']['Message']
-        return cors_response(400, {"message": message})
+        return cors_response(400, {
+            "message": e.response['Error']['Message'],
+            "errorType": "InvalidParameter"
+        })
     except client.exceptions.TooManyRequestsException:
-        return cors_response(429, {"message": "Too many requests. Please try again later."})
+        return cors_response(429, {
+            "message": "Too many requests. Please try again later.",
+            "errorType": "TooManyRequests"
+        })
     except client.exceptions.CodeDeliveryFailureException:
-        return cors_response(500, {"message": "Failed to send confirmation code. Please try again."})
+        return cors_response(500, {
+            "message": "Failed to send confirmation code. Please try again.",
+            "errorType": "CodeDeliveryFailure"
+        })
     except client.exceptions.UserLambdaValidationException as e:
-        message = e.response['Error']['Message']
-        return cors_response(400, {"message": message})
+        return cors_response(400, {
+            "message": e.response['Error']['Message'],
+            "errorType": "LambdaValidationFailed"
+        })
     except Exception as e:
         logger.error(f"Error in sign_up: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "An internal server error occurred",
+            "errorType": "InternalError"
+        })
 
 # Confirm User
 def confirm_user(email):
@@ -151,12 +174,21 @@ def confirm_user(email):
         )
         return cors_response(200, {"message": "User confirmed successfully"})
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "We could not find a user with this email address.",
+            "errorType": "UserNotFound"
+        })
     except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {"message": "Not authorized to confirm user"})
+        return cors_response(403, {
+            "message": "You do not have the necessary permissions to confirm this user.",
+            "errorType": "NotAuthorized"
+        })
     except Exception as e:
         logger.error(f"Error in confirm_user: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "Something went wrong while confirming the user. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 def confirm_email(access_token, confirmation_code):
     try:
@@ -167,16 +199,31 @@ def confirm_email(access_token, confirmation_code):
         )
         return cors_response(200, {"message": "Email confirmed successfully."})
     except client.exceptions.CodeMismatchException:
-        return cors_response(400, {"message": "Invalid confirmation code"})
+        return cors_response(400, {
+            "message": "The confirmation code you entered is incorrect. Please check and try again.",
+            "errorType": "CodeMismatch"
+        })
     except client.exceptions.ExpiredCodeException:
-        return cors_response(400, {"message": "Confirmation code expired"})
+        return cors_response(400, {
+            "message": "The confirmation code has expired. Please request a new code and try again.",
+            "errorType": "ExpiredCode"
+        })
     except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {"message": "Not authorized"})
+        return cors_response(403, {
+            "message": "You are not authorized to perform this action. Please ensure you are logged in and try again.",
+            "errorType": "NotAuthorized"
+        })
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "We couldn't find a user associated with this request. Please check your details and try again.",
+            "errorType": "UserNotFound"
+        })
     except Exception as e:
         logger.error(f"Error in confirm_email: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "An unexpected error occurred while confirming your email. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 def confirm_email_resend(access_token):
     try:
@@ -186,14 +233,26 @@ def confirm_email_resend(access_token):
         )
         return cors_response(200, {"message": "Verification code sent successfully."})
     except client.exceptions.LimitExceededException:
-        return cors_response(429, {"message": "Attempt limit exceeded, please try again later"})
+        return cors_response(429, {
+            "message": "You have exceeded the number of allowed attempts. Please wait before trying again.",
+            "errorType": "LimitExceeded"
+        })
     except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {"message": "Not authorized"})
+        return cors_response(403, {
+            "message": "You are not authorized to request a new verification code. Please log in and try again.",
+            "errorType": "NotAuthorized"
+        })
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "We could not find a user associated with this request. Please check your details and try again.",
+            "errorType": "UserNotFound"
+        })
     except Exception as e:
         logger.error(f"Error in confirm_email_resend: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "An unexpected error occurred while trying to resend the verification code. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # User Log-In
 def log_in(email, password):
@@ -222,12 +281,21 @@ def log_in(email, password):
             "refresh_token": response['AuthenticationResult']['RefreshToken']
         })
     except client.exceptions.NotAuthorizedException:
-        return cors_response(401, {"message": "Incorrect username or password"})
+        return cors_response(401, {
+            "message": "The email or password provided is incorrect. Please try again.",
+            "errorType": "NotAuthorized"
+        })
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "We couldn't find a user with this email address. Please check the email entered or sign up if you don't have an account.",
+            "errorType": "UserNotFound"
+        })
     except Exception as e:
         logger.error(f"Error in log_in: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "An unexpected error occurred while attempting to log in. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # Forgot Password (Initiate)
 def forgot_password(email):
@@ -238,15 +306,27 @@ def forgot_password(email):
         )
         return cors_response(200, {"message": "Password reset initiated. Check your email for the code."})
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "We could not find an account associated with this email address.",
+            "errorType": "UserNotFound"
+        })
     except client.exceptions.LimitExceededException:
-        return cors_response(429, {"message": "Attempt limit exceeded, please try again later"})
+        return cors_response(429, {
+            "message": "You have exceeded the number of allowed attempts. Please wait a while before trying again.",
+            "errorType": "LimitExceeded"
+        })
     except client.exceptions.NotAuthorizedException as e:
         message = e.response['Error']['Message']
-        return cors_response(403, {"message": message})
+        return cors_response(403, {
+            "message": message,
+            "errorType": "NotAuthorized"
+        })
     except Exception as e:
         logger.error(f"Error in forgot_password: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "An unexpected error occurred while initiating the password reset. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # Confirm Forgot Password
 def confirm_forgot_password(email, confirmation_code, new_password):
@@ -259,19 +339,37 @@ def confirm_forgot_password(email, confirmation_code, new_password):
         )
         return cors_response(200, {"message": "Password reset successfully."})
     except client.exceptions.CodeMismatchException:
-        return cors_response(400, {"message": "Invalid confirmation code"})
+        return cors_response(400, {
+            "message": "The confirmation code you entered is incorrect. Please check the code and try again.",
+            "errorType": "CodeMismatch"
+        })
     except client.exceptions.ExpiredCodeException:
-        return cors_response(400, {"message": "Confirmation code expired"})
+        return cors_response(400, {
+            "message": "The confirmation code has expired. Please request a new code and try again.",
+            "errorType": "ExpiredCode"
+        })
     except client.exceptions.InvalidPasswordException as e:
         message = e.response['Error']['Message']
-        return cors_response(400, {"message": message})
+        return cors_response(400, {
+            "message": f"Your new password is invalid: {message}. Please ensure it meets the required criteria.",
+            "errorType": "InvalidPassword"
+        })
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "We could not find an account associated with this email address. Please check your details.",
+            "errorType": "UserNotFound"
+        })
     except client.exceptions.LimitExceededException:
-        return cors_response(429, {"message": "Attempt limit exceeded, please try again later"})
+        return cors_response(429, {
+            "message": "You have made too many attempts. Please wait a while before trying again.",
+            "errorType": "LimitExceeded"
+        })
     except Exception as e:
         logger.error(f"Error in confirm_forgot_password: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        return cors_response(500, {
+            "message": "An unexpected error occurred while resetting your password. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # Get User Data
 def get_user(email):
@@ -285,10 +383,26 @@ def get_user(email):
         user_attributes = {attr['Name']: attr['Value'] for attr in response['UserAttributes']}
         return cors_response(200, {"message": "User data retrieved successfully", "user_attributes": user_attributes})
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "The requested user could not be found. Please check the provided details and try again.",
+            "errorType": "UserNotFound"
+        })
+    except client.exceptions.InvalidParameterException:
+        return cors_response(400, {
+            "message": "The input parameters are invalid. Please verify the information and try again.",
+            "errorType": "InvalidParameter"
+        })
+    except client.exceptions.TooManyRequestsException:
+        return cors_response(429, {
+            "message": "Too many requests have been made in a short period. Please wait a while before retrying.",
+            "errorType": "TooManyRequests"
+        })
     except Exception as e:
-        logger.error(f"Error in get_user: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        logger.error(f"Unexpected error in get_user: {str(e)}", exc_info=True)
+        return cors_response(500, {
+            "message": "An unexpected error occurred while retrieving the user. Please try again later.",
+            "errorType": "InternalServerError"
+        })
 
 # Update User Attributes
 def update_user(email, attribute_updates):
@@ -305,15 +419,27 @@ def update_user(email, attribute_updates):
         )
         return cors_response(200, {"message": "User attributes updated successfully"})
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "No user was found with the provided email address.",
+            "errorType": "UserNotFound"
+        })
     except client.exceptions.InvalidParameterException as e:
         message = e.response['Error']['Message']
-        return cors_response(400, {"message": message})
+        return cors_response(400, {
+            "message": f"Invalid parameter: {message}. Please verify your input and try again.",
+            "errorType": "InvalidParameter"
+        })
     except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {"message": "Not authorized to update user attributes"})
+        return cors_response(403, {
+            "message": "You are not authorized to update this user's attributes. Please check your permissions.",
+            "errorType": "NotAuthorized"
+        })
     except Exception as e:
-        logger.error(f"Error in update_user: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        logger.error(f"Unexpected error in update_user: {str(e)}", exc_info=True)
+        return cors_response(500, {
+            "message": "An unexpected error occurred while updating the user attributes. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # Delete User
 def delete_user(email):
@@ -326,14 +452,22 @@ def delete_user(email):
         )
         return cors_response(200, {"message": "User deleted successfully"})
     except client.exceptions.UserNotFoundException:
-        return cors_response(404, {"message": "User not found"})
+        return cors_response(404, {
+            "message": "No user was found with the provided email address. Please check and try again.",
+            "errorType": "UserNotFound"
+        })
     except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {"message": "Not authorized to delete user"})
+        return cors_response(403, {
+            "message": "You are not authorized to delete this user. Please check your permissions.",
+            "errorType": "NotAuthorized"
+        })
     except Exception as e:
-        logger.error(f"Error in delete_user: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An internal server error occurred"})
+        logger.error(f"Unexpected error in delete_user: {str(e)}", exc_info=True)
+        return cors_response(500, {
+            "message": "An unexpected error occurred while attempting to delete the user. Please try again later.",
+            "errorType": "InternalError"
+        })
 
-# Contact Us
 def contact_us(first_name, email, message):
     if not all([first_name, email, message]):
         return cors_response(400, {"message": "All fields are required: name, email, and message."})
@@ -352,16 +486,28 @@ def contact_us(first_name, email, message):
         return cors_response(200, {"message": "Message sent successfully."})
     except ses.exceptions.MessageRejected as e:
         logger.error(f"Message rejected: {str(e)}", exc_info=True)
-        return cors_response(400, {"message": "The message was rejected. Ensure the email address is valid."})
+        return cors_response(400, {
+            "message": "The email message was rejected. Please ensure the provided email address is valid.",
+            "errorType": "MessageRejected"
+        })
     except ses.exceptions.MailFromDomainNotVerifiedException as e:
         logger.error(f"Email address not verified: {str(e)}", exc_info=True)
-        return cors_response(400, {"message": "The sender's email address is not verified. Please contact support."})
+        return cors_response(400, {
+            "message": "The sender's email address has not been verified. Please contact support for assistance.",
+            "errorType": "EmailNotVerified"
+        })
     except ses.exceptions.ConfigurationSetDoesNotExistException as e:
         logger.error(f"Configuration set issue: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "There was a configuration issue with the email service. Please try again later."})
+        return cors_response(500, {
+            "message": "There was a configuration issue with the email service. Please try again later.",
+            "errorType": "ConfigurationError"
+        })
     except Exception as e:
         logger.error(f"Unhandled error in contact_us: {str(e)}", exc_info=True)
-        return cors_response(500, {"message": "An unexpected error occurred while sending your message. Please try again later."})
+        return cors_response(500, {
+            "message": "An unexpected error occurred while sending your message. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # Get Paypal Access Token
 def get_paypal_access_token():
@@ -384,219 +530,468 @@ def get_paypal_access_token():
         else:
             error_details = response.json()
             logger.error(f"PayPal token error: {error_details}")
-            raise Exception(f"Failed to get PayPal access token: {error_details.get('error', 'Unknown error')} - {error_details.get('error_description', 'No description')}.")
+            return cors_response(response.status_code, {
+                "message": "Failed to retrieve PayPal access token.",
+                "errorType": "PayPalAPIError",
+                "details": error_details
+            })
+    except requests.exceptions.Timeout:
+        logger.error("PayPal API request timed out.")
+        return cors_response(504, {
+            "message": "The request to the PayPal API timed out. Please try again later.",
+            "errorType": "TimeoutError"
+        })
+    except requests.exceptions.ConnectionError:
+        logger.error("Connection error while connecting to PayPal API.")
+        return cors_response(503, {
+            "message": "Unable to connect to the PayPal API. Please check your network and try again.",
+            "errorType": "ConnectionError"
+        })
     except requests.exceptions.RequestException as e:
-        logger.error(f"Request error while fetching PayPal access token: {e}")
-        raise Exception("Failed to connect to PayPal API for access token retrieval.")
+        logger.error(f"Unhandled request exception: {e}")
+        return cors_response(500, {
+            "message": "An unexpected error occurred while connecting to the PayPal API.",
+            "errorType": "RequestError"
+        })
+    except Exception as e:
+        logger.error(f"Unexpected error in get_paypal_access_token: {e}")
+        return cors_response(500, {
+            "message": "An unexpected error occurred while retrieving the PayPal access token.",
+            "errorType": "InternalError"
+        })
 
 # Create Paypal Order
 def create_paypal_order(amount, custom_id, currency="USD"):
-    access_token = get_paypal_access_token()
-    url = "https://api-m.sandbox.paypal.com/v2/checkout/orders"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {access_token}"
-    }
-
-    payload = {
-        "intent": "CAPTURE",
-        "purchase_units": [
-            {
-                "amount": {
-                    "currency_code": currency,
-                    "value": str(amount)
-                },
-                "custom_id": custom_id
-            }
-        ]
-    }
-
     try:
+        access_token = get_paypal_access_token()
+        if not access_token:
+            logger.error("Failed to retrieve PayPal access token.")
+            return cors_response(500, {
+                "message": "Failed to retrieve PayPal access token.",
+                "errorType": "AccessTokenError"
+            })
+
+        url = "https://api-m.sandbox.paypal.com/v2/checkout/orders"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}"
+        }
+
+        payload = {
+            "intent": "CAPTURE",
+            "purchase_units": [
+                {
+                    "amount": {
+                        "currency_code": currency,
+                        "value": str(amount)
+                    },
+                    "custom_id": custom_id
+                }
+            ]
+        }
+
         response = requests.post(url, headers=headers, json=payload, timeout=10)
 
         if response.status_code == 201:
-            return response.json()
+            return cors_response(201, {
+                "order": response.json()
+            })
         else:
             error_details = response.json()
             logger.error(f"PayPal order error: {error_details}")
-            raise Exception(f"Failed to create PayPal order: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+            return cors_response(response.status_code, {
+                "message": f"Failed to create PayPal order: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.",
+                "errorType": "PayPalAPIError",
+                "details": error_details
+            })
+    except requests.exceptions.Timeout:
+        logger.error("PayPal API request timed out.")
+        return cors_response(504, {
+            "message": "The request to the PayPal API timed out. Please try again later.",
+            "errorType": "TimeoutError"
+        })
+    except requests.exceptions.ConnectionError:
+        logger.error("Connection error while connecting to PayPal API.")
+        return cors_response(503, {
+            "message": "Unable to connect to the PayPal API. Please check your network and try again.",
+            "errorType": "ConnectionError"
+        })
     except requests.exceptions.RequestException as e:
-        logger.error(f"Request error while creating PayPal order: {e}")
-        raise Exception("Failed to connect to PayPal API for order creation.")
+        logger.error(f"Unhandled request exception: {e}")
+        return cors_response(500, {
+            "message": "An unexpected error occurred while connecting to the PayPal API.",
+            "errorType": "RequestError"
+        })
+    except Exception as e:
+        logger.error(f"Unexpected error in create_paypal_order: {e}")
+        return cors_response(500, {
+            "message": "An unexpected error occurred while creating the PayPal order. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # Create Paypal Order Route
 def create_paypal_order_route(amount, custom_id, currency="USD"):
     try:
         if amount <= 0:
-            raise ValueError("Amount must be greater than zero.")
-
+            raise ValueError("The amount must be greater than zero.")
         if not isinstance(custom_id, str) or not custom_id.strip():
-            raise ValueError("Custom ID must be a non-empty string.")
+            raise ValueError("The Custom ID must be a non-empty string.")
 
         order = create_paypal_order(amount, custom_id, currency)
 
         if "id" not in order:
-            raise Exception("Missing order ID in PayPal response.")
+            logger.error("PayPal order response missing 'id' field.")
+            return cors_response(500, {
+                "message": "PayPal order creation succeeded, but the response is incomplete.",
+                "errorType": "IncompleteResponse"
+            })
 
-        return cors_response(200, {"id": order["id"]})
+        return cors_response(200, {
+            "id": order["id"],
+            "message": "PayPal order created successfully."
+        })
 
     except ValueError as ve:
         logger.error(f"Validation error: {str(ve)}")
-        return cors_response(400, {"message": str(ve)})
+        return cors_response(400, {
+            "message": str(ve),
+            "errorType": "ValidationError"
+        })
+
+    except requests.exceptions.RequestException as re:
+        logger.error(f"Request exception during PayPal order creation: {str(re)}")
+        return cors_response(503, {
+            "message": "A network error occurred while connecting to PayPal. Please try again later.",
+            "errorType": "NetworkError"
+        })
 
     except Exception as e:
-        logger.error(f"Error creating PayPal order: {str(e)}")
-        return cors_response(500, {"message": "An error occurred while processing your request."})
+        logger.error(f"Unexpected error creating PayPal order: {str(e)}", exc_info=True)
+        return cors_response(500, {
+            "message": "An unexpected error occurred while processing your request. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # Create Paypal Product
 def create_paypal_product():
-    access_token = get_paypal_access_token()
-    url = "https://api-m.sandbox.paypal.com/v1/catalogs/products"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {access_token}"
-    }
-    payload = {
-        "name": "Donation Product",
-        "description": "A product for donation subscriptions.",
-        "type": "SERVICE",
-        "category": "CHARITY"
-    }
-
     try:
+        access_token = get_paypal_access_token()
+        if not access_token:
+            logger.error("Failed to retrieve PayPal access token.")
+            return cors_response(500, {
+                "message": "Failed to retrieve PayPal access token.",
+                "errorType": "AccessTokenError"
+            })
+
+        url = "https://api-m.sandbox.paypal.com/v1/catalogs/products"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}"
+        }
+
+        payload = {
+            "name": "Donation Product",
+            "description": "A product for donation subscriptions.",
+            "type": "SERVICE",
+            "category": "CHARITY"
+        }
+
         response = requests.post(url, headers=headers, json=payload, timeout=10)
-        
+
         if response.status_code == 201:
-            return response.json().get("id")
+            product_id = response.json().get("id")
+            if not product_id:
+                logger.error("PayPal product created, but no product ID returned.")
+                return cors_response(500, {
+                    "message": "Product creation succeeded, but the response is incomplete.",
+                    "errorType": "IncompleteResponse"
+                })
+            return product_id
         else:
             error_details = response.json()
             logger.error(f"PayPal product creation failed: {error_details}")
-            raise Exception(f"Failed to create PayPal product: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+            return cors_response(response.status_code, {
+                "message": f"Failed to create PayPal product: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.",
+                "errorType": "PayPalAPIError",
+                "details": error_details
+            })
+    except requests.exceptions.Timeout:
+        logger.error("PayPal API request timed out.")
+        return cors_response(504, {
+            "message": "The request to the PayPal API timed out. Please try again later.",
+            "errorType": "TimeoutError"
+        })
+    except requests.exceptions.ConnectionError:
+        logger.error("Connection error while connecting to PayPal API.")
+        return cors_response(503, {
+            "message": "Unable to connect to the PayPal API. Please check your network and try again.",
+            "errorType": "ConnectionError"
+        })
     except requests.exceptions.RequestException as e:
-        logger.error(f"Request error while creating PayPal product: {e}")
-        raise Exception("Failed to connect to PayPal API for product creation.")
+        logger.error(f"Unhandled request exception: {e}")
+        return cors_response(500, {
+            "message": "An unexpected error occurred while connecting to the PayPal API.",
+            "errorType": "RequestError"
+        })
+    except Exception as e:
+        logger.error(f"Unexpected error in create_paypal_product: {e}", exc_info=True)
+        return cors_response(500, {
+            "message": "An unexpected error occurred while creating the PayPal product. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # Create Paypal Plan
 def create_paypal_plan(product_id, amount):
-    if not product_id:
-        raise ValueError("Product ID is required to create a PayPal plan.")
+    try:
+        if not product_id:
+            logger.error("Product ID is required to create a PayPal plan.")
+            return cors_response(400, {
+                "message": "Product ID is required to create a PayPal plan.",
+                "errorType": "ValidationError"
+            })
 
-    access_token = get_paypal_access_token()
-    url = "https://api-m.sandbox.paypal.com/v1/billing/plans"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {access_token}"
-    }
-    payload = {
-        "product_id": product_id,
-        "name": "Weekly Donation Plan",
-        "description": "A plan for weekly donations.",
-        "status": "ACTIVE",
-        "billing_cycles": [
-            {
-                "frequency": {
-                    "interval_unit": "WEEK",
-                    "interval_count": 1
-                },
-                "tenure_type": "REGULAR",
-                "sequence": 1,
-                "total_cycles": 0,
-                "pricing_scheme": {
-                    "fixed_price": {
-                        "value": f"{amount:.2f}",
-                        "currency_code": "USD"
+        if amount <= 0:
+            logger.error("Amount must be greater than zero.")
+            return cors_response(400, {
+                "message": "Amount must be greater than zero.",
+                "errorType": "ValidationError"
+            })
+
+        access_token = get_paypal_access_token()
+        if not access_token:
+            logger.error("Failed to retrieve PayPal access token.")
+            return cors_response(500, {
+                "message": "Failed to retrieve PayPal access token.",
+                "errorType": "AccessTokenError"
+            })
+
+        url = "https://api-m.sandbox.paypal.com/v1/billing/plans"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}"
+        }
+
+        payload = {
+            "product_id": product_id,
+            "name": "Weekly Donation Plan",
+            "description": "A plan for weekly donations.",
+            "status": "ACTIVE",
+            "billing_cycles": [
+                {
+                    "frequency": {
+                        "interval_unit": "WEEK",
+                        "interval_count": 1
+                    },
+                    "tenure_type": "REGULAR",
+                    "sequence": 1,
+                    "total_cycles": 0,
+                    "pricing_scheme": {
+                        "fixed_price": {
+                            "value": f"{amount:.2f}",
+                            "currency_code": "USD"
+                        }
                     }
                 }
+            ],
+            "payment_preferences": {
+                "auto_bill_outstanding": True,
+                "setup_fee": {
+                    "value": "0.00",
+                    "currency_code": "USD"
+                },
+                "setup_fee_failure_action": "CONTINUE",
+                "payment_failure_threshold": 3
             }
-        ],
-        "payment_preferences": {
-            "auto_bill_outstanding": True,
-            "setup_fee": {
-                "value": "0.00",
-                "currency_code": "USD"
-            },
-            "setup_fee_failure_action": "CONTINUE",
-            "payment_failure_threshold": 3
         }
-    }
 
-    try:
         response = requests.post(url, headers=headers, json=payload, timeout=10)
 
         if response.status_code == 201:
-            return response.json().get("id")
+            plan_id = response.json().get("id")
+            if not plan_id:
+                logger.error("PayPal plan created, but no plan ID returned.")
+                return cors_response(500, {
+                    "message": "Plan creation succeeded, but the response is incomplete.",
+                    "errorType": "IncompleteResponse"
+                })
+            return plan_id
         else:
             error_details = response.json()
             logger.error(f"PayPal Plan Creation Failed: {error_details}")
-            raise Exception(f"Failed to create PayPal plan: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+            return cors_response(response.status_code, {
+                "message": f"Failed to create PayPal plan: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.",
+                "errorType": "PayPalAPIError",
+                "details": error_details
+            })
+    except requests.exceptions.Timeout:
+        logger.error("PayPal API request timed out.")
+        return cors_response(504, {
+            "message": "The request to the PayPal API timed out. Please try again later.",
+            "errorType": "TimeoutError"
+        })
+    except requests.exceptions.ConnectionError:
+        logger.error("Connection error while connecting to PayPal API.")
+        return cors_response(503, {
+            "message": "Unable to connect to the PayPal API. Please check your network and try again.",
+            "errorType": "ConnectionError"
+        })
     except requests.exceptions.RequestException as e:
-        logger.error(f"Request error while creating PayPal plan: {e}")
-        raise Exception("Failed to connect to PayPal API for plan creation.")
+        logger.error(f"Unhandled request exception: {e}")
+        return cors_response(500, {
+            "message": "An unexpected error occurred while connecting to the PayPal API.",
+            "errorType": "RequestError"
+        })
+    except Exception as e:
+        logger.error(f"Unexpected error in create_paypal_plan: {e}", exc_info=True)
+        return cors_response(500, {
+            "message": "An unexpected error occurred while creating the PayPal plan. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # Create Paypal Subscription
 def create_paypal_subscription(plan_id, custom_id):
-    if not plan_id:
-        raise ValueError("Plan ID is required to create a PayPal subscription.")
-
-    access_token = get_paypal_access_token()
-    url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {access_token}"
-    }
-
-    payload = {
-        "plan_id": plan_id,
-        "custom_id": custom_id
-    }
-
     try:
+        if not plan_id:
+            logger.error("Plan ID is required to create a PayPal subscription.")
+            return cors_response(400, {
+                "message": "Plan ID is required to create a PayPal subscription.",
+                "errorType": "ValidationError"
+            })
+
+        if not custom_id:
+            logger.error("Custom ID is required to create a PayPal subscription.")
+            return cors_response(400, {
+                "message": "Custom ID is required to create a PayPal subscription.",
+                "errorType": "ValidationError"
+            })
+
+        access_token = get_paypal_access_token()
+        if not access_token:
+            logger.error("Failed to retrieve PayPal access token.")
+            return cors_response(500, {
+                "message": "Failed to retrieve PayPal access token.",
+                "errorType": "AccessTokenError"
+            })
+
+        url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}"
+        }
+
+        payload = {
+            "plan_id": plan_id,
+            "custom_id": custom_id
+        }
+
         response = requests.post(url, headers=headers, json=payload, timeout=10)
-        
+
         if response.status_code == 201:
             subscription = response.json()
-            return subscription
+            return cors_response(201, {
+                "subscription": subscription
+            })
         else:
             error_details = response.json()
             logger.error(f"PayPal subscription creation failed: {error_details}")
-            raise Exception(f"Failed to create PayPal subscription: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.")
+            return cors_response(response.status_code, {
+                "message": f"Failed to create PayPal subscription: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.",
+                "errorType": "PayPalAPIError",
+                "details": error_details
+            })
+    except requests.exceptions.Timeout:
+        logger.error("PayPal API request timed out.")
+        return cors_response(504, {
+            "message": "The request to the PayPal API timed out. Please try again later.",
+            "errorType": "TimeoutError"
+        })
+    except requests.exceptions.ConnectionError:
+        logger.error("Connection error while connecting to PayPal API.")
+        return cors_response(503, {
+            "message": "Unable to connect to the PayPal API. Please check your network and try again.",
+            "errorType": "ConnectionError"
+        })
     except requests.exceptions.RequestException as e:
-        logger.error(f"Request error while creating PayPal subscription: {e}")
-        raise Exception("Failed to connect to PayPal API for subscription creation.")
+        logger.error(f"Unhandled request exception: {e}")
+        return cors_response(500, {
+            "message": "An unexpected error occurred while connecting to the PayPal API.",
+            "errorType": "RequestError"
+        })
+    except Exception as e:
+        logger.error(f"Unexpected error in create_paypal_subscription: {e}", exc_info=True)
+        return cors_response(500, {
+            "message": "An unexpected error occurred while creating the PayPal subscription. Please try again later.",
+            "errorType": "InternalError"
+        })
 
 # Create Paypal Subscription route
 def create_paypal_subscription_route(amount, custom_id):
     try:
         if amount <= 0:
-            raise ValueError("Amount must be greater than zero.")
+            logger.error("Amount must be greater than zero.")
+            return cors_response(400, {
+                "message": "Amount must be greater than zero.",
+                "errorType": "ValidationError"
+            })
 
         if not custom_id or not custom_id.strip():
-            raise ValueError("Custom ID must be a non-empty string.")
+            logger.error("Custom ID must be a non-empty string.")
+            return cors_response(400, {
+                "message": "Custom ID must be a non-empty string.",
+                "errorType": "ValidationError"
+            })
 
         product_id = create_paypal_product()
-        
+        if not product_id:
+            logger.error("Failed to create PayPal product.")
+            return cors_response(500, {
+                "message": "Failed to create PayPal product.",
+                "errorType": "ProductCreationError"
+            })
+
         plan_id = create_paypal_plan(product_id, amount)
-        
+        if not plan_id:
+            logger.error("Failed to create PayPal plan.")
+            return cors_response(500, {
+                "message": "Failed to create PayPal plan.",
+                "errorType": "PlanCreationError"
+            })
+
         subscription = create_paypal_subscription(plan_id, custom_id)
-        
         subscription_id = subscription.get("id")
         if not subscription_id:
-            raise ValueError("Subscription ID is missing from the PayPal response.")
-        
+            logger.error("Subscription ID is missing from the PayPal response.")
+            return cors_response(500, {
+                "message": "Subscription ID is missing from the PayPal response.",
+                "errorType": "IncompleteResponse"
+            })
+
         approval_url = next(
             (link["href"] for link in subscription.get("links", []) if link["rel"] == "approve"),
             None
         )
         if not approval_url:
-            raise ValueError("Approval URL is missing from the PayPal response.")
+            logger.error("Approval URL is missing from the PayPal response.")
+            return cors_response(500, {
+                "message": "Approval URL is missing from the PayPal response.",
+                "errorType": "IncompleteResponse"
+            })
 
         return cors_response(200, {
             "subscription_id": subscription_id,
-            "approval_url": approval_url
+            "approval_url": approval_url,
+            "message": "PayPal subscription created successfully."
         })
+
     except ValueError as ve:
         logger.error(f"Validation error: {str(ve)}")
-        return cors_response(400, {"message": str(ve)})
+        return cors_response(400, {
+            "message": str(ve),
+            "errorType": "ValidationError"
+        })
     except Exception as e:
-        logger.error(f"Error creating PayPal subscription: {str(e)}")
-        return cors_response(500, {"message": "An error occurred while processing your request."})
+        logger.error(f"Unexpected error creating PayPal subscription: {str(e)}", exc_info=True)
+        return cors_response(500, {
+            "message": "An unexpected error occurred while processing your request. Please try again later.",
+            "errorType": "InternalError"
+        })
