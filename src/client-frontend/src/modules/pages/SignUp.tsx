@@ -67,7 +67,11 @@ function SignUp() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Error: ${response.statusText}`);
+        throw { 
+          message: errorData.message, 
+          errorType: errorData.errorType, 
+          status: response.status 
+        };
       }
   
       await response.json();
@@ -75,83 +79,170 @@ function SignUp() {
       const userName = `${values.firstName} ${values.lastName}`;
   
       confirmUser(values.email);
-      loginUser(values.email, values.password, userName);
+      const accessToken = await loginUser(values.email, values.password, userName);
+      sendCode(accessToken)
       
       navigate('/auth/verify')
     } catch (error: any) {
-      setSubmitError(
-        error.message === 'User already exists'
-          ? 'This email is already registered. Please log in or use a different email.'
-          : 'Sign-up failed. Please try again.'
-      );
+        const userFriendlyMessages: { [key: string]: string } = {
+          UserAlreadyExists: 'This email is already registered. Please log in or use a different email.',
+          InvalidPassword: 'Your password must meet the required complexity standards. Please try again.',
+          InvalidParameter: 'One or more fields are invalid. Please check and try again.',
+          TooManyRequests: 'You have made too many requests. Please wait and try again later.',
+          CodeDeliveryFailure: 'We could not send the confirmation email. Please check your email address and try again.',
+          LambdaValidationFailed: 'There was an issue with validating your sign-up. Please try again.',
+          AliasExists: 'This email or phone number is already linked to an existing account. Please log in or use a different email.',
+          UserNotFound: 'We could not find an account associated with this email address.',
+          NotAuthorized: 'You do not have the necessary permissions to confirm this account.',
+          InternalError: 'An unexpected error occurred. Please try again later.'
+        };
+      
+        const errorType = error.errorType || 'InternalError';
+        const message = userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+      
+        setSubmitError(message);
     } finally {
       setSent(false);
     }
   };
 
   const confirmUser = async (email: string) => {
-    const response = await fetch(
-        `${SERVER}/confirm`,
-        {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: email
-          })
-          }
-    )
-
-    if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-};
-
-  const loginUser = async (email: string, password: string, user_name: string) => {
     try {
       const response = await fetch(
-        `${SERVER}/login`,
+          `${SERVER}/confirm`,
+          {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email: email
+            })
+            }
+      )
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw { 
+          message: errorData.message, 
+          errorType: errorData.errorType, 
+          status: response.status 
+        };
+      }
+
+      await response.json();
+    } catch (error: any) {
+  } finally {
+    setSent(false);
+  }
+};
+
+  const sendCode = async (userAccessToken: string | null) => {
+    if (!userAccessToken) {
+      setSubmitError('Unable to send verification code. User is not logged in.');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${SERVER}/confirm-email-resend`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            email,
-            password
-          })
+            access_token: userAccessToken,
+          }),
         }
       );
-  
+
       if (!response.ok) {
-        throw new Error(`Login failed: ${response.statusText}`);
+        const errorData = await response.json();
+        throw {
+          message: errorData.message,
+          errorType: errorData.errorType,
+          status: response.status,
+        };
       }
-  
+
+      await response.json();
+    } catch (error: any) {
+      const userFriendlyMessages: { [key: string]: string } = {
+          LimitExceeded: 'You have reached the maximum number of attempts. Please wait a while before trying again.',
+          NotAuthorized: 'You are not authorized to request a new verification code. Please log in and try again.',
+          UserNotFound: 'We could not find an account associated with this request. Please verify your details.',
+          InternalError: 'An unexpected error occurred. Please try again later.'
+      };
+      const errorType = error.errorType || 'InternalError';
+      const message = userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+
+      setSubmitError(message);
+  } finally {
+    setSent(false);
+  }
+  };
+
+  const loginUser = async (email: string, password: string, user_name: string) => {
+    try {
+      const response = await fetch(`${SERVER}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw {
+          message: errorData.message,
+          errorType: errorData.errorType,
+          status: response.status,
+        };
+      }
+
       const data = await response.json();
-  
+
       const userData = {
         user_name: user_name,
-        email: email
+        email: email,
       };
-  
+
       const tokenData = {
         id_token: data.id_token,
         access_token: data.access_token,
         refresh_token: data.refresh_token,
       };
-  
+
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('userToken', JSON.stringify(tokenData));
-  
+
       dispatch(
         setLogin({
           user: userData,
           token: tokenData,
         })
       );
-    } catch (error) {
-      throw error;
+
+      return data.access_token;
+    } catch (error: any) {
+      const userFriendlyMessages: { [key: string]: string } = {
+        NotAuthorized: 'The email or password provided is incorrect. Please try again.',
+        UserNotFound: 'We could not find an account associated with this email address.',
+        InternalError: 'An unexpected error occurred while attempting to log in. Please try again later.',
+      };
+
+      const errorType = error.errorType || 'InternalError';
+      const message =
+        userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+
+      setSubmitError(message);
+    } finally {
+      setSent(false);
     }
   };
 
