@@ -8,3 +8,6 @@ pynamodb_layer
 venv
 .vite
 python
+.env
+__pycache__
+.pytest_cache
