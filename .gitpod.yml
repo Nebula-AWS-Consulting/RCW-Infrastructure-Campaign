@@ -1,9 +1,14 @@
 image: gitpod/workspace-full
 
+# (Optional) If you prefer to define them in Gitpod → Variables, remove these lines:
+env:
+  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+  AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+
 tasks:
-  - name: Setup Environment
-    command: |
-      echo "=== Setting up Python environment ==="
+  - name: Setup
+    init: |
+      echo "=== [init] Setting up Python environment ==="
       cd src/server
       python3 -m venv venv
       source venv/bin/activate
@@ -11,25 +16,30 @@ tasks:
       pip install pytest
       deactivate
 
-      echo "=== Setting up Node.js dependencies ==="
+      echo "=== [init] Setting up Node.js dependencies ==="
       cd ../client-frontend
       npm install
       
-      echo "=== Installing AWS CLI ==="
+      echo "=== [init] Installing AWS CLI ==="
       cd ../../
       sudo apt-get update && sudo apt-get install -y awscli
 
-      echo "=== Setting up AWS Credentials ==="
+      echo "=== [init] Setting up AWS Credentials ==="
       mkdir -p ~/.aws
-      echo "[default]" > ~/.aws/credentials
-      echo "aws_access_key_id=${AWS_ACCESS_KEY_ID}" >> ~/.aws/credentials
-      echo "aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}" >> ~/.aws/credentials
+      cat << EOF > ~/.aws/credentials
+      [default]
+      aws_access_key_id=${AWS_ACCESS_KEY_ID}
+      aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
+      EOF
 
-      echo "[default]" > ~/.aws/config
-      echo "region=us-east-1" >> ~/.aws/config
+      cat << EOF > ~/.aws/config
+      [default]
+      region=us-east-1
+      EOF
 
-      echo "=== Activating venv & verifying AWS ==="
-      cd src/server
-      source venv/bin/activate
-      export AWS_PROFILE=default
-      aws sts get-caller-identity
+      # Make sure the venv is auto-activated in every new shell
+      echo "source /workspace/${GITPOD_REPO_ROOT##*/}/src/server/venv/bin/activate" >> ~/.bashrc
+
+    command: |
+      echo "=== [command] Verifying AWS identity ==="
+      aws sts get-caller-identity || echo "AWS credentials not set or invalid."
