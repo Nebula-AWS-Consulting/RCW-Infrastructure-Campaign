@@ -43,3 +43,12 @@ tasks:
     command: |
       echo "=== [command] Verifying AWS identity ==="
       aws sts get-caller-identity || echo "AWS credentials not set or invalid."
+
+# Manually input access keys here
+# nano ~/.aws/credentials
+# Or manually paste valid keys:
+# [default]
+# aws_access_key_id=YOUR_KEY_HERE
+# aws_secret_access_key=YOUR_SECRET_HERE
+
+## Sometimes you'll have to reinstall the aws cli and set the ~/.aws files
