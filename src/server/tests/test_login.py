@@ -1,8 +1,11 @@
 import os
+import sys
 import time
 import json
 import pytest
 from unittest.mock import patch
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 @pytest.fixture
 def mock_ssm_and_cognito():
@@ -17,16 +20,8 @@ def mock_ssm_and_cognito():
         }
 
         # Mock Cognito exception classes so we can raise them easily
-        mock_client.exceptions.NotAuthorizedException = type(
-            "NotAuthorizedException",
-            (Exception,),
-            {}
-        )
-        mock_client.exceptions.UserNotFoundException = type(
-            "UserNotFoundException",
-            (Exception,),
-            {}
-        )
+        mock_client.exceptions.NotAuthorizedException = type("NotAuthorizedException",(Exception,),{})
+        mock_client.exceptions.UserNotFoundException = type("UserNotFoundException",(Exception,),{})
 
         # Provide the mocks to the test function
         yield (mock_ssm, mock_client)
