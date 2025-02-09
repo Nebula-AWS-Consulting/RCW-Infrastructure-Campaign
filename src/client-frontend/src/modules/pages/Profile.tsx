@@ -10,6 +10,7 @@ import { SERVER } from '../../App.tsx'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../store.ts'
 import { email, password, required } from '../form/validation.ts'
+import AppForm from '../views/AppForm.tsx'
 
 type UserAttribute = 'name' | 'email' | 'password';
 
@@ -27,7 +28,7 @@ function Profile() {
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  
+
   const validate = (values: { [index: string]: string }) => {
     const errors = required(['email', 'password'], values);
     
@@ -166,41 +167,59 @@ function Profile() {
     updateUserAttribute('password', newPassword);
   };
 
-  console.log(userAttributes)
-
   return (
     <React.Fragment>
       <AppAppBar />
-      <Box sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        justifySelf: 'center',
-        backgroundColor: 'gray',
-        width: '70%',
-        my: '4rem',
-        py: '2rem'
-      }}>
+      <AppForm>
         <Box sx={{
           display: 'flex',
-          flexDirection: 'row'
+          flexDirection: 'column',
+          paddingX: '2rem',
         }}>
-          <Box>
-            <Typography>{userAttributes?.custom:firstname}</Typography>
-            <Typography>Email</Typography>
-            <Typography>Password</Typography>
-          </Box>
-          <Box>
+          <Typography variant="h4" marked="center" align="center" sx={{ marginBottom: '40px' }}>
+            Profile Info
+          </Typography>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            <Typography>{userAttributes?.["custom:firstName"]} {userAttributes?.["custom:lastName"]}</Typography>
             <Button onClick={handleNameUpdate}>Change Name</Button>
+          </Box>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            <Typography>{userAttributes?.email}</Typography>
             <Button onClick={handleEmailUpdate}>Change Email</Button>
+          </Box>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            <Typography>********</Typography>
             <Button onClick={handlePasswordUpdate}>Change Password</Button>
           </Box>
         </Box>
-        <Box>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: '20px'
+        }}>
           Cange paypal subscription
         </Box>
-      </Box>
+      </AppForm>
       <AppFooter />
     </React.Fragment>
   )
