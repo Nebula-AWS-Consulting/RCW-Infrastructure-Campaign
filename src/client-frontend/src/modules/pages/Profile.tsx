@@ -171,7 +171,7 @@ function Profile() {
       }
       const data = await response.json();
 
-      
+      await loginUser(userEmail, values.currentPassword, currentUser?.user_name || '');
       setSuccess(data.message);
     } catch (err: any) {
       const userFriendlyMessages: { [key: string]: string } = {
@@ -270,8 +270,6 @@ function Profile() {
         await updateUserAttribute('lastName', values.lastName);
       } else if (updateType === 'email') {
         await updateUserAttribute('email', values.email);
-        // Call loginUser using the new email and the currentPassword from the form
-        await loginUser(values.email, values.currentPassword, currentUser?.user_name || '');
       } else if (updateType === 'password') {
         await updateUserAttribute('password', values.password);
       }
@@ -362,9 +360,9 @@ function Profile() {
             </Typography>
           )}
           {success && (
-          <FormFeedback success sx={{ mb: '2rem', mt: 2, textAlign: 'center', width: '100%', justifySelf: 'center', borderRadius: 2 }}>
-            <Typography variant="h6" color="white">
-            Profile Updated Successfully
+          <FormFeedback success sx={{ mb: '2rem', mt: 2, px:'2rem', py: '0.7rem', textAlign: 'center', width: '100%', justifySelf: 'center', borderRadius: 2 }}>
+            <Typography variant="h6" color="#28282a">
+            Profile Updated Successfully!
             </Typography>
         </FormFeedback>
           )}
@@ -376,18 +374,21 @@ function Profile() {
             alignItems: 'center',
             justifySelf: 'center',
             marginTop: '20px',
-            backgroundColor: '#ff3366',
             paddingX: '2rem',
             paddingY: '0.7rem',
             borderRadius: '10px',
-            cursor: 'pointer',
-            '&:hover': {
-              backgroundColor: '#ff3366',
-            },
+            cursor: 'pointer'
           }}
         >
-          <Typography variant="h6" color="white">
-            Cancel Paypal Subscription
+          <Typography color="white">
+          <a 
+            href="https://www.paypal.com/myaccount/autopay/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            style={{ color: '#28282a', textDecoration: '' }}
+          >
+              Cancel Paypal Subscription
+            </a>
           </Typography>
         </Box>
       </AppForm>
