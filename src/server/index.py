@@ -129,155 +129,212 @@ def cors_response(status_code, body):
         "body": json.dumps(body)
     }
 
+
 # User Sign-Up
 def sign_up(password, email, first_name, last_name):
-    # Ensure all required parameters are provided.
-    # If any of the parameters (email, password, first name, or last name) is missing,
-    # return a 400 (Bad Request) response with an appropriate error message.
+    """
+    Sign up a user in the Cognito User Pool.
+
+    Returns a CORS response with an appropriate HTTP status and message.
+    
+    :param password: The user's password.
+    :param email: The user's email address (used as the username).
+    :param first_name: The user's first name (stored as custom:firstName).
+    :param last_name: The user's last name (stored as custom:lastName).
+    :return: A CORS response indicating the result of the sign-up process.
+    """
     if not all([email, password, first_name, last_name]):
         return cors_response(400, {"message": "Email, password, first name, and last name are required"})
     
     try:
-        # Attempt to register a new user with Cognito using the provided parameters.
-        # The sign_up API call uses the following:
-        # - ClientId: Retrieved from a helper function that provides your Cognito User Pool Client ID.
-        # - Username: The user's email is used as the username.
-        # - Password: The provided password.
-        # - UserAttributes: A list of attributes to be associated with the user,
-        #   including the email and custom attributes for first and last name.
+        # Attempt to sign the user up using the Cognito admin API.
         client.sign_up(
-            ClientId=get_user_pool_client_id(),
+            ClientId=get_user_pool_client_id(), # Retrieve the Cognito User Pool ID.
             Username=email,
             Password=password,
             UserAttributes=[
-                {'Name': 'email', 'Value': email},                     # Standard email attribute.
-                {'Name': 'custom:firstName', 'Value': first_name},       # Custom attribute for first name.
-                {'Name': 'custom:lastName', 'Value': last_name}          # Custom attribute for last name.
+                {'Name': 'email', 'Value': email},
+                {'Name': 'custom:firstName', 'Value': first_name},
+                {'Name': 'custom:lastName', 'Value': last_name}
             ]
         )
-        # If the sign-up process completes successfully, return a 200 (OK) response.
         return cors_response(200, {"message": "User signed up successfully"})
     
-    # Handle the case where the username already exists in Cognito.
-    except client.exceptions.UsernameExistsException:
-        # Return a 409 (Conflict) response indicating that the user already exists.
-        return cors_response(409, {"message": "User already exists"})
-    
-    # Handle the case where an alias (like email or phone number) already exists.
-    except client.exceptions.AliasExistsException:
-        # Return a 409 (Conflict) response with a message about duplicate email or phone number.
-        return cors_response(409, {"message": "A user with this email or phone number already exists."})
-    
-    # Group together exceptions that indicate invalid input.
-    # These exceptions include:
-    # - InvalidPasswordException: Password does not meet the policy requirements.
-    # - InvalidParameterException: One or more parameters are invalid.
-    # - UserLambdaValidationException: A custom validation (Lambda trigger) failed.
-    except (client.exceptions.InvalidPasswordException,
-            client.exceptions.InvalidParameterException,
-            client.exceptions.UserLambdaValidationException) as e:
-        # Return a 400 (Bad Request) response with the detailed error message from Cognito.
-        return cors_response(400, {"message": e.response['Error']['Message']})
-    
-    # Handle the case where too many requests have been made in a short period.
-    except client.exceptions.TooManyRequestsException:
-        # Return a 429 (Too Many Requests) response advising the client to try again later.
-        return cors_response(429, {"message": "Too many requests. Please try again later."})
-    
-    # Handle the case where Cognito fails to deliver the confirmation code to the user.
-    except client.exceptions.CodeDeliveryFailureException:
-        # Return a 500 (Internal Server Error) response as this is considered a service-side issue.
-        return cors_response(500, {"message": "Failed to send confirmation code. Please try again."})
-    
-    # Catch any unexpected exceptions that were not explicitly handled.
     except Exception as e:
-        # Log the error details for further debugging.
+        # Map known exceptions to their corresponding HTTP status and messages.
+        # For some exceptions, if the message is None, use the dynamic error message from Cognito.
+        error_map = {
+            client.exceptions.UsernameExistsException: (409, "User already exists"),
+            client.exceptions.AliasExistsException: (409, "A user with this email or phone number already exists."),
+            client.exceptions.InvalidPasswordException: (400, None),
+            client.exceptions.InvalidParameterException: (400, None),
+            client.exceptions.UserLambdaValidationException: (400, None),
+            client.exceptions.TooManyRequestsException: (429, "Too many requests. Please try again later."),
+            client.exceptions.CodeDeliveryFailureException: (500, "Failed to send confirmation code. Please try again.")
+        }
+        
+        # Iterate over the error map to check if the caught exception is an instance of any known exception.
+        for exc_type, (status, message) in error_map.items():
+            if isinstance(e, exc_type):
+                # If a matching exception type is found, return the corresponding CORS response.
+                return cors_response(status, {"message": message if message is not None else e.response['Error']['Message']})
+        
+        # Log any unexpected exceptions to aid in debugging.
         logger.error(f"Error in sign_up: {str(e)}", exc_info=True)
-        # Return a generic 500 (Internal Server Error) response.
         return cors_response(500, {"message": "An internal server error occurred"})
 
 
 # Confirm User
 def confirm_user(email):
+    """
+    Confirm a user's sign-up status in the Cognito User Pool.
+
+    This function calls the AWS Cognito admin_confirm_sign_up API to mark a user as confirmed.
+    It returns a CORS response with an appropriate HTTP status and message based on the outcome.
+
+    :param email: The email address (username) of the user to be confirmed.
+    :return: A CORS response indicating the result of the confirmation.
+    """
     try:
+        # Attempt to confirm the user's sign-up using the Cognito admin API.
         client.admin_confirm_sign_up(
-            UserPoolId=get_user_pool_id(),
-            Username=email
+            UserPoolId=get_user_pool_id(),  # Retrieve the Cognito User Pool ID.
+            Username=email                   # Use the email as the username.
         )
         return cors_response(200, {"message": "User confirmed successfully"})
-    except client.exceptions.UserNotFoundException:
-        return cors_response(404, {
-            "message": "We could not find a user with this email address."
-        })
-    except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {
-            "message": "You do not have the necessary permissions to confirm this user."
-        })
-    except Exception as e:
-        logger.error(f"Error in confirm_user: {str(e)}", exc_info=True)
-        return cors_response(500, {
-            "message": "Something went wrong while confirming the user. Please try again later."
-        })
 
+    except Exception as e:
+        # Define an error map to associate specific exception types with their respective HTTP status codes and messages.
+        error_map = {
+            client.exceptions.UserNotFoundException: (
+                404, "We could not find a user with this email address."
+            ),
+            client.exceptions.NotAuthorizedException: (
+                403, "You do not have the necessary permissions to confirm this user."
+            )
+        }
+
+        # Iterate over the error map to check if the caught exception is an instance of any known exception.
+        for exc_type, (status, message) in error_map.items():
+            if isinstance(e, exc_type):
+                # If a matching exception type is found, return the corresponding CORS response.
+                return cors_response(status, {"message": message})
+        
+        # Log any unexpected exceptions to aid in debugging.
+        logger.error(f"Error in confirm_user: {str(e)}", exc_info=True)
+        # Return a generic 500 Internal Server Error response for any unhandled exceptions.
+        return cors_response(500, {"message": "Something went wrong while confirming the user. Please try again later."})
+
+
+# Confirm Email
 def confirm_email(access_token, confirmation_code):
+    """
+    Confirm a user's email by verifying the provided confirmation code using Cognito.
+
+    This function calls Cognito's verify_user_attribute API to verify the user's email attribute.
+    It returns a CORS response with an appropriate HTTP status and message based on the outcome.
+
+    :param access_token: The access token for the currently authenticated user.
+    :param confirmation_code: The confirmation code sent to the user's email.
+    :return: A CORS response indicating success or a specific error message.
+    """
     try:
+        # Attempt to verify the email attribute using the confirmation code.
         client.verify_user_attribute(
             AccessToken=access_token,
             AttributeName='email',
             Code=confirmation_code
         )
+        # If the verification is successful, return a success response.
         return cors_response(200, {"message": "Email confirmed successfully."})
-    except client.exceptions.CodeMismatchException:
-        return cors_response(400, {
-            "message": "The confirmation code you entered is incorrect. Please check and try again."
-        })
-    except client.exceptions.ExpiredCodeException:
-        return cors_response(400, {
-            "message": "The confirmation code has expired. Please request a new code and try again."
-        })
-    except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {
-            "message": "You are not authorized to perform this action. Please ensure you are logged in and try again."
-        })
-    except client.exceptions.UserNotFoundException:
-        return cors_response(404, {
-            "message": "We couldn't find a user associated with this request. Please check your details and try again."
-        })
+    
     except Exception as e:
+        # Mapping of known exception types to their corresponding response status and message.
+        error_map = {
+            client.exceptions.CodeMismatchException: (
+                400, "The confirmation code you entered is incorrect. Please check and try again."
+            ),
+            client.exceptions.ExpiredCodeException: (
+                400, "The confirmation code has expired. Please request a new code and try again."
+            ),
+            client.exceptions.NotAuthorizedException: (
+                403, "You are not authorized to perform this action. Please ensure you are logged in and try again."
+            ),
+            client.exceptions.UserNotFoundException: (
+                404, "We couldn't find a user associated with this request. Please check your details and try again."
+            )
+        }
+
+        # Check if the caught exception matches any in our error map.
+        for exc_type, (status, message) in error_map.items():
+            if isinstance(e, exc_type):
+                return cors_response(status, {"message": message})
+        
+        # Log unexpected exceptions for debugging.
         logger.error(f"Error in confirm_email: {str(e)}", exc_info=True)
+        # Return a generic error response if the exception type is unrecognized.
         return cors_response(500, {
             "message": "An unexpected error occurred while confirming your email. Please try again later."
         })
 
+
+# Confirm Email Resend
 def confirm_email_resend(access_token):
+    """
+    Resend the email verification code using Cognito.
+
+    This function calls Cognito's get_user_attribute_verification_code API to send a new email verification code.
+    It returns a CORS response with an appropriate HTTP status and message.
+
+    :param access_token: The access token of the currently authenticated user.
+    :return: A CORS response indicating the result of the verification code request.
+    """
     try:
+        # Request a new verification code for the email attribute.
         client.get_user_attribute_verification_code(
             AccessToken=access_token,
             AttributeName='email'
         )
         return cors_response(200, {"message": "Verification code sent successfully."})
-    except client.exceptions.LimitExceededException:
-        return cors_response(429, {
-            "message": "You have exceeded the number of allowed attempts. Please wait before trying again."
-        })
-    except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {
-            "message": "You are not authorized to request a new verification code. Please log in and try again."
-        })
-    except client.exceptions.UserNotFoundException:
-        return cors_response(404, {
-            "message": "We could not find a user associated with this request. Please check your details and try again."
-        })
+    
     except Exception as e:
+        # Map known exceptions to their HTTP status codes and error messages.
+        error_map = {
+            client.exceptions.LimitExceededException: (
+                429, "You have exceeded the number of allowed attempts. Please wait before trying again."
+            ),
+            client.exceptions.NotAuthorizedException: (
+                403, "You are not authorized to request a new verification code. Please log in and try again."
+            ),
+            client.exceptions.UserNotFoundException: (
+                404, "We could not find a user associated with this request. Please check your details and try again."
+            )
+        }
+        
+        # Iterate over the error map and return the corresponding response if a match is found.
+        for exc_type, (status, message) in error_map.items():
+            if isinstance(e, exc_type):
+                return cors_response(status, {"message": message})
+        
+        # Log unexpected exceptions and return a generic error response.
         logger.error(f"Error in confirm_email_resend: {str(e)}", exc_info=True)
         return cors_response(500, {
             "message": "An unexpected error occurred while trying to resend the verification code. Please try again later."
         })
 
+
 # User Log-In
 def log_in(email, password):
+    """
+    Authenticate a user with Cognito and return tokens and user id on success.
+    
+    :param email: The user's email address (username).
+    :param password: The user's password.
+    :return: A CORS response with authentication tokens or an error message.
+    """
     if not all([email, password]):
         return cors_response(400, {"message": "Email and password are required"})
+    
     try:
         response = client.initiate_auth(
             ClientId=get_user_pool_client_id(),
@@ -289,7 +346,6 @@ def log_in(email, password):
         )
 
         id_token = response['AuthenticationResult']['IdToken']
-        
         decoded_token = jwt.decode(id_token, options={"verify_signature": False})
         user_id = decoded_token.get("sub")
         
@@ -300,49 +356,74 @@ def log_in(email, password):
             "access_token": response['AuthenticationResult']['AccessToken'],
             "refresh_token": response['AuthenticationResult']['RefreshToken']
         })
-    except client.exceptions.NotAuthorizedException:
-        return cors_response(401, {
-            "message": "The email or password provided is incorrect. Please try again."
-        })
-    except client.exceptions.UserNotFoundException:
-        return cors_response(404, {
-            "message": "We couldn't find a user with this email address. Please check the email entered or sign up if you don't have an account."
-        })
+    
     except Exception as e:
+        # Define known exceptions with corresponding HTTP status codes and messages.
+        error_map = {
+            client.exceptions.NotAuthorizedException: (
+                401, "The email or password provided is incorrect. Please try again."
+            ),
+            client.exceptions.UserNotFoundException: (
+                404, "We couldn't find a user with this email address. Please check the email entered or sign up if you don't have an account."
+            )
+        }
+        
+        for exc_type, (status, message) in error_map.items():
+            if isinstance(e, exc_type):
+                return cors_response(status, {"message": message})
+        
         logger.error(f"Error in log_in: {str(e)}", exc_info=True)
-        return cors_response(500, {
-            "message": "An unexpected error occurred while attempting to log in. Please try again later."
-        })
+        return cors_response(500, {"message": "An unexpected error occurred while attempting to log in. Please try again later."})
+
 
 # Forgot Password (Initiate)
 def forgot_password(email):
+    """
+    Initiate the forgot password process for a given email using Cognito.
+
+    :param email: The user's email address.
+    :return: A CORS response indicating the result of the password reset request.
+    """
     try:
         client.forgot_password(
             ClientId=get_user_pool_client_id(),
             Username=email
         )
         return cors_response(200, {"message": "Password reset initiated. Check your email for the code."})
-    except client.exceptions.UserNotFoundException:
-        return cors_response(404, {
-            "message": "We could not find an account associated with this email address."
-        })
-    except client.exceptions.LimitExceededException:
-        return cors_response(429, {
-            "message": "You have exceeded the number of allowed attempts. Please wait a while before trying again."
-        })
-    except client.exceptions.NotAuthorizedException as e:
-        message = e.response['Error']['Message']
-        return cors_response(403, {
-            "message": message
-        })
+    
     except Exception as e:
+        # Map specific exceptions to their corresponding HTTP status codes and messages.
+        error_map = {
+            client.exceptions.UserNotFoundException: (
+                404, "We could not find an account associated with this email address."
+            ),
+            client.exceptions.LimitExceededException: (
+                429, "You have exceeded the number of allowed attempts. Please wait a while before trying again."
+            ),
+            # For NotAuthorizedException, we'll use the dynamic message from the exception.
+            client.exceptions.NotAuthorizedException: (403, None)
+        }
+        
+        for exc_type, (status, message) in error_map.items():
+            if isinstance(e, exc_type):
+                if message is None:
+                    message = e.response['Error']['Message']
+                return cors_response(status, {"message": message})
+        
         logger.error(f"Error in forgot_password: {str(e)}", exc_info=True)
-        return cors_response(500, {
-            "message": "An unexpected error occurred while initiating the password reset. Please try again later."
-        })
+        return cors_response(500, {"message": "An unexpected error occurred while initiating the password reset. Please try again later."})
+
 
 # Confirm Forgot Password
 def confirm_forgot_password(email, confirmation_code, new_password):
+    """
+    Confirm the password reset by verifying the confirmation code and setting a new password.
+
+    :param email: The user's email address.
+    :param confirmation_code: The confirmation code received by the user.
+    :param new_password: The new password to be set.
+    :return: A CORS response indicating the result of the password reset confirmation.
+    """
     try:
         client.confirm_forgot_password(
             ClientId=get_user_pool_client_id(),
@@ -351,78 +432,110 @@ def confirm_forgot_password(email, confirmation_code, new_password):
             Password=new_password
         )
         return cors_response(200, {"message": "Password reset successfully."})
-    except client.exceptions.CodeMismatchException:
-        return cors_response(400, {
-            "message": "The confirmation code you entered is incorrect. Please check the code and try again."
-        })
-    except client.exceptions.ExpiredCodeException:
-        return cors_response(400, {
-            "message": "The confirmation code has expired. Please request a new code and try again."
-        })
-    except client.exceptions.InvalidPasswordException as e:
-        message = e.response['Error']['Message']
-        return cors_response(400, {
-            "message": f"Your new password is invalid: {message}. Please ensure it meets the required criteria."
-        })
-    except client.exceptions.UserNotFoundException:
-        return cors_response(404, {
-            "message": "We could not find an account associated with this email address. Please check your details."
-        })
-    except client.exceptions.LimitExceededException:
-        return cors_response(429, {
-            "message": "You have made too many attempts. Please wait a while before trying again."
-        })
+    
     except Exception as e:
+        # Define a mapping of exceptions to their respective HTTP status codes and messages.
+        error_map = {
+            client.exceptions.CodeMismatchException: (
+                400, "The confirmation code you entered is incorrect. Please check the code and try again."
+            ),
+            client.exceptions.ExpiredCodeException: (
+                400, "The confirmation code has expired. Please request a new code and try again."
+            ),
+            client.exceptions.InvalidPasswordException: (
+                400, None  # Use dynamic error message from Cognito for invalid password.
+            ),
+            client.exceptions.UserNotFoundException: (
+                404, "We could not find an account associated with this email address. Please check your details."
+            ),
+            client.exceptions.LimitExceededException: (
+                429, "You have made too many attempts. Please wait a while before trying again."
+            )
+        }
+        
+        for exc_type, (status, message) in error_map.items():
+            if isinstance(e, exc_type):
+                if message is None:
+                    # Construct dynamic message for InvalidPasswordException.
+                    message = e.response['Error']['Message']
+                    message = f"Your new password is invalid: {message}. Please ensure it meets the required criteria."
+                return cors_response(status, {"message": message})
+        
         logger.error(f"Error in confirm_forgot_password: {str(e)}", exc_info=True)
-        return cors_response(500, {
-            "message": "An unexpected error occurred while resetting your password. Please try again later."
-        })
+        return cors_response(500, {"message": "An unexpected error occurred while resetting your password. Please try again later."})
+
 
 # Get User Data
 def get_user(email):
+    """
+    Retrieve a user's data from Cognito and return their attributes along with the email verification status.
+
+    :param email: The user's email address.
+    :return: A CORS response containing user attributes and email verification status or an error message.
+    """
     if not email:
         return cors_response(400, {"message": "Missing required 'email' query parameter"})
+    
     try:
         response = client.admin_get_user(
             UserPoolId=get_user_pool_id(),
             Username=email
         )
+        # Convert the list of attributes to a dictionary.
         user_attributes = {attr['Name']: attr['Value'] for attr in response['UserAttributes']}
-
-        email_verified_str = user_attributes.get("email_verified", "false")
-        email_verified = email_verified_str.lower() == "true"
+        # Determine the email verification status.
+        email_verified = user_attributes.get("email_verified", "false").lower() == "true"
 
         return cors_response(200, {
             "message": "User data retrieved successfully",
             "user_attributes": user_attributes,
             "email_verified": email_verified
         })
-    except client.exceptions.UserNotFoundException:
-        return cors_response(404, {
-            "message": "The requested user could not be found. Please check the provided details and try again."
-        })
-    except client.exceptions.InvalidParameterException:
-        return cors_response(400, {
-            "message": "The input parameters are invalid. Please verify the information and try again."
-        })
-    except client.exceptions.TooManyRequestsException:
-        return cors_response(429, {
-            "message": "Too many requests have been made in a short period. Please wait a while before retrying."
-        })
+    
     except Exception as e:
+        # Map specific exceptions to HTTP statuses and messages.
+        error_map = {
+            client.exceptions.UserNotFoundException: (
+                404, "The requested user could not be found. Please check the provided details and try again."
+            ),
+            client.exceptions.InvalidParameterException: (
+                400, "The input parameters are invalid. Please verify the information and try again."
+            ),
+            client.exceptions.TooManyRequestsException: (
+                429, "Too many requests have been made in a short period. Please wait a while before retrying."
+            )
+        }
+        
+        for exc_type, (status, message) in error_map.items():
+            if isinstance(e, exc_type):
+                return cors_response(status, {"message": message})
+        
         logger.error(f"Unexpected error in get_user: {str(e)}", exc_info=True)
         return cors_response(500, {
             "message": "An unexpected error occurred while retrieving the user. Please try again later."
         })
 
+
 # Update User Attributes
 def update_user(email, attribute_updates):
+    """
+    Update user attributes in the Cognito User Pool.
+
+    Handles password updates separately using admin_set_user_password, and updates any
+    other attributes using admin_update_user_attributes. Returns a CORS response indicating
+    the result.
+
+    :param email: The email (username) of the user to update.
+    :param attribute_updates: A dictionary of attribute names and their new values.
+    :return: A CORS response with an appropriate status and message.
+    """
     if not email:
         return cors_response(400, {"message": "Email is required"})
     if not attribute_updates:
         return cors_response(400, {"message": "Attribute updates are required"})
+    
     try:
-        # Handle password update separately
+        # Handle password update separately, if provided.
         if 'password' in attribute_updates:
             new_password = attribute_updates.pop('password')
             client.admin_set_user_password(
@@ -432,7 +545,7 @@ def update_user(email, attribute_updates):
                 Permanent=True
             )
         
-        # Update remaining attributes, if any
+        # Update any remaining attributes.
         if attribute_updates:
             attributes = [{'Name': key, 'Value': value} for key, value in attribute_updates.items()]
             client.admin_update_user_attributes(
@@ -440,60 +553,99 @@ def update_user(email, attribute_updates):
                 Username=email,
                 UserAttributes=attributes
             )
+        
         return cors_response(200, {"message": "User attributes updated successfully"})
-    except client.exceptions.UserNotFoundException:
-        return cors_response(404, {
-            "message": "No user was found with the provided email address."
-        })
-    except client.exceptions.InvalidParameterException as e:
-        message = e.response['Error']['Message']
-        return cors_response(400, {
-            "message": f"Invalid parameter: {message}. Please verify your input and try again."
-        })
-    except client.exceptions.InvalidPasswordException as e:
-        # This exception is specifically raised when the password doesn't meet the policy.
-        message = e.response['Error']['Message']
-        return cors_response(400, {
-            "message": f"Invalid password: {message}. Please verify your input and try again."
-        })
-    except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {
-            "message": "You are not authorized to update this user's attributes. Please check your permissions."
-        })
+    
     except Exception as e:
+        # Map specific exceptions to their HTTP statuses and messages.
+        error_map = {
+            client.exceptions.UserNotFoundException: (
+                404, "No user was found with the provided email address."
+            ),
+            client.exceptions.InvalidParameterException: (
+                400, None  # Use dynamic error message from Cognito.
+            ),
+            client.exceptions.InvalidPasswordException: (
+                400, None  # Use dynamic error message from Cognito.
+            ),
+            client.exceptions.NotAuthorizedException: (
+                403, "You are not authorized to update this user's attributes. Please check your permissions."
+            )
+        }
+        
+        for exc_type, (status, static_message) in error_map.items():
+            if isinstance(e, exc_type):
+                if static_message is None:
+                    # For dynamic messages, use a custom prefix based on exception type.
+                    if isinstance(e, client.exceptions.InvalidParameterException):
+                        message = f"Invalid parameter: {e.response['Error']['Message']}. Please verify your input and try again."
+                    elif isinstance(e, client.exceptions.InvalidPasswordException):
+                        message = f"Invalid password: {e.response['Error']['Message']}. Please verify your input and try again."
+                    else:
+                        message = e.response['Error']['Message']
+                else:
+                    message = static_message
+                return cors_response(status, {"message": message})
+        
+        # Log unexpected exceptions and return a generic error response.
         logger.error(f"Unexpected error in update_user: {str(e)}", exc_info=True)
-        return cors_response(500, {
-            "message": "An unexpected error occurred while updating the user attributes. Please try again later."
-        })
+        return cors_response(500, {"message": "An unexpected error occurred while updating the user attributes. Please try again later."})
+
 
 # Delete User
 def delete_user(email):
+    """
+    Delete a user from the Cognito User Pool.
+
+    :param email: The email (username) of the user to delete.
+    :return: A CORS response indicating the result of the delete operation.
+    """
     if not email:
         return cors_response(400, {"message": "Email is required"})
+    
     try:
         client.admin_delete_user(
             UserPoolId=get_user_pool_id(),
             Username=email
         )
         return cors_response(200, {"message": "User deleted successfully"})
-    except client.exceptions.UserNotFoundException:
-        return cors_response(404, {
-            "message": "No user was found with the provided email address. Please check and try again."
-        })
-    except client.exceptions.NotAuthorizedException:
-        return cors_response(403, {
-            "message": "You are not authorized to delete this user. Please check your permissions."
-        })
+    
     except Exception as e:
+        # Map specific exceptions to HTTP statuses and messages.
+        error_map = {
+            client.exceptions.UserNotFoundException: (
+                404, "No user was found with the provided email address. Please check and try again."
+            ),
+            client.exceptions.NotAuthorizedException: (
+                403, "You are not authorized to delete this user. Please check your permissions."
+            )
+        }
+        
+        # Iterate over the error map to return a corresponding response if the exception matches.
+        for exc_type, (status, message) in error_map.items():
+            if isinstance(e, exc_type):
+                return cors_response(status, {"message": message})
+        
+        # Log unexpected exceptions and return a generic error response.
         logger.error(f"Unexpected error in delete_user: {str(e)}", exc_info=True)
         return cors_response(500, {
             "message": "An unexpected error occurred while attempting to delete the user. Please try again later."
         })
 
+
+# Contact Us
 def contact_us(first_name, email, message):
+    """
+    Send a contact message via AWS SES.
+
+    :param first_name: Sender's first name.
+    :param email: Sender's email address.
+    :param message: The content of the message.
+    :return: A CORS response with an appropriate status and message.
+    """
     if not all([first_name, email, message]):
         return cors_response(400, {"message": "All fields are required: name, email, and message."})
-
+    
     try:
         ses.send_email(
             Source=get_sender_email(),
@@ -506,26 +658,31 @@ def contact_us(first_name, email, message):
             }
         )
         return cors_response(200, {"message": "Message sent successfully."})
-    except ses.exceptions.MessageRejected as e:
-        logger.error(f"Message rejected: {str(e)}", exc_info=True)
-        return cors_response(400, {
-            "message": "The email message was rejected. Please ensure the provided email address is valid."
-        })
-    except ses.exceptions.MailFromDomainNotVerifiedException as e:
-        logger.error(f"Email address not verified: {str(e)}", exc_info=True)
-        return cors_response(400, {
-            "message": "The sender's email address has not been verified. Please contact support for assistance."
-        })
-    except ses.exceptions.ConfigurationSetDoesNotExistException as e:
-        logger.error(f"Configuration set issue: {str(e)}", exc_info=True)
-        return cors_response(500, {
-            "message": "There was a configuration issue with the email service. Please try again later."
-        })
+    
     except Exception as e:
+        # Map specific SES exceptions to HTTP statuses and messages.
+        error_map = {
+            ses.exceptions.MessageRejected: (
+                400, "The email message was rejected. Please ensure the provided email address is valid."
+            ),
+            ses.exceptions.MailFromDomainNotVerifiedException: (
+                400, "The sender's email address has not been verified. Please contact support for assistance."
+            ),
+            ses.exceptions.ConfigurationSetDoesNotExistException: (
+                500, "There was a configuration issue with the email service. Please try again later."
+            )
+        }
+        
+        for exc_type, (status, msg) in error_map.items():
+            if isinstance(e, exc_type):
+                logger.error(f"{exc_type.__name__} error in contact_us: {str(e)}", exc_info=True)
+                return cors_response(status, {"message": msg})
+        
         logger.error(f"Unhandled error in contact_us: {str(e)}", exc_info=True)
         return cors_response(500, {
             "message": "An unexpected error occurred while sending your message. Please try again later."
         })
+
 
 # Get Paypal Access Token
 def get_paypal_access_token():
