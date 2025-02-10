@@ -6,12 +6,12 @@ import {
   Box,
   Card,
   CardContent,
-  Typography,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
 } from '@mui/material';
+import Typography from '../components/Typography';
 
 function Dashboard() {
   // State to control the Bible Study Form dialog
@@ -32,6 +32,14 @@ function Dashboard() {
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, px: 2 }}>
       {/* Inner Box limits the max width of the dashboard content */}
       <Box sx={{ width: '100%', maxWidth: 600 }}>
+    <Typography
+            variant="h4"
+            marked="center"
+            align="center"
+            sx={{ marginY: '40px' }}
+          >
+            Coming Soon
+          </Typography>
         {/* -------------------------------
             Bible Study Form Card
         --------------------------------- */}
