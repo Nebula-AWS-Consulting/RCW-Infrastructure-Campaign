@@ -1,0 +1,55 @@
+image: gitpod/workspace-full
+
+# (Optional) If you prefer to define them in Gitpod → Variables, remove these lines:
+env:
+  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+  AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+
+tasks:
+  - name: Setup
+    init: |
+      echo "=== [init] Setting up Python environment ==="
+      cd src/server
+      python3 -m venv venv
+      source venv/bin/activate
+      pip install -r requirements.txt
+      pip install pytest
+      deactivate
+
+      echo "=== [init] Setting up Node.js dependencies ==="
+      cd ../client-frontend
+      npm install
+      
+      echo "=== [init] Installing AWS CLI ==="
+      cd ../../
+      sudo apt-get update && sudo apt-get install -y awscli
+
+      echo "=== [init] Setting up AWS Credentials ==="
+      mkdir -p ~/.aws
+      cat << EOF > ~/.aws/credentials
+      [default]
+      aws_access_key_id=${AWS_ACCESS_KEY_ID}
+      aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
+      EOF
+
+      cat << EOF > ~/.aws/config
+      [default]
+      region=us-east-1
+      EOF
+
+      # Make sure the venv is auto-activated in every new shell
+      echo "source /workspace/${GITPOD_REPO_ROOT##*/}/src/server/venv/bin/activate" >> ~/.bashrc
+
+    command: |
+      echo "=== [command] Verifying AWS identity ==="
+      aws sts get-caller-identity || echo "AWS credentials not set or invalid."
+
+# Manually input access keys here
+# nano ~/.aws/credentials
+# Or manually paste valid keys:
+# [default]
+# aws_access_key_id=YOUR_KEY_HERE
+# aws_secret_access_key=YOUR_SECRET_HERE
+
+## Sometimes you'll have to reinstall the aws cli and set the ~/.aws files
+
