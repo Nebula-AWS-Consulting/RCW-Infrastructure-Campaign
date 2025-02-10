@@ -16,8 +16,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Slide,
-  SlideProps,
   TextField
 } from '@mui/material';
 import { Form, Field } from 'react-final-form';
@@ -297,14 +295,6 @@ function Profile() {
     } catch (err) {
     }
   };
-
-  // Create a Transition component using Slide
-  const Transition = React.forwardRef(function Transition(
-    props: SlideProps,
-    ref: React.Ref<unknown>
-  ) {
-    return <Slide direction="up" ref={ref} {...props} />;
-  });
 
   if (loading) {
     return <LoadingScreen />;
