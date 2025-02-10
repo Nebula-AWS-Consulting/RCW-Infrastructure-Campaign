@@ -55,62 +55,56 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     try:
+        # Extract HTTP method and resource path from the event
         http_method = event['httpMethod']
         resource_path = event['path']
-
-        if http_method == "OPTIONS":
-            return cors_response(200, {})
         
-        if http_method == 'GET' or http_method == 'DELETE':
-            query_params = event.get('queryStringParameters', {}) or {}
-            email = query_params.get('email')
-        else:
-            body = json.loads(event.get('body', "{}"))
-            email = body.get('email')
-            password = body.get('password')
-            first_name = body.get('first_name')
-            last_name = body.get('last_name')
-            confirmation_code = body.get('confirmation_code')
-            access_token = body.get('access_token')
-            new_password = body.get('new_password')
-            attribute_updates = body.get('attribute_updates', {})
-            message = body.get('message')
-            custom_id = body.get('custom_id')
-            amount = body.get('amount')
-
-        # Routing based on the resource path and HTTP method
-        if resource_path == "/signup" and http_method == "POST":
-            return sign_up(password, email, first_name, last_name)
-        elif resource_path == "/confirm" and http_method == "POST":
-            return confirm_user(email)
-        elif resource_path == "/confirm-email" and http_method == "POST":
-            return confirm_email(access_token, confirmation_code)
-        elif resource_path == "/confirm-email-resend" and http_method == "POST":
-            return confirm_email_resend(access_token)
-        elif resource_path == "/login" and http_method == "POST":
-            return log_in(email, password)
-        elif resource_path == "/forgot-password" and http_method == "POST":
-            return forgot_password(email)
-        elif resource_path == "/confirm-forgot-password" and http_method == "POST":
-            return confirm_forgot_password(email, confirmation_code, new_password)
-        elif resource_path == "/user" and http_method == "GET":
-            return get_user(email)
-        elif resource_path == "/user" and http_method == "PATCH":
-            return update_user(email, attribute_updates)
-        elif resource_path == "/user" and http_method == "DELETE":
-            return delete_user(email)
-        elif resource_path == "/contact-us" and http_method == "POST":
-            return contact_us(first_name, email, message)
-        elif resource_path == "/create-paypal-order" and http_method == "POST":
-            currency = body.get('currency', "USD")
-            return create_paypal_order_route(amount, custom_id, currency)
-        elif resource_path == "/create-paypal-subscription" and http_method == "POST":
-            user_name = body.get('user_name')
-            return create_paypal_subscription_route(amount, custom_id)
-        elif http_method == "OPTIONS":
+        # Handle OPTIONS preflight request upfront to avoid multiple checks
+        if http_method == "OPTIONS":
             return cors_response(200, {"message": "CORS preflight successful"})
+        
+        # Parse body for non-GET/DELETE requests
+        if http_method not in ['GET', 'DELETE']:
+            body = json.loads(event.get('body', "{}"))
+        
+        # Extract common parameters from query or body
+        email = body.get('email') if http_method not in ['GET', 'DELETE'] else event.get('queryStringParameters', {}).get('email')
+        password = body.get('password') if http_method != 'GET' else None
+        first_name = body.get('first_name') if http_method != 'GET' else None
+        last_name = body.get('last_name') if http_method != 'GET' else None
+        confirmation_code = body.get('confirmation_code') if http_method != 'GET' else None
+        access_token = body.get('access_token') if http_method != 'GET' else None
+        new_password = body.get('new_password') if http_method != 'GET' else None
+        attribute_updates = body.get('attribute_updates', {}) if http_method != 'GET' else {}
+        message = body.get('message') if http_method != 'GET' else None
+        custom_id = body.get('custom_id') if http_method != 'GET' else None
+        amount = body.get('amount') if http_method != 'GET' else None
+        currency = body.get('currency', "USD") if http_method == "POST" and resource_path in ["/create-paypal-order", "/create-paypal-subscription"] else None
+        
+        # Route handler map
+        route_map = {
+            ("/signup", "POST"): lambda: sign_up(password, email, first_name, last_name),
+            ("/confirm", "POST"): lambda: confirm_user(email),
+            ("/confirm-email", "POST"): lambda: confirm_email(access_token, confirmation_code),
+            ("/confirm-email-resend", "POST"): lambda: confirm_email_resend(access_token),
+            ("/login", "POST"): lambda: log_in(email, password),
+            ("/forgot-password", "POST"): lambda: forgot_password(email),
+            ("/confirm-forgot-password", "POST"): lambda: confirm_forgot_password(email, confirmation_code, new_password),
+            ("/user", "GET"): lambda: get_user(email),
+            ("/user", "PATCH"): lambda: update_user(email, attribute_updates),
+            ("/user", "DELETE"): lambda: delete_user(email),
+            ("/contact-us", "POST"): lambda: contact_us(first_name, email, message),
+            ("/create-paypal-order", "POST"): lambda: create_paypal_order_route(amount, custom_id, currency),
+            ("/create-paypal-subscription", "POST"): lambda: create_paypal_subscription_route(amount, custom_id),
+        }
+        
+        # Check if the route exists and execute the corresponding function
+        result = route_map.get((resource_path, http_method))
+        if result:
+            return result()
         else:
             return cors_response(404, {"message": "Resource not found"})
+
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         return cors_response(500, {"message": str(e)})
