@@ -433,12 +433,24 @@ def update_user(email, attribute_updates):
     if not attribute_updates:
         return cors_response(400, {"message": "Attribute updates are required"})
     try:
-        attributes = [{'Name': key, 'Value': value} for key, value in attribute_updates.items()]
-        client.admin_update_user_attributes(
-            UserPoolId=get_user_pool_id(),
-            Username=email,
-            UserAttributes=attributes
-        )
+        # Handle password update separately
+        if 'password' in attribute_updates:
+            new_password = attribute_updates.pop('password')
+            client.admin_set_user_password(
+                UserPoolId=get_user_pool_id(),
+                Username=email,
+                Password=new_password,
+                Permanent=True
+            )
+        
+        # Update remaining attributes, if any
+        if attribute_updates:
+            attributes = [{'Name': key, 'Value': value} for key, value in attribute_updates.items()]
+            client.admin_update_user_attributes(
+                UserPoolId=get_user_pool_id(),
+                Username=email,
+                UserAttributes=attributes
+            )
         return cors_response(200, {"message": "User attributes updated successfully"})
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
