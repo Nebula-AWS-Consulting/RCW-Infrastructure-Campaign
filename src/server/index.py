@@ -10,23 +10,45 @@ load_dotenv()
 
 client = boto3.client('cognito-idp', region_name='us-west-1')
 ses = boto3.client('ses', region_name='us-west-1')
+ssm = boto3.client('ssm')
 
 environment = os.getenv('ENVIRONMENT')
 domain_name = os.getenv('DOMAIN_NAME')
 
-# Configuration
-def get_ssm_parameter(name):
-    ssm = boto3.client('ssm')
+def get_ssm_parameter(name: str) -> str:
+    """Fetch a parameter from AWS SSM Parameter Store with decryption enabled."""
     response = ssm.get_parameter(Name=name, WithDecryption=True)
     return response['Parameter']['Value']
 
-USER_POOL_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/COGNITO_USER_POOL_ID')
-USER_POOL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/COGNITO_CLIENT_ID')
-PAYPAL_CLIENT_ID = get_ssm_parameter(f'/rcw-client-backend-{environment}/PAYPAL_CLIENT_ID')
-PAYPAL_SECRET = get_ssm_parameter(f'/rcw-client-backend-{environment}/PAYPAL_SECRET')
-SENDER_EMAIL = get_ssm_parameter(f'/rcw-client-backend-{environment}/SESIdentitySenderParameter')
-RECIPIENT_EMAIL = get_ssm_parameter(f'/rcw-client-backend-{environment}/SESRecipientParameter')
-ALLOW_ORIGIN = domain_name
+def get_environment() -> str:
+    """Retrieve the deployment environment, defaulting to 'dev' if not set."""
+    return os.environ.get("ENVIRONMENT", "dev")
+
+def get_user_pool_id() -> str:
+    """Retrieve Cognito User Pool ID from SSM."""
+    return get_ssm_parameter(f"/rcw-client-backend-{get_environment()}/COGNITO_USER_POOL_ID")
+
+def get_user_pool_client_id() -> str:
+    """Retrieve Cognito User Pool Client ID from SSM."""
+    return get_ssm_parameter(f"/rcw-client-backend-{get_environment()}/COGNITO_CLIENT_ID")
+
+def get_paypal_client_id() -> str:
+    """Retrieve PayPal Client ID from SSM."""
+    return get_ssm_parameter(f"/rcw-client-backend-{get_environment()}/PAYPAL_CLIENT_ID")
+
+def get_paypal_secret() -> str:
+    """Retrieve PayPal Secret from SSM."""
+    return get_ssm_parameter(f"/rcw-client-backend-{get_environment()}/PAYPAL_SECRET")
+
+def get_sender_email() -> str:
+    """Retrieve SES Sender Email from SSM."""
+    return get_ssm_parameter(f"/rcw-client-backend-{get_environment()}/SESIdentitySenderParameter")
+
+def get_recipient_email() -> str:
+    """Retrieve SES Recipient Email from SSM."""
+    return get_ssm_parameter(f"/rcw-client-backend-{get_environment()}/SESRecipientParameter")
+
+# ALLOW_ORIGIN = domain_name
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -113,7 +135,7 @@ def sign_up(password, email, first_name, last_name):
         return cors_response(400, {"message": "Email, password, first name, and last name are required"})
     try:
         client.sign_up(
-            ClientId=USER_POOL_CLIENT_ID,
+            ClientId=get_user_pool_client_id(),
             Username=email,
             Password=password,
             UserAttributes=[
@@ -169,7 +191,7 @@ def sign_up(password, email, first_name, last_name):
 def confirm_user(email):
     try:
         client.admin_confirm_sign_up(
-            UserPoolId=USER_POOL_ID,
+            UserPoolId=get_user_pool_id(),
             Username=email
         )
         return cors_response(200, {"message": "User confirmed successfully"})
@@ -260,7 +282,7 @@ def log_in(email, password):
         return cors_response(400, {"message": "Email and password are required"})
     try:
         response = client.initiate_auth(
-            ClientId=USER_POOL_CLIENT_ID,
+            ClientId=get_user_pool_client_id(),
             AuthFlow='USER_PASSWORD_AUTH',
             AuthParameters={
                 'USERNAME': email,
@@ -301,7 +323,7 @@ def log_in(email, password):
 def forgot_password(email):
     try:
         client.forgot_password(
-            ClientId=USER_POOL_CLIENT_ID,
+            ClientId=get_user_pool_client_id(),
             Username=email
         )
         return cors_response(200, {"message": "Password reset initiated. Check your email for the code."})
@@ -332,7 +354,7 @@ def forgot_password(email):
 def confirm_forgot_password(email, confirmation_code, new_password):
     try:
         client.confirm_forgot_password(
-            ClientId=USER_POOL_CLIENT_ID,
+            ClientId=get_user_pool_client_id(),
             Username=email,
             ConfirmationCode=confirmation_code,
             Password=new_password
@@ -377,7 +399,7 @@ def get_user(email):
         return cors_response(400, {"message": "Missing required 'email' query parameter"})
     try:
         response = client.admin_get_user(
-            UserPoolId=USER_POOL_ID,
+            UserPoolId=get_user_pool_id(),
             Username=email
         )
         user_attributes = {attr['Name']: attr['Value'] for attr in response['UserAttributes']}
@@ -411,12 +433,24 @@ def update_user(email, attribute_updates):
     if not attribute_updates:
         return cors_response(400, {"message": "Attribute updates are required"})
     try:
-        attributes = [{'Name': key, 'Value': value} for key, value in attribute_updates.items()]
-        client.admin_update_user_attributes(
-            UserPoolId=USER_POOL_ID,
-            Username=email,
-            UserAttributes=attributes
-        )
+        # Handle password update separately
+        if 'password' in attribute_updates:
+            new_password = attribute_updates.pop('password')
+            client.admin_set_user_password(
+                UserPoolId=get_user_pool_id(),
+                Username=email,
+                Password=new_password,
+                Permanent=True
+            )
+        
+        # Update remaining attributes, if any
+        if attribute_updates:
+            attributes = [{'Name': key, 'Value': value} for key, value in attribute_updates.items()]
+            client.admin_update_user_attributes(
+                UserPoolId=get_user_pool_id(),
+                Username=email,
+                UserAttributes=attributes
+            )
         return cors_response(200, {"message": "User attributes updated successfully"})
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
@@ -447,7 +481,7 @@ def delete_user(email):
         return cors_response(400, {"message": "Email is required"})
     try:
         client.admin_delete_user(
-            UserPoolId=USER_POOL_ID,
+            UserPoolId=get_user_pool_id(),
             Username=email
         )
         return cors_response(200, {"message": "User deleted successfully"})
@@ -474,8 +508,8 @@ def contact_us(first_name, email, message):
 
     try:
         ses.send_email(
-            Source=SENDER_EMAIL,
-            Destination={'ToAddresses': [RECIPIENT_EMAIL]},
+            Source=get_sender_email(),
+            Destination={'ToAddresses': [get_recipient_email()]},
             Message={
                 'Subject': {'Data': 'Contact Us Form Submission'},
                 'Body': {
@@ -519,7 +553,7 @@ def get_paypal_access_token():
     data = {
         "grant_type": "client_credentials"
     }
-    auth = (PAYPAL_CLIENT_ID, PAYPAL_SECRET)
+    auth = (get_paypal_client_id(), get_paypal_secret())
 
     try:
         response = requests.post(url, headers=headers, data=data, auth=auth, timeout=10)
