@@ -105,7 +105,6 @@ def lambda_handler(event, context):
             currency = body.get('currency', "USD")
             return create_paypal_order_route(amount, custom_id, currency)
         elif resource_path == "/create-paypal-subscription" and http_method == "POST":
-            user_name = body.get('user_name')
             return create_paypal_subscription_route(amount, custom_id)
         elif http_method == "OPTIONS":
             return cors_response(200, {"message": "CORS preflight successful"})
