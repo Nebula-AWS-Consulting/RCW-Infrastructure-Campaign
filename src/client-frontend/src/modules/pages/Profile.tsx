@@ -57,28 +57,14 @@ function Profile() {
       if (!response.ok) {
         const errorData = await response.json();
         throw {
-          message: errorData.message,
-          errorType: errorData.errorType,
-          status: response.status,
+          message: errorData.message
         };
       }
       const data = await response.json();
       return data.user_attributes;
     } catch (error: any) {
-      const userFriendlyMessages: { [key: string]: string } = {
-        UserNotFound: 'No user was found with this email. Please check and try again.',
-        InvalidParameter: 'The provided email format is incorrect. Please verify your input.',
-        TooManyRequests: 'You have made too many requests. Please wait a while before trying again.',
-        InternalServerError: 'An unexpected error occurred. Please try again later.',
-      };
-
-      const errorType = error.errorType || 'InternalServerError';
-      const message =
-        userFriendlyMessages[errorType] ||
-        error.message ||
-        'An unexpected error occurred. Please try again later.';
-      console.error('Error fetching user attributes:', error);
-      throw new Error(message);
+      const message = error.message || 'An unexpected error occurred. Please try again later.';
+      setSubmitError(message);
     }
   };
 
@@ -98,9 +84,7 @@ function Profile() {
       if (!response.ok) {
         const errorData = await response.json();
         throw {
-          message: errorData.message,
-          errorType: errorData.errorType,
-          status: response.status,
+          message: errorData.message
         };
       }
 
@@ -129,16 +113,7 @@ function Profile() {
 
       return data.access_token;
     } catch (error: any) {
-      const userFriendlyMessages: { [key: string]: string } = {
-        NotAuthorized: 'The email or password provided is incorrect. Please try again.',
-        UserNotFound: 'We could not find an account associated with this email address.',
-        InternalError: 'An unexpected error occurred while attempting to log in. Please try again later.',
-      };
-
-      const errorType = error.errorType || 'InternalError';
-      const message =
-        userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
-
+      const message = error.message || 'An unexpected error occurred. Please try again later.';
       setSubmitError(message);
     }
   };
@@ -167,25 +142,13 @@ function Profile() {
       if (!response.ok) {
         const errorData = await response.json();
         throw {
-          message: errorData.message,
-          errorType: errorData.errorType,
-          status: response.status,
+          message: errorData.message
         };
       }
       const data = await response.json();
       setSuccess(data.message);
     } catch (err: any) {
-      const userFriendlyMessages: { [key: string]: string } = {
-        UserNotFound: 'No user was found with the provided email address.',
-        InvalidParameter: 'One or more fields are invalid. Please check and try again.',
-        NotAuthorized: 'You are not authorized to update this user’s attributes.',
-        InternalError: 'An unexpected error occurred. Please try again later.',
-      };
-      const errorType = err.errorType || 'InternalError';
-      const message =
-        userFriendlyMessages[errorType] ||
-        err.message ||
-        'An unexpected error occurred. Please try again later.';
+      const message = err.message || 'An unexpected error occurred. Please try again later.';
       setSubmitError(message);
     }
   };
@@ -282,7 +245,6 @@ function Profile() {
         setUserAttributes(attrs);
       }
     } catch (err) {
-      console.error(err);
     }
   };
 

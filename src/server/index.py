@@ -147,44 +147,36 @@ def sign_up(password, email, first_name, last_name):
         return cors_response(200, {"message": "User signed up successfully"})
     except client.exceptions.UsernameExistsException:
         return cors_response(409, {
-            "message": "User already exists",
-            "errorType": "UserAlreadyExists"
+            "message": "User already exists"
         })
     except client.exceptions.AliasExistsException:
         return cors_response(409, {
-            "message": "A user with this email or phone number already exists.",
-            "errorType": "AliasExists"
+            "message": "A user with this email or phone number already exists."
         })
     except client.exceptions.InvalidPasswordException as e:
         return cors_response(400, {
-            "message": e.response['Error']['Message'],
-            "errorType": "InvalidPassword"
+            "message": e.response['Error']['Message']
         })
     except client.exceptions.InvalidParameterException as e:
         return cors_response(400, {
-            "message": e.response['Error']['Message'],
-            "errorType": "InvalidParameter"
+            "message": e.response['Error']['Message']
         })
     except client.exceptions.TooManyRequestsException:
         return cors_response(429, {
-            "message": "Too many requests. Please try again later.",
-            "errorType": "TooManyRequests"
+            "message": "Too many requests. Please try again later."
         })
     except client.exceptions.CodeDeliveryFailureException:
         return cors_response(500, {
-            "message": "Failed to send confirmation code. Please try again.",
-            "errorType": "CodeDeliveryFailure"
+            "message": "Failed to send confirmation code. Please try again."
         })
     except client.exceptions.UserLambdaValidationException as e:
         return cors_response(400, {
-            "message": e.response['Error']['Message'],
-            "errorType": "LambdaValidationFailed"
+            "message": e.response['Error']['Message']
         })
     except Exception as e:
         logger.error(f"Error in sign_up: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "An internal server error occurred",
-            "errorType": "InternalError"
+            "message": "An internal server error occurred"
         })
 
 # Confirm User
@@ -197,19 +189,16 @@ def confirm_user(email):
         return cors_response(200, {"message": "User confirmed successfully"})
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
-            "message": "We could not find a user with this email address.",
-            "errorType": "UserNotFound"
+            "message": "We could not find a user with this email address."
         })
     except client.exceptions.NotAuthorizedException:
         return cors_response(403, {
-            "message": "You do not have the necessary permissions to confirm this user.",
-            "errorType": "NotAuthorized"
+            "message": "You do not have the necessary permissions to confirm this user."
         })
     except Exception as e:
         logger.error(f"Error in confirm_user: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "Something went wrong while confirming the user. Please try again later.",
-            "errorType": "InternalError"
+            "message": "Something went wrong while confirming the user. Please try again later."
         })
 
 def confirm_email(access_token, confirmation_code):
@@ -222,29 +211,24 @@ def confirm_email(access_token, confirmation_code):
         return cors_response(200, {"message": "Email confirmed successfully."})
     except client.exceptions.CodeMismatchException:
         return cors_response(400, {
-            "message": "The confirmation code you entered is incorrect. Please check and try again.",
-            "errorType": "CodeMismatch"
+            "message": "The confirmation code you entered is incorrect. Please check and try again."
         })
     except client.exceptions.ExpiredCodeException:
         return cors_response(400, {
-            "message": "The confirmation code has expired. Please request a new code and try again.",
-            "errorType": "ExpiredCode"
+            "message": "The confirmation code has expired. Please request a new code and try again."
         })
     except client.exceptions.NotAuthorizedException:
         return cors_response(403, {
-            "message": "You are not authorized to perform this action. Please ensure you are logged in and try again.",
-            "errorType": "NotAuthorized"
+            "message": "You are not authorized to perform this action. Please ensure you are logged in and try again."
         })
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
-            "message": "We couldn't find a user associated with this request. Please check your details and try again.",
-            "errorType": "UserNotFound"
+            "message": "We couldn't find a user associated with this request. Please check your details and try again."
         })
     except Exception as e:
         logger.error(f"Error in confirm_email: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while confirming your email. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while confirming your email. Please try again later."
         })
 
 def confirm_email_resend(access_token):
@@ -256,24 +240,20 @@ def confirm_email_resend(access_token):
         return cors_response(200, {"message": "Verification code sent successfully."})
     except client.exceptions.LimitExceededException:
         return cors_response(429, {
-            "message": "You have exceeded the number of allowed attempts. Please wait before trying again.",
-            "errorType": "LimitExceeded"
+            "message": "You have exceeded the number of allowed attempts. Please wait before trying again."
         })
     except client.exceptions.NotAuthorizedException:
         return cors_response(403, {
-            "message": "You are not authorized to request a new verification code. Please log in and try again.",
-            "errorType": "NotAuthorized"
+            "message": "You are not authorized to request a new verification code. Please log in and try again."
         })
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
-            "message": "We could not find a user associated with this request. Please check your details and try again.",
-            "errorType": "UserNotFound"
+            "message": "We could not find a user associated with this request. Please check your details and try again."
         })
     except Exception as e:
         logger.error(f"Error in confirm_email_resend: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while trying to resend the verification code. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while trying to resend the verification code. Please try again later."
         })
 
 # User Log-In
@@ -304,19 +284,16 @@ def log_in(email, password):
         })
     except client.exceptions.NotAuthorizedException:
         return cors_response(401, {
-            "message": "The email or password provided is incorrect. Please try again.",
-            "errorType": "NotAuthorized"
+            "message": "The email or password provided is incorrect. Please try again."
         })
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
-            "message": "We couldn't find a user with this email address. Please check the email entered or sign up if you don't have an account.",
-            "errorType": "UserNotFound"
+            "message": "We couldn't find a user with this email address. Please check the email entered or sign up if you don't have an account."
         })
     except Exception as e:
         logger.error(f"Error in log_in: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while attempting to log in. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while attempting to log in. Please try again later."
         })
 
 # Forgot Password (Initiate)
@@ -329,25 +306,21 @@ def forgot_password(email):
         return cors_response(200, {"message": "Password reset initiated. Check your email for the code."})
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
-            "message": "We could not find an account associated with this email address.",
-            "errorType": "UserNotFound"
+            "message": "We could not find an account associated with this email address."
         })
     except client.exceptions.LimitExceededException:
         return cors_response(429, {
-            "message": "You have exceeded the number of allowed attempts. Please wait a while before trying again.",
-            "errorType": "LimitExceeded"
+            "message": "You have exceeded the number of allowed attempts. Please wait a while before trying again."
         })
     except client.exceptions.NotAuthorizedException as e:
         message = e.response['Error']['Message']
         return cors_response(403, {
-            "message": message,
-            "errorType": "NotAuthorized"
+            "message": message
         })
     except Exception as e:
         logger.error(f"Error in forgot_password: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while initiating the password reset. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while initiating the password reset. Please try again later."
         })
 
 # Confirm Forgot Password
@@ -362,35 +335,29 @@ def confirm_forgot_password(email, confirmation_code, new_password):
         return cors_response(200, {"message": "Password reset successfully."})
     except client.exceptions.CodeMismatchException:
         return cors_response(400, {
-            "message": "The confirmation code you entered is incorrect. Please check the code and try again.",
-            "errorType": "CodeMismatch"
+            "message": "The confirmation code you entered is incorrect. Please check the code and try again."
         })
     except client.exceptions.ExpiredCodeException:
         return cors_response(400, {
-            "message": "The confirmation code has expired. Please request a new code and try again.",
-            "errorType": "ExpiredCode"
+            "message": "The confirmation code has expired. Please request a new code and try again."
         })
     except client.exceptions.InvalidPasswordException as e:
         message = e.response['Error']['Message']
         return cors_response(400, {
-            "message": f"Your new password is invalid: {message}. Please ensure it meets the required criteria.",
-            "errorType": "InvalidPassword"
+            "message": f"Your new password is invalid: {message}. Please ensure it meets the required criteria."
         })
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
-            "message": "We could not find an account associated with this email address. Please check your details.",
-            "errorType": "UserNotFound"
+            "message": "We could not find an account associated with this email address. Please check your details."
         })
     except client.exceptions.LimitExceededException:
         return cors_response(429, {
-            "message": "You have made too many attempts. Please wait a while before trying again.",
-            "errorType": "LimitExceeded"
+            "message": "You have made too many attempts. Please wait a while before trying again."
         })
     except Exception as e:
         logger.error(f"Error in confirm_forgot_password: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while resetting your password. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while resetting your password. Please try again later."
         })
 
 # Get User Data
@@ -406,24 +373,20 @@ def get_user(email):
         return cors_response(200, {"message": "User data retrieved successfully", "user_attributes": user_attributes})
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
-            "message": "The requested user could not be found. Please check the provided details and try again.",
-            "errorType": "UserNotFound"
+            "message": "The requested user could not be found. Please check the provided details and try again."
         })
     except client.exceptions.InvalidParameterException:
         return cors_response(400, {
-            "message": "The input parameters are invalid. Please verify the information and try again.",
-            "errorType": "InvalidParameter"
+            "message": "The input parameters are invalid. Please verify the information and try again."
         })
     except client.exceptions.TooManyRequestsException:
         return cors_response(429, {
-            "message": "Too many requests have been made in a short period. Please wait a while before retrying.",
-            "errorType": "TooManyRequests"
+            "message": "Too many requests have been made in a short period. Please wait a while before retrying."
         })
     except Exception as e:
         logger.error(f"Unexpected error in get_user: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while retrieving the user. Please try again later.",
-            "errorType": "InternalServerError"
+            "message": "An unexpected error occurred while retrieving the user. Please try again later."
         })
 
 # Update User Attributes
@@ -454,25 +417,27 @@ def update_user(email, attribute_updates):
         return cors_response(200, {"message": "User attributes updated successfully"})
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
-            "message": "No user was found with the provided email address.",
-            "errorType": "UserNotFound"
+            "message": "No user was found with the provided email address."
         })
     except client.exceptions.InvalidParameterException as e:
         message = e.response['Error']['Message']
         return cors_response(400, {
-            "message": f"Invalid parameter: {message}. Please verify your input and try again.",
-            "errorType": "InvalidParameter"
+            "message": f"Invalid parameter: {message}. Please verify your input and try again."
+        })
+    except client.exceptions.InvalidPasswordException as e:
+        # This exception is specifically raised when the password doesn't meet the policy.
+        message = e.response['Error']['Message']
+        return cors_response(400, {
+            "message": f"Invalid password: {message}. Please verify your input and try again."
         })
     except client.exceptions.NotAuthorizedException:
         return cors_response(403, {
-            "message": "You are not authorized to update this user's attributes. Please check your permissions.",
-            "errorType": "NotAuthorized"
+            "message": "You are not authorized to update this user's attributes. Please check your permissions."
         })
     except Exception as e:
         logger.error(f"Unexpected error in update_user: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while updating the user attributes. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while updating the user attributes. Please try again later."
         })
 
 # Delete User
@@ -487,19 +452,16 @@ def delete_user(email):
         return cors_response(200, {"message": "User deleted successfully"})
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
-            "message": "No user was found with the provided email address. Please check and try again.",
-            "errorType": "UserNotFound"
+            "message": "No user was found with the provided email address. Please check and try again."
         })
     except client.exceptions.NotAuthorizedException:
         return cors_response(403, {
-            "message": "You are not authorized to delete this user. Please check your permissions.",
-            "errorType": "NotAuthorized"
+            "message": "You are not authorized to delete this user. Please check your permissions."
         })
     except Exception as e:
         logger.error(f"Unexpected error in delete_user: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while attempting to delete the user. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while attempting to delete the user. Please try again later."
         })
 
 def contact_us(first_name, email, message):
@@ -521,26 +483,22 @@ def contact_us(first_name, email, message):
     except ses.exceptions.MessageRejected as e:
         logger.error(f"Message rejected: {str(e)}", exc_info=True)
         return cors_response(400, {
-            "message": "The email message was rejected. Please ensure the provided email address is valid.",
-            "errorType": "MessageRejected"
+            "message": "The email message was rejected. Please ensure the provided email address is valid."
         })
     except ses.exceptions.MailFromDomainNotVerifiedException as e:
         logger.error(f"Email address not verified: {str(e)}", exc_info=True)
         return cors_response(400, {
-            "message": "The sender's email address has not been verified. Please contact support for assistance.",
-            "errorType": "EmailNotVerified"
+            "message": "The sender's email address has not been verified. Please contact support for assistance."
         })
     except ses.exceptions.ConfigurationSetDoesNotExistException as e:
         logger.error(f"Configuration set issue: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "There was a configuration issue with the email service. Please try again later.",
-            "errorType": "ConfigurationError"
+            "message": "There was a configuration issue with the email service. Please try again later."
         })
     except Exception as e:
         logger.error(f"Unhandled error in contact_us: {str(e)}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while sending your message. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while sending your message. Please try again later."
         })
 
 # Get Paypal Access Token

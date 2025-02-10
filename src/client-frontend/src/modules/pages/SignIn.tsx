@@ -63,9 +63,7 @@ function SignIn() {
       if (!response.ok) {
         const errorData = await response.json();
         throw { 
-          message: errorData.message, 
-          errorType: errorData.errorType, 
-          status: response.status 
+          message: errorData.message
         };
       }
     
@@ -97,16 +95,7 @@ function SignIn() {
 
       navigate('/');
     } catch (error: any) {
-        const userFriendlyMessages: { [key: string]: string } = {
-          NotAuthorized: 'The email or password provided is incorrect. Please try again.',
-          InvalidParameter: 'One or more fields are invalid. Please check and try again.',
-          UserNotFound: 'We could not find an account associated with this email address.',
-          TooManyRequests: 'You have made too many requests. Please wait and try again later.',
-          InternalError: 'An unexpected error occurred while attempting to log in. Please try again later.',
-      };
-        const errorType = error.errorType || 'InternalError';
-        const message = userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
-      
+        const message = error.message || 'An unexpected error occurred. Please try again later.';
         setSubmitError(message);
   } finally {
       setSent(false);
@@ -127,9 +116,7 @@ const getUserUsername = async (email:string) => {
   if (!response.ok) {
     const errorData = await response.json();
     throw { 
-      message: errorData.message, 
-      errorType: errorData.errorType, 
-      status: response.status 
+      message: errorData.message
     };
   }
 
