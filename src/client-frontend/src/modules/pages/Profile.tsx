@@ -144,7 +144,10 @@ function Profile() {
   };
 
   // Update user attribute on the server
-  const updateUserAttribute = async (attributeName: string, attributeValue: string) => {
+  const updateUserAttribute = async (
+    attributeName: string,
+    attributeValue: string
+  ) => {
     const cognitoAttribute = ATTRIBUTE_MAP[attributeName as UserAttribute];
     if (!cognitoAttribute) {
       console.error(`Invalid attribute name: ${attributeName}`);
@@ -170,8 +173,6 @@ function Profile() {
         };
       }
       const data = await response.json();
-
-      await loginUser(userEmail, values.currentPassword, currentUser?.user_name || '');
       setSuccess(data.message);
     } catch (err: any) {
       const userFriendlyMessages: { [key: string]: string } = {
@@ -270,6 +271,7 @@ function Profile() {
         await updateUserAttribute('lastName', values.lastName);
       } else if (updateType === 'email') {
         await updateUserAttribute('email', values.email);
+        await loginUser(values.email, values.currentPassword, currentUser?.user_name || '');
       } else if (updateType === 'password') {
         await updateUserAttribute('password', values.password);
       }
@@ -282,7 +284,7 @@ function Profile() {
     } catch (err) {
       console.error(err);
     }
-  };  
+  };
 
   // Create a Transition component using Slide
   const Transition = React.forwardRef(function Transition(
