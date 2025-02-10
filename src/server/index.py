@@ -131,53 +131,71 @@ def cors_response(status_code, body):
 
 # User Sign-Up
 def sign_up(password, email, first_name, last_name):
+    # Ensure all required parameters are provided.
+    # If any of the parameters (email, password, first name, or last name) is missing,
+    # return a 400 (Bad Request) response with an appropriate error message.
     if not all([email, password, first_name, last_name]):
         return cors_response(400, {"message": "Email, password, first name, and last name are required"})
+    
     try:
+        # Attempt to register a new user with Cognito using the provided parameters.
+        # The sign_up API call uses the following:
+        # - ClientId: Retrieved from a helper function that provides your Cognito User Pool Client ID.
+        # - Username: The user's email is used as the username.
+        # - Password: The provided password.
+        # - UserAttributes: A list of attributes to be associated with the user,
+        #   including the email and custom attributes for first and last name.
         client.sign_up(
             ClientId=get_user_pool_client_id(),
             Username=email,
             Password=password,
             UserAttributes=[
-                {'Name': 'email', 'Value': email},
-                {'Name': 'custom:firstName', 'Value': first_name},
-                {'Name': 'custom:lastName', 'Value': last_name}
+                {'Name': 'email', 'Value': email},                     # Standard email attribute.
+                {'Name': 'custom:firstName', 'Value': first_name},       # Custom attribute for first name.
+                {'Name': 'custom:lastName', 'Value': last_name}          # Custom attribute for last name.
             ]
         )
+        # If the sign-up process completes successfully, return a 200 (OK) response.
         return cors_response(200, {"message": "User signed up successfully"})
+    
+    # Handle the case where the username already exists in Cognito.
     except client.exceptions.UsernameExistsException:
-        return cors_response(409, {
-            "message": "User already exists"
-        })
+        # Return a 409 (Conflict) response indicating that the user already exists.
+        return cors_response(409, {"message": "User already exists"})
+    
+    # Handle the case where an alias (like email or phone number) already exists.
     except client.exceptions.AliasExistsException:
-        return cors_response(409, {
-            "message": "A user with this email or phone number already exists."
-        })
-    except client.exceptions.InvalidPasswordException as e:
-        return cors_response(400, {
-            "message": e.response['Error']['Message']
-        })
-    except client.exceptions.InvalidParameterException as e:
-        return cors_response(400, {
-            "message": e.response['Error']['Message']
-        })
+        # Return a 409 (Conflict) response with a message about duplicate email or phone number.
+        return cors_response(409, {"message": "A user with this email or phone number already exists."})
+    
+    # Group together exceptions that indicate invalid input.
+    # These exceptions include:
+    # - InvalidPasswordException: Password does not meet the policy requirements.
+    # - InvalidParameterException: One or more parameters are invalid.
+    # - UserLambdaValidationException: A custom validation (Lambda trigger) failed.
+    except (client.exceptions.InvalidPasswordException,
+            client.exceptions.InvalidParameterException,
+            client.exceptions.UserLambdaValidationException) as e:
+        # Return a 400 (Bad Request) response with the detailed error message from Cognito.
+        return cors_response(400, {"message": e.response['Error']['Message']})
+    
+    # Handle the case where too many requests have been made in a short period.
     except client.exceptions.TooManyRequestsException:
-        return cors_response(429, {
-            "message": "Too many requests. Please try again later."
-        })
+        # Return a 429 (Too Many Requests) response advising the client to try again later.
+        return cors_response(429, {"message": "Too many requests. Please try again later."})
+    
+    # Handle the case where Cognito fails to deliver the confirmation code to the user.
     except client.exceptions.CodeDeliveryFailureException:
-        return cors_response(500, {
-            "message": "Failed to send confirmation code. Please try again."
-        })
-    except client.exceptions.UserLambdaValidationException as e:
-        return cors_response(400, {
-            "message": e.response['Error']['Message']
-        })
+        # Return a 500 (Internal Server Error) response as this is considered a service-side issue.
+        return cors_response(500, {"message": "Failed to send confirmation code. Please try again."})
+    
+    # Catch any unexpected exceptions that were not explicitly handled.
     except Exception as e:
+        # Log the error details for further debugging.
         logger.error(f"Error in sign_up: {str(e)}", exc_info=True)
-        return cors_response(500, {
-            "message": "An internal server error occurred"
-        })
+        # Return a generic 500 (Internal Server Error) response.
+        return cors_response(500, {"message": "An internal server error occurred"})
+
 
 # Confirm User
 def confirm_user(email):
@@ -370,7 +388,15 @@ def get_user(email):
             Username=email
         )
         user_attributes = {attr['Name']: attr['Value'] for attr in response['UserAttributes']}
-        return cors_response(200, {"message": "User data retrieved successfully", "user_attributes": user_attributes})
+
+        email_verified_str = user_attributes.get("email_verified", "false")
+        email_verified = email_verified_str.lower() == "true"
+
+        return cors_response(200, {
+            "message": "User data retrieved successfully",
+            "user_attributes": user_attributes,
+            "email_verified": email_verified
+        })
     except client.exceptions.UserNotFoundException:
         return cors_response(404, {
             "message": "The requested user could not be found. Please check the provided details and try again."
