@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AppAppBar from '../views/AppAppBar';
 import AppFooter from '../views/AppFooter';
+import LoadingScreen from '../views/LoadingScreen.tsx';
 import withRoot from '../withRoot';
 import Box from '@mui/material/Box';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -306,7 +307,7 @@ function Profile() {
   });
 
   if (loading) {
-    return <Typography>Loading...</Typography>;
+    return <LoadingScreen />;
   }
 
   return (
