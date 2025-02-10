@@ -3,6 +3,7 @@ import AppAppBar from '../views/AppAppBar';
 import AppFooter from '../views/AppFooter';
 import withRoot from '../withRoot';
 import Box from '@mui/material/Box';
+import CheckIcon from '@mui/icons-material/Check';
 import Typography from '../components/Typography';
 import Button from '../components/Button';
 import { SERVER } from '../../App';
@@ -38,6 +39,8 @@ function Profile() {
   const dispatch = useDispatch()
   const userEmail = useSelector((state: RootState) => state.userAuthAndInfo.user?.email);
   const [userAttributes, setUserAttributes] = useState<{ [key: string]: string } | null>(null);
+  const [userEmailVerified, setUserEmailVerified] = useState(true)
+  const [loading, setLoading] = useState(true);
   const [submitError, setSubmitError] = useState('');
   const [success, setSuccess] = useState('');
   const currentUser = useSelector((state: RootState) => state.userAuthAndInfo.user);
@@ -156,7 +159,17 @@ function Profile() {
   useEffect(() => {
     if (userEmail) {
       fetchUserAttributes(userEmail)
-        .then(setUserAttributes)
+        .then((attributes) => {
+          if (attributes) {
+            setUserAttributes(attributes);
+            // Check if email_verified attribute exists and if it equals "true"
+            const verified =
+              attributes.email_verified &&
+              attributes.email_verified.toLowerCase() === 'true';
+            setUserEmailVerified(verified);
+          }
+          setLoading(false);
+        })
         .catch((err) => setSubmitError(err.message));
     }
   }, [userEmail]);
@@ -256,6 +269,10 @@ function Profile() {
     return <Slide direction="up" ref={ref} {...props} />;
   });
 
+  if (loading) {
+    return <Typography>Loading...</Typography>;
+  }
+
   return (
     <React.Fragment>
       <AppAppBar />
@@ -300,7 +317,16 @@ function Profile() {
               marginBottom: '20px',
             }}
           >
-            <Typography>{userAttributes?.email}</Typography>
+            <Typography sx={{display: 'flex'}}>
+              {userAttributes?.email}
+              {userEmailVerified ? (
+                <Typography>verify</Typography>
+              ) : (
+                <Box marginLeft={'0.5rem'}>
+                  <CheckIcon />
+                </Box>
+              )}
+              </Typography>
             <Button onClick={openEmailModal}>Change Email</Button>
           </Box>
           {/* Password Row */}
