@@ -3,7 +3,7 @@ import AppAppBar from '../views/AppAppBar';
 import AppFooter from '../views/AppFooter';
 import withRoot from '../withRoot';
 import Box from '@mui/material/Box';
-import CheckIcon from '@mui/icons-material/Check';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Typography from '../components/Typography';
 import Button from '../components/Button';
 import { SERVER } from '../../App';
@@ -23,6 +23,7 @@ import { Form, Field } from 'react-final-form';
 import { email as emailValidator } from '../form/validation';
 import FormFeedback from '../form/FormFeedback.tsx';
 import { setLogin } from '../ducks/userSlice.ts';
+import { Link } from 'react-router-dom';
 
 // 1. Update the type to include firstName and lastName:
 type UserAttribute = 'firstName' | 'lastName' | 'email' | 'password';
@@ -156,6 +157,40 @@ function Profile() {
     }
   };
 
+  const sendCode = async (userAccessToken: string | null) => {
+    if (!userAccessToken) {
+      setSubmitError('Unable to send verification code. User is not logged in.');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${SERVER}/confirm-email-resend`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            access_token: userAccessToken,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw {
+          message: errorData.message
+        };
+      }
+
+      await response.json();
+    } catch (error: any) {
+      const message = error.message || 'An unexpected error occurred. Please try again later.';
+      setSubmitError(message);
+  }
+  };
+
   useEffect(() => {
     if (userEmail) {
       fetchUserAttributes(userEmail)
@@ -236,7 +271,7 @@ function Profile() {
       }
     }
     return errors;
-  };  
+  };
 
   // Handle form submission from React Final Form
   const onSubmit = async (values: { [key: string]: string }) => {
@@ -247,7 +282,8 @@ function Profile() {
         await updateUserAttribute('lastName', values.lastName);
       } else if (updateType === 'email') {
         await updateUserAttribute('email', values.email);
-        await loginUser(values.email, values.currentPassword, currentUser?.user_name || '');
+        const accessToken = await loginUser(values.email, values.currentPassword, currentUser?.user_name || '');
+        await sendCode(accessToken)
       } else if (updateType === 'password') {
         await updateUserAttribute('password', values.password);
       }
@@ -299,7 +335,7 @@ function Profile() {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '20px',
+              marginBottom: '20px'
             }}
           >
             <Typography>
@@ -320,11 +356,13 @@ function Profile() {
             <Typography sx={{display: 'flex'}}>
               {userAttributes?.email}
               {userEmailVerified ? (
-                <Typography>verify</Typography>
-              ) : (
                 <Box marginLeft={'0.5rem'}>
-                  <CheckIcon />
+                  <CheckCircleIcon fontSize='small'/>
                 </Box>
+              ) : (
+                <Link to='/auth/verify'>
+                  <Typography sx={{marginX: '0.5rem', textDecoration: 'underline', cursor: 'pointer'}} >verify</Typography>
+                </Link>
               )}
               </Typography>
             <Button onClick={openEmailModal}>Change Email</Button>
