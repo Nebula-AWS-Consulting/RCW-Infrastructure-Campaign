@@ -80,7 +80,7 @@ def lambda_handler(event, context):
         custom_id = body.get('custom_id') if http_method != 'GET' else None
         amount = body.get('amount') if http_method != 'GET' else None
         currency = body.get('currency', "USD") if http_method == "POST" and resource_path in ["/create-paypal-order", "/create-paypal-subscription"] else None
-        
+
         # Route handler map
         route_map = {
             ("/signup", "POST"): lambda: sign_up(password, email, first_name, last_name),
