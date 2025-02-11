@@ -1,6 +1,5 @@
 image: gitpod/workspace-full
 
-# (Optional) If you prefer to define them in Gitpod → Variables, remove these lines:
 env:
   AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
   AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
@@ -52,4 +51,3 @@ tasks:
 # aws_secret_access_key=YOUR_SECRET_HERE
 
 ## Sometimes you'll have to reinstall the aws cli and set the ~/.aws files
-
