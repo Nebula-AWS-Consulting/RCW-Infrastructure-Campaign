@@ -57,28 +57,14 @@ function ConfirmNewPassword() {
             if (!response.ok) {
               const errorData = await response.json();
               throw { 
-                message: errorData.message, 
-                errorType: errorData.errorType, 
-                status: response.status 
+                message: errorData.message
               };
             }
         
             await response.json();
             navigate('/auth/signin')
           } catch (error: any) {
-              const userFriendlyMessages: { [key: string]: string } = {
-                CodeMismatch: 'The confirmation code is incorrect. Please try again.',
-                ExpiredCode: 'The confirmation code has expired. Please request a new one.',
-                InvalidPassword: 'The new password does not meet the required criteria. Please try again.',
-                UserNotFound: 'We could not find an account associated with this email address. Please check and try again.',
-                LimitExceeded: 'Too many attempts have been made. Please wait a while before trying again.',
-                InternalError: 'An unexpected error occurred. Please try again later.',
-              };
-          
-              const errorType = error.errorType || 'InternalError';
-              const message =
-                userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
-          
+              const message = error.message || 'An unexpected error occurred. Please try again later.';
               setSubmitError(message);
           } finally {
             setSent(false);

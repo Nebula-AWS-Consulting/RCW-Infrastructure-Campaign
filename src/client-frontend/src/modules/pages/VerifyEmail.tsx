@@ -57,26 +57,14 @@ function VerifyEmail() {
       if (!response.ok) {
         const errorData = await response.json();
         throw { 
-          message: errorData.message, 
-          errorType: errorData.errorType, 
-          status: response.status 
+          message: errorData.message
         };
       }
   
       await response.json();
       navigate('/auth/created');
     } catch (error: any) {
-        const userFriendlyMessages: { [key: string]: string } = {
-            CodeMismatch: 'The confirmation code you entered is incorrect. Please try again.',
-            ExpiredCode: 'The confirmation code has expired. Please request a new one and try again.',
-            NotAuthorized: 'You are not authorized to confirm this email. Please log in and try again.',
-            UserNotFound: 'We could not find an account associated with this request. Please verify your details.',
-            InternalError: 'An unexpected error occurred. Please try again later.'
-        };
-    
-        const errorType = error.errorType || 'InternalError';
-        const message = userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
-    
+        const message = error.message || 'An unexpected error occurred. Please try again later.';
         setSubmitError(message);
   } finally {
       setSent(false);
@@ -101,22 +89,13 @@ function VerifyEmail() {
       if (!response.ok) {
         const errorData = await response.json();
         throw { 
-          message: errorData.message, 
-          errorType: errorData.errorType, 
-          status: response.status 
+          message: errorData.message
         };
       }
 
       await response.json();
     } catch (error: any) {
-      const userFriendlyMessages: { [key: string]: string } = {
-          LimitExceeded: 'You have reached the maximum number of attempts. Please wait a while before trying again.',
-          NotAuthorized: 'You are not authorized to request a new verification code. Please log in and try again.',
-          UserNotFound: 'We could not find an account associated with this request. Please verify your details.',
-          InternalError: 'An unexpected error occurred. Please try again later.'
-      };
-      const errorType = error.errorType || 'InternalError';
-      const message = userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+      const message = error.message || 'An unexpected error occurred. Please try again later.';
   
       setSubmitError(message);
   } finally {
