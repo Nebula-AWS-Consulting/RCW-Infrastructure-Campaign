@@ -86,7 +86,7 @@ def mock_ses_client():
             "Test message",
             "MessageRejected",
             400,
-            {"errorType": "MessageRejected"}
+            {"message": "MessageRejected"}
         ),
         # 4) MailFromDomainNotVerifiedException => 400
         (
@@ -95,7 +95,7 @@ def mock_ses_client():
             "Another test message",
             "MailFromDomainNotVerifiedException",
             400,
-            {"errorType": "EmailNotVerified"}
+            {"message": "EmailNotVerified"}
         ),
         # 5) ConfigurationSetDoesNotExistException => 500
         (
@@ -104,7 +104,7 @@ def mock_ses_client():
             "Configuration set error",
             "ConfigurationSetDoesNotExistException",
             500,
-            {"errorType": "ConfigurationError"}
+            {"message": "ConfigurationError"}
         )
     ]
 )

@@ -45,7 +45,7 @@ def mock_ssm_and_cognito():
             "UserNotFoundException",
             None,  # No special message needed
             404,
-            {"errorType": "UserNotFound"}
+            {"message": "UserNotFound"}
         ),
         # 3) Limit exceeded => 429
         (
@@ -53,7 +53,7 @@ def mock_ssm_and_cognito():
             "LimitExceededException",
             None,
             429,
-            {"errorType": "LimitExceeded"}
+            {"message": "LimitExceeded"}
         ),
         # 4) Not authorized => 403, code references e.response['Error']['Message']
         (
@@ -61,7 +61,7 @@ def mock_ssm_and_cognito():
             "NotAuthorizedException",
             "User is disabled.",  # Example custom message from Cognito
             403,
-            {"errorType": "NotAuthorized"}
+            {"message": "NotAuthorized"}
         )
     ]
 )

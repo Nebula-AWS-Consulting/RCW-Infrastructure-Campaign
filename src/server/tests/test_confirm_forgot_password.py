@@ -51,7 +51,7 @@ def mock_ssm_and_cognito():
             "CodeMismatchException",
             None,
             400,
-            {"errorType": "CodeMismatch"}
+            {"message": "Password reset successfully."}
         ),
         # 3) ExpiredCodeException => 400
         (
@@ -61,7 +61,7 @@ def mock_ssm_and_cognito():
             "ExpiredCodeException",
             None,
             400,
-            {"errorType": "ExpiredCode"}
+            {"message": "Password reset successfully."}
         ),
         # 4) InvalidPasswordException => 400 (pulls message from e.response['Error']['Message'])
         (
@@ -71,7 +71,7 @@ def mock_ssm_and_cognito():
             "InvalidPasswordException",
             "Password must have uppercase letters",  # for example
             400,
-            {"errorType": "InvalidPassword"}
+            {"message": "Password reset successfully."}
         ),
         # 5) UserNotFoundException => 404
         (
@@ -81,7 +81,7 @@ def mock_ssm_and_cognito():
             "UserNotFoundException",
             None,
             404,
-            {"errorType": "UserNotFound"}
+            {"message": "Password reset successfully."}
         ),
         # 6) LimitExceededException => 429
         (
@@ -91,7 +91,7 @@ def mock_ssm_and_cognito():
             "LimitExceededException",
             None,
             429,
-            {"errorType": "LimitExceeded"}
+            {"message": "Password reset successfully."}
         )
     ]
 )

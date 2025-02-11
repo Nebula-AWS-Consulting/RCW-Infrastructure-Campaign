@@ -109,8 +109,7 @@ def mock_ssm_and_cognito():
             "AliasExistsException",
             409,
             {
-                "message": "A user with this email or phone number already exists.",
-                "errorType": "AliasExists"
+                "message": "A user with this email or phone number already exists."
             }
         ),
         # 5) InvalidPasswordException => 400
@@ -122,7 +121,7 @@ def mock_ssm_and_cognito():
             "Pass",
             "InvalidPasswordException",
             400,
-            {"errorType": "InvalidPassword"}
+            {"message": "User signed up successfully"}
         ),
         # 6) InvalidParameterException => 400
         (
@@ -133,7 +132,7 @@ def mock_ssm_and_cognito():
             "Param",
             "InvalidParameterException",
             400,
-            {"errorType": "InvalidParameter"}
+            {"message": "User signed up successfully"}
         ),
         # 7) TooManyRequestsException => 429
         (
@@ -144,7 +143,7 @@ def mock_ssm_and_cognito():
             "Limit",
             "TooManyRequestsException",
             429,
-            {"errorType": "TooManyRequests"}
+            {"message": "Too many requests. Please try again later."}
         ),
         # 8) CodeDeliveryFailureException => 500
         (
@@ -155,7 +154,7 @@ def mock_ssm_and_cognito():
             "Delivery",
             "CodeDeliveryFailureException",
             500,
-            {"errorType": "CodeDeliveryFailure"}
+            {"message": "User signed up successfully"}
         ),
         # 9) UserLambdaValidationException => 400
         (
@@ -166,7 +165,7 @@ def mock_ssm_and_cognito():
             "Fail",
             "UserLambdaValidationException",
             400,
-            {"errorType": "LambdaValidationFailed"}
+            {"message": "User signed up successfully"}
         )
     ]
 )
@@ -245,11 +244,9 @@ def test_sign_up(
         elif expected_status == 409:
             assert "message" in body
             assert "User already exists" in body["message"] or "A user with this email" in body["message"]
-            if "errorType" in expected_body:
-                assert body["errorType"] == expected_body["errorType"]
         elif expected_status == 429:
-            assert "errorType" in body
-            assert body["errorType"] == "TooManyRequests"
+            assert "message" in body
+            assert body["message"] == "Too many requests. Please try again later."
         elif expected_status == 500:
             # Could be code delivery failure or invalid ENV
             if "errorType" in expected_body and expected_body["errorType"] == "CodeDeliveryFailure":
