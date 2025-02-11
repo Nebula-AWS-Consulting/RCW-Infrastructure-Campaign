@@ -54,9 +54,7 @@ function ForgotPassword() {
         if (!response.ok) {
           const errorData = await response.json();
           throw { 
-            message: errorData.message, 
-            errorType: errorData.errorType, 
-            status: response.status 
+            message: errorData.message
           };
         }
     
@@ -64,17 +62,7 @@ function ForgotPassword() {
         await response.json();
         navigate('/auth/confirmpassword')
       } catch (error: any) {
-          const userFriendlyMessages: { [key: string]: string } = {
-            UserNotFound: 'We could not find an account associated with this email address. Please check your details.',
-            LimitExceeded: 'You have reached the maximum number of attempts. Please wait a while before trying again.',
-            NotAuthorized: 'You are not authorized to reset the password for this account. Please contact support.',
-            InternalError: 'An unexpected error occurred. Please try again later.',
-          };
-      
-          const errorType = error.errorType || 'InternalError';
-          const message =
-            userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
-      
+          const message = error.message || 'An unexpected error occurred. Please try again later.';
           setSubmitError(message);
       } finally {
         setSent(false);
