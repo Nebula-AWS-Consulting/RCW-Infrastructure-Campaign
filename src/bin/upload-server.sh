@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## Run this in the server directory
+
 # Define file paths and S3 bucket locations
 ZIP_FILE_SERVER="function.zip"
 ZIP_FILE_LAYER="dependencies.zip"

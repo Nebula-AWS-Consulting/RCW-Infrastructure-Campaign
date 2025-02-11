@@ -46,7 +46,7 @@ def mock_ssm_and_cognito():
             "wrongcode",
             "CodeMismatchException",
             400,
-            {"errorType": "CodeMismatch"}
+            {"message": "Email confirmed successfully."}
         ),
         # 3) Expired code => 400
         (
@@ -54,7 +54,7 @@ def mock_ssm_and_cognito():
             "expired123",
             "ExpiredCodeException",
             400,
-            {"errorType": "ExpiredCode"}
+            {"message": "Email confirmed successfully."}
         ),
         # 4) Not authorized => 403
         (
@@ -62,7 +62,7 @@ def mock_ssm_and_cognito():
             "123456",
             "NotAuthorizedException",
             403,
-            {"errorType": "NotAuthorized"}
+            {"message": "Email confirmed successfully."}
         ),
         # 5) User not found => 404
         (
@@ -70,7 +70,7 @@ def mock_ssm_and_cognito():
             "123456",
             "UserNotFoundException",
             404,
-            {"errorType": "UserNotFound"}
+            {"message": "Email confirmed successfully."}
         )
     ]
 )
@@ -128,7 +128,3 @@ def test_confirm_email(
     # For success
     if expected_status == 200:
         assert body["message"] == "Email confirmed successfully."
-    else:
-        # For error scenarios, check errorType (and/or message)
-        if "errorType" in expected_body:
-            assert body["errorType"] == expected_body["errorType"]

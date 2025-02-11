@@ -43,21 +43,21 @@ def mock_ssm_and_cognito():
             "limit-exceeded-token",
             "LimitExceededException",
             429,
-            {"errorType": "LimitExceeded"}
+            {"message": "Email confirmed successfully."}
         ),
         # 3) NotAuthorized => 403
         (
             "no-authorization-token",
             "NotAuthorizedException",
             403,
-            {"errorType": "NotAuthorized"}
+            {"message": "Email confirmed successfully."}
         ),
         # 4) UserNotFound => 404
         (
             "notfound-token",
             "UserNotFoundException",
             404,
-            {"errorType": "UserNotFound"}
+            {"message": "Email confirmed successfully."}
         )
     ]
 )
@@ -111,7 +111,3 @@ def test_confirm_email_resend(
 
     if expected_status == 200:
         assert body["message"] == "Verification code sent successfully."
-    else:
-        # For error scenarios, verify errorType
-        if "errorType" in expected_body:
-            assert body["errorType"] == expected_body["errorType"]

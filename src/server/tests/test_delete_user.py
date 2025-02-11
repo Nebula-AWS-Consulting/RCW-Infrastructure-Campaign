@@ -49,14 +49,14 @@ def mock_ssm_and_cognito():
             "notfound@example.com",
             "UserNotFoundException",
             404,
-            {"errorType": "UserNotFound"}
+            {"message": "UserNotFound"}
         ),
         # 4) Not authorized => 403
         (
             "noauth@example.com",
             "NotAuthorizedException",
             403,
-            {"errorType": "NotAuthorized"}
+            {"message": "NotAuthorized"}
         )
     ]
 )

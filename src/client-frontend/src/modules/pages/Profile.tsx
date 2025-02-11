@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import AppAppBar from '../views/AppAppBar';
 import AppFooter from '../views/AppFooter';
+import LoadingScreen from '../views/LoadingScreen.tsx';
 import withRoot from '../withRoot';
 import Box from '@mui/material/Box';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Typography from '../components/Typography';
 import Button from '../components/Button';
 import { SERVER } from '../../App';
@@ -14,14 +16,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Slide,
-  SlideProps,
   TextField
 } from '@mui/material';
 import { Form, Field } from 'react-final-form';
 import { email as emailValidator } from '../form/validation';
 import FormFeedback from '../form/FormFeedback.tsx';
 import { setLogin } from '../ducks/userSlice.ts';
+import { Link } from 'react-router-dom';
 
 // 1. Update the type to include firstName and lastName:
 type UserAttribute = 'firstName' | 'lastName' | 'email' | 'password';
@@ -38,6 +39,8 @@ function Profile() {
   const dispatch = useDispatch()
   const userEmail = useSelector((state: RootState) => state.userAuthAndInfo.user?.email);
   const [userAttributes, setUserAttributes] = useState<{ [key: string]: string } | null>(null);
+  const [userEmailVerified, setUserEmailVerified] = useState(true)
+  const [loading, setLoading] = useState(true);
   const [submitError, setSubmitError] = useState('');
   const [success, setSuccess] = useState('');
   const currentUser = useSelector((state: RootState) => state.userAuthAndInfo.user);
@@ -57,28 +60,14 @@ function Profile() {
       if (!response.ok) {
         const errorData = await response.json();
         throw {
-          message: errorData.message,
-          errorType: errorData.errorType,
-          status: response.status,
+          message: errorData.message
         };
       }
       const data = await response.json();
       return data.user_attributes;
     } catch (error: any) {
-      const userFriendlyMessages: { [key: string]: string } = {
-        UserNotFound: 'No user was found with this email. Please check and try again.',
-        InvalidParameter: 'The provided email format is incorrect. Please verify your input.',
-        TooManyRequests: 'You have made too many requests. Please wait a while before trying again.',
-        InternalServerError: 'An unexpected error occurred. Please try again later.',
-      };
-
-      const errorType = error.errorType || 'InternalServerError';
-      const message =
-        userFriendlyMessages[errorType] ||
-        error.message ||
-        'An unexpected error occurred. Please try again later.';
-      console.error('Error fetching user attributes:', error);
-      throw new Error(message);
+      const message = error.message || 'An unexpected error occurred. Please try again later.';
+      setSubmitError(message);
     }
   };
 
@@ -98,9 +87,7 @@ function Profile() {
       if (!response.ok) {
         const errorData = await response.json();
         throw {
-          message: errorData.message,
-          errorType: errorData.errorType,
-          status: response.status,
+          message: errorData.message
         };
       }
 
@@ -129,16 +116,7 @@ function Profile() {
 
       return data.access_token;
     } catch (error: any) {
-      const userFriendlyMessages: { [key: string]: string } = {
-        NotAuthorized: 'The email or password provided is incorrect. Please try again.',
-        UserNotFound: 'We could not find an account associated with this email address.',
-        InternalError: 'An unexpected error occurred while attempting to log in. Please try again later.',
-      };
-
-      const errorType = error.errorType || 'InternalError';
-      const message =
-        userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
-
+      const message = error.message || 'An unexpected error occurred. Please try again later.';
       setSubmitError(message);
     }
   };
@@ -167,33 +145,65 @@ function Profile() {
       if (!response.ok) {
         const errorData = await response.json();
         throw {
-          message: errorData.message,
-          errorType: errorData.errorType,
-          status: response.status,
+          message: errorData.message
         };
       }
       const data = await response.json();
       setSuccess(data.message);
     } catch (err: any) {
-      const userFriendlyMessages: { [key: string]: string } = {
-        UserNotFound: 'No user was found with the provided email address.',
-        InvalidParameter: 'One or more fields are invalid. Please check and try again.',
-        NotAuthorized: 'You are not authorized to update this user’s attributes.',
-        InternalError: 'An unexpected error occurred. Please try again later.',
-      };
-      const errorType = err.errorType || 'InternalError';
-      const message =
-        userFriendlyMessages[errorType] ||
-        err.message ||
-        'An unexpected error occurred. Please try again later.';
+      const message = err.message || 'An unexpected error occurred. Please try again later.';
       setSubmitError(message);
     }
+  };
+
+  const sendCode = async (userAccessToken: string | null) => {
+    if (!userAccessToken) {
+      setSubmitError('Unable to send verification code. User is not logged in.');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${SERVER}/confirm-email-resend`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            access_token: userAccessToken,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw {
+          message: errorData.message
+        };
+      }
+
+      await response.json();
+    } catch (error: any) {
+      const message = error.message || 'An unexpected error occurred. Please try again later.';
+      setSubmitError(message);
+  }
   };
 
   useEffect(() => {
     if (userEmail) {
       fetchUserAttributes(userEmail)
-        .then(setUserAttributes)
+        .then((attributes) => {
+          if (attributes) {
+            setUserAttributes(attributes);
+            // Check if email_verified attribute exists and if it equals "true"
+            const verified =
+              attributes.email_verified &&
+              attributes.email_verified.toLowerCase() === 'true';
+            setUserEmailVerified(verified);
+          }
+          setLoading(false);
+        })
         .catch((err) => setSubmitError(err.message));
     }
   }, [userEmail]);
@@ -260,7 +270,7 @@ function Profile() {
       }
     }
     return errors;
-  };  
+  };
 
   // Handle form submission from React Final Form
   const onSubmit = async (values: { [key: string]: string }) => {
@@ -271,7 +281,8 @@ function Profile() {
         await updateUserAttribute('lastName', values.lastName);
       } else if (updateType === 'email') {
         await updateUserAttribute('email', values.email);
-        await loginUser(values.email, values.currentPassword, currentUser?.user_name || '');
+        const accessToken = await loginUser(values.email, values.currentPassword, currentUser?.user_name || '');
+        await sendCode(accessToken)
       } else if (updateType === 'password') {
         await updateUserAttribute('password', values.password);
       }
@@ -282,17 +293,12 @@ function Profile() {
         setUserAttributes(attrs);
       }
     } catch (err) {
-      console.error(err);
     }
   };
 
-  // Create a Transition component using Slide
-  const Transition = React.forwardRef(function Transition(
-    props: SlideProps,
-    ref: React.Ref<unknown>
-  ) {
-    return <Slide direction="up" ref={ref} {...props} />;
-  });
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <React.Fragment>
@@ -320,7 +326,7 @@ function Profile() {
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '20px',
+              marginBottom: '20px'
             }}
           >
             <Typography>
@@ -338,7 +344,18 @@ function Profile() {
               marginBottom: '20px',
             }}
           >
-            <Typography>{userAttributes?.email}</Typography>
+            <Typography sx={{display: 'flex'}}>
+              {userAttributes?.email}
+              {userEmailVerified ? (
+                <Box marginLeft={'0.5rem'}>
+                  <CheckCircleIcon fontSize='small'/>
+                </Box>
+              ) : (
+                <Link to='/auth/verify'>
+                  <Typography sx={{marginX: '0.5rem', textDecoration: 'underline', cursor: 'pointer'}} >verify</Typography>
+                </Link>
+              )}
+              </Typography>
             <Button onClick={openEmailModal}>Change Email</Button>
           </Box>
           {/* Password Row */}

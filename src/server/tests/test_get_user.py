@@ -58,7 +58,7 @@ def mock_ssm_and_cognito():
             "UserNotFoundException",
             None,
             404,
-            {"errorType": "UserNotFound"}
+            {"message": "UserNotFound"}
         ),
         # 4) Invalid parameter => 400
         (
@@ -66,7 +66,7 @@ def mock_ssm_and_cognito():
             "InvalidParameterException",
             None,
             400,
-            {"errorType": "InvalidParameter"}
+            {"message": "InvalidParameter"}
         ),
         # 5) Too many requests => 429
         (
@@ -74,7 +74,7 @@ def mock_ssm_and_cognito():
             "TooManyRequestsException",
             None,
             429,
-            {"errorType": "TooManyRequests"}
+            {"message": "TooManyRequests"}
         )
     ]
 )

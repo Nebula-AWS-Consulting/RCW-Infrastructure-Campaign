@@ -11,21 +11,20 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 def mock_ssm_and_cognito():
     """
     A Pytest fixture that patches out SSM and Cognito for all tests.
-    Sets up 'fake_user_pool_id' and the Cognito exception classes.
+    Sets up a fake user pool ID and defines Cognito exception classes.
     """
     with patch('index.ssm') as mock_ssm, patch('index.client') as mock_client:
-        # Mock SSM to return a fake user pool ID
+        # Mock SSM to return a fake user pool ID.
         mock_ssm.get_parameter.return_value = {
             "Parameter": {"Value": "fake_user_pool_id"}
         }
 
-        # Mock Cognito exception classes so we can raise them easily
-        mock_client.exceptions.NotAuthorizedException = type("NotAuthorizedException",(Exception,),{})
-        mock_client.exceptions.UserNotFoundException = type("UserNotFoundException",(Exception,),{})
-        mock_client.exceptions.InvalidParameterException = type("InvalidParameterException",(Exception,),{})
+        # Define Cognito exception classes as types so they work with isinstance.
+        mock_client.exceptions.NotAuthorizedException = type("NotAuthorizedException", (Exception,), {})
+        mock_client.exceptions.UserNotFoundException = type("UserNotFoundException", (Exception,), {})
+        mock_client.exceptions.InvalidParameterException = type("InvalidParameterException", (Exception,), {})
+        mock_client.exceptions.InvalidPasswordException = type("InvalidPasswordException", (Exception,), {})
 
-
-        # Provide the mocks to the test function
         yield (mock_ssm, mock_client)
 
 @pytest.mark.parametrize(
@@ -65,16 +64,16 @@ def mock_ssm_and_cognito():
             "UserNotFoundException",
             None,
             404,
-            {"errorType": "UserNotFound"}
+            {"message": "No user was found with the provided email address."}
         ),
-        # 5) Invalid parameter => 400, code references e.response['Error']['Message']
+        # 5) Invalid parameter => 400
         (
             "invalid@user.com",
             {"custom:firstName": "Invalid"},
             "InvalidParameterException",
             "Some invalid parameter message",
             400,
-            {"errorType": "InvalidParameter"}
+            {"message": "Invalid parameter: Some invalid parameter message. Please verify your input and try again."}
         ),
         # 6) Not authorized => 403
         (
@@ -83,7 +82,7 @@ def mock_ssm_and_cognito():
             "NotAuthorizedException",
             None,
             403,
-            {"errorType": "NotAuthorized"}
+            {"message": "You are not authorized"}  # Updated expected substring
         )
     ]
 )
@@ -104,27 +103,26 @@ def test_update_user(
       4) User not found => 404
       5) Invalid parameter => 400
       6) Not authorized => 403
-      7) Generic internal error => 500
     """
     mock_ssm, mock_cognito_client = mock_ssm_and_cognito
 
-    # Define exceptions
+    # (Re)Define the exception types in case they need to be reset.
     mock_cognito_client.exceptions.UserNotFoundException = type("UserNotFoundException", (Exception,), {})
     mock_cognito_client.exceptions.InvalidParameterException = type("InvalidParameterException", (Exception,), {})
     mock_cognito_client.exceptions.NotAuthorizedException = type("NotAuthorizedException", (Exception,), {})
+    mock_cognito_client.exceptions.InvalidPasswordException = type("InvalidPasswordException", (Exception,), {})
 
-    # If there's a side effect, set it
+    # If a side effect is specified, set it on admin_update_user_attributes.
     if side_effect:
         exception_class = getattr(mock_cognito_client.exceptions, side_effect, Exception)
         exception_instance = exception_class()
-
-        # If it's InvalidParameterException, set a response dict for the code to read
+        # For InvalidParameterException, attach a response dict with the error message.
         if side_effect == "InvalidParameterException" and exception_message:
             setattr(exception_instance, 'response', {"Error": {"Message": exception_message}})
-
         mock_cognito_client.admin_update_user_attributes.side_effect = exception_instance
 
-    from index import update_user  # import after patching
+    # Import update_user after patching.
+    from index import update_user  
 
     start_time = time.time()
     response = update_user(email, attribute_updates)
@@ -139,18 +137,14 @@ def test_update_user(
     # Performance check
     assert execution_time < 0.5, "Function took too long!"
 
-    # Check status code
+    # Check status code.
     assert response["statusCode"] == expected_status
 
     body = json.loads(response["body"])
 
     if expected_status in (400, 403, 404, 500):
-        # Error scenarios
-        if "errorType" in expected_body:
-            assert body["errorType"] == expected_body["errorType"]
-        else:
-            # e.g. Missing email or attribute updates => direct message check
-            assert expected_body["message"] in body["message"]
+        # For error scenarios, check that the expected message substring is in the actual message.
+        assert expected_body["message"] in body["message"]
     elif expected_status == 200:
-        # Success scenario
+        # Success scenario.
         assert body["message"] == "User attributes updated successfully"
