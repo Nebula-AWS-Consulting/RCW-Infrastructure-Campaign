@@ -60,37 +60,37 @@ export default function ChurchCategories() {
   
   const images = [
     {
-      url: './images/alex.jpg',
+      url: '/images/alex.jpg',
       title: `${language=='en-US' ? 'Location' : language=='fr-FR' ? 'Emplacement' : language=='es-MX' ? 'Ubicación' : ''}`,
       width: '40%',
       link: '/location'
     },
     {
-      url: './images/devo.jpg',
+      url: '/images/devo.jpg',
       title: `${language=='en-US' ? 'Contact Us' : language=='fr-FR' ? 'Contactez-nous' : language=='es-MX' ? 'Contáctenos' : ''}`,
       width: '20%',
       link: '/contactus'
     },
     {
-      url: './images/rcw.png',
+      url: '/images/rcw.png',
       title: `${language=='en-US' ? 'Worldwide Movement' : language=='fr-FR' ? 'Mouvement Mondial' : language=='es-MX' ? 'Movimiento Mundial' : ''}`,
       width: '40%',
       link: 'https://restoredchurchworldwide.org/'
     },
     {
-      url: './images/happy.jpg',
+      url: '/images/happy.jpg',
       title: `${language=='en-US' ? 'Missions' : language=='fr-FR' ? 'Missions' : language=='es-MX' ? 'Misiones' : ''}`,
       width: '28%',
       link: '/missions'
     },
     {
-      url: './images/henry.jpg',
+      url: '/images/henry.jpg',
       title: `${language=='en-US' ? 'Benevolence' : language=='fr-FR' ? 'Bienveillance' : language=='es-MX' ? 'Benevolencia' : ''}`,
       width: '34%',
       link: '/benevolence'
     },
     {
-      url: './images/preach.jpg',
+      url: '/images/preach.jpg',
       title: `${language=='en-US' ? 'Contribution' : language=='fr-FR' ? 'Contribution' : language=='es-MX' ? 'Contribución' : ''}`,
       width: '38%',
       link: '/contribution'

@@ -210,7 +210,7 @@ function ChurchContactUs() {
           />
           <Box
             component="img"
-            src="./images/alexanders.jpeg"
+            src="/images/alexanders.jpeg"
             alt="call to action"
             sx={{
               position: 'absolute',
