@@ -6,25 +6,14 @@ import {
   Box,
   Card,
   CardContent,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
+  Button
 } from '@mui/material';
 import Typography from '../components/Typography';
+import { useSelector } from 'react-redux';
+import { selectLanguage } from '../ducks/userSlice';
 
 function Dashboard() {
-  // State to control the Bible Study Form dialog
-  const [openBibleStudyForm, setOpenBibleStudyForm] = React.useState(false);
-
-  // Handlers to open and close the Bible Study Form dialog
-  const handleOpenBibleStudyForm = () => {
-    setOpenBibleStudyForm(true);
-  };
-
-  const handleCloseBibleStudyForm = () => {
-    setOpenBibleStudyForm(false);
-  };
+  const language = useSelector(selectLanguage);
 
   return (
     <React.Fragment>
@@ -38,35 +27,22 @@ function Dashboard() {
             align="center"
             sx={{ marginY: '40px' }}
           >
-            Coming Soon
+            {language === 'en-US'? 'Coming Soon' : language === 'fr-FR' ? `À Venir` : language === 'es-MX' ? 'Muy Pronto' : ''}
           </Typography>
-        {/* -------------------------------
-            Bible Study Form Card
-        --------------------------------- */}
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h5" gutterBottom>
-              Bible Study Form
-            </Typography>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Launch the Bible Study form to submit your study details.
-            </Typography>
-            <Button variant="contained" color="primary" onClick={handleOpenBibleStudyForm}>
-              Open Form
-            </Button>
-          </CardContent>
-        </Card>
-
         {/* -------------------------------
             Church Goals Card
         --------------------------------- */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h5" gutterBottom>
-              Church Goals
+              {language === 'en-US'? 'Church Goals' : language === 'fr-FR' ? `Objectifs de l'Église` : language === 'es-MX' ? 'Metas de la Iglesia' : ''}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Review and update the church goals.
+              {language === 'en-US'? `Review and update the church goals.` 
+              : language === 'fr-FR' ? `Révisez et mettez à jour les objectifs de l’église.` 
+              : language === 'es-MX' ? 'Revisar y actualizar las metas de la iglesia.' 
+              : ''}
             </Typography>
             {/* Add more content or interactive elements as needed */}
           </CardContent>
@@ -78,10 +54,16 @@ function Dashboard() {
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h5" gutterBottom>
-              Bible Study Chart
+              {language === 'en-US'? `Bible Study Chart` 
+              : language === 'fr-FR' ? `Tableau d'étude Biblique` 
+              : language === 'es-MX' ? 'Cuadro de Estudio Bíblico' 
+              : ''}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              View your Bible study progress in this chart.
+              {language === 'en-US'? `View your Bible study progress in this chart.` 
+              : language === 'fr-FR' ? `Consultez la progression de votre étude biblique dans ce tableau.` 
+              : language === 'es-MX' ? 'Vea el progreso de su estudio bíblico en este gráfico.' 
+              : ''}
             </Typography>
             {/* Placeholder for the chart */}
             <Box
@@ -105,29 +87,24 @@ function Dashboard() {
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h5" gutterBottom>
-              Admin App
+              {language === 'en-US'? 'Admin App' : language === 'fr-FR' ? `Application d'administration` : language === 'es-MX' ? 'Aplicación de Administración' : ''}
             </Typography>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              Access the admin panel.
+              {language === 'en-US'? `Access the admin panel.`
+              : language === 'fr-FR' ? `Accédez au panneau d'administration.`
+              : language === 'es-MX' ? 'Acceda al panel de administración.'
+              : ''}
             </Typography>
             {/* The button acts as a link to the admin app */}
             <Button variant="contained" color="secondary" href="/admin">
-              Go to Admin App
+              {language === 'en-US'? `Go to Admin App`
+              : language === 'fr-FR' ? `Aller à l'application d'administration`
+              : language === 'es-MX' ? 'Ir a la aplicación de administración'
+              : ''}
             </Button>
           </CardContent>
         </Card>
       </Box>
-
-      {/* -------------------------------
-          Bible Study Form Dialog
-      --------------------------------- */}
-      <Dialog open={openBibleStudyForm} onClose={handleCloseBibleStudyForm} fullWidth maxWidth="sm">
-        <DialogTitle>Bible Study Form</DialogTitle>
-        <DialogContent>
-          {/* Replace the placeholder with your actual Bible Study form */}
-          <Typography>This is a placeholder for the Bible Study form.</Typography>
-        </DialogContent>
-      </Dialog>
     </Box>
     <AppFooter />
     </React.Fragment>
