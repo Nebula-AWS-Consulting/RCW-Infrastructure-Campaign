@@ -845,7 +845,16 @@ def create_paypal_order_route(amount, custom_id, currency="USD"):
             raise ValueError("The Custom ID must be a non-empty string.")
 
         # Attempt to create the PayPal order.
-        order = create_paypal_order(amount, custom_id, currency)
+        order_response = create_paypal_order(amount, custom_id, currency)
+        
+        # Check if the response contains a "body" and parse it.
+        if "body" in order_response:
+            order_body = json.loads(order_response["body"])
+        else:
+            order_body = order_response
+
+        # Extract the nested order if it exists.
+        order = order_body.get("order", order_body)
 
         # Check that the order response contains an 'id'.
         if "id" not in order:
@@ -1235,7 +1244,15 @@ def create_paypal_subscription_route(amount, custom_id):
             })
 
         # Create PayPal subscription.
-        subscription = create_paypal_subscription(plan_id, custom_id)
+        subscription_response = create_paypal_subscription(plan_id, custom_id)
+        
+        if "body" in subscription_response:
+            subscription_body = json.loads(subscription_response["body"])
+        else:
+            subscription_body = subscription_response
+
+        subscription = subscription_body.get("subscription")
+
         subscription_id = subscription.get("id")
         if not subscription_id:
             logger.error("Subscription ID is missing from the PayPal response.")
