@@ -15,6 +15,7 @@ import { SERVER } from "../../App";
 import FormFeedback from "../form/FormFeedback";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
+import { selectLanguage } from "../ducks/userSlice";
 
 const OneTimePaymentComponent = ({
     donationAmountRef,
@@ -143,6 +144,7 @@ const MissionsPage = () => {
   const [showThankYouBanner, setShowThankYouBanner] = useState(false);
   const user = useSelector((state: RootState) => state.userAuthAndInfo.user ?? { user_name: null, email: null });
   const token = useSelector((state: RootState) => state.userAuthAndInfo.token ?? { user_id: null, id_token: null, access_token: null, refresh_token: null });
+  const language = useSelector(selectLanguage);
 
   const initialOptions = {
       clientId: "AfYXn-9V-9VfmWexdtRa8Q6ZYBQ4eU8cW8J01x4_BfCMuEuHN3kOc1eP9V-VYjYcqktNR06NuSr-UqT9",
@@ -162,14 +164,24 @@ const MissionsPage = () => {
         {showThankYouBanner && (
         <FormFeedback isDefault sx={{ mb: '-2rem', mt: 4, textAlign: 'center', width: '60%', justifySelf: 'center', borderRadius: 2 }}>
             <Typography variant="h6" color="white">
-            Thank you for donating!
+            {language === 'en-US'? 'Thank you for donating!' : language === 'fr-FR' ? `Merci pour votre don !` : language === 'es-MX' ? '¡Gracias por donar!' : ''}
             </Typography>
         </FormFeedback>
         )}
       <AppForm>
-        <Typography variant="h5" align="center" mb={2} justifySelf={'center'}>Donate to</Typography>
-        <Typography variant="h4" gutterBottom marked="center" align="center">{`Restored Church ${import.meta.env.VITE_CHURCH_CITY}`}</Typography>
-        <Typography variant="h5" align="center" my={3} width={'80%'} justifySelf={'center'}>Special Missions</Typography>
+        <Typography variant="h5" align="center" mb={2} justifySelf={'center'}>
+          {language === 'en-US'? `Donate to` 
+              : language === 'fr-FR' ? `Faire un don à` 
+              : language === 'es-MX' ? 'Donar a' 
+              : ''}
+              </Typography>
+        <Typography variant="h4" gutterBottom marked="center" align="center">{`Restored Chuch ${import.meta.env.VITE_CHURCH_CITY}`}</Typography>
+        <Typography variant="h5" align="center" my={3} width={'80%'} justifySelf={'center'}>
+          {language === 'en-US'? `Special Missions` 
+              : language === 'fr-FR' ? `Missions spéciales` 
+              : language === 'es-MX' ? 'Misiones especiales' 
+              : ''}
+          </Typography>
 
         {/* Donation Amount Input */}
         <Box sx={{
@@ -180,7 +192,7 @@ const MissionsPage = () => {
             width: '100%'
         }}>
             <TextField
-                label="Donation Amount"
+                label={`${language === 'en-US'? `Donation Amount` : language === 'fr-FR' ? `Montant du don` : language === 'es-MX' ? 'Monto de la donación' : ''}`}
                 type="number"
                 value={donationAmount}
                 onChange={(e) => {
@@ -195,7 +207,7 @@ const MissionsPage = () => {
                     </InputAdornment>
                     ),
                 }}
-                helperText={Number(donationAmount) <= 0 && "Please enter a valid amount."}
+                helperText={Number(donationAmount) <= 0 && `${language === 'en-US'? `Please enter a valid amount.` : language === 'fr-FR' ? `Veuillez saisir un montant valide.` : language === 'es-MX' ? 'Por favor ingrese una cantidad válida.' : ''}`}
                 error={Number(donationAmount) <= 0}
                 />
         </Box>
