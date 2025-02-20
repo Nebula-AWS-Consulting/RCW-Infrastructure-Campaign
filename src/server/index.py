@@ -706,37 +706,33 @@ def get_paypal_access_token():
             error_details = response.json()
             logger.error(f"PayPal token error: {error_details}")
             return cors_response(response.status_code, {
-                "message": "Failed to retrieve PayPal access token.",
-                "errorType": "PayPalAPIError",
-                "details": error_details
+                "message": "Failed to retrieve PayPal access token."
             })
     
     except Exception as e:
         # Map specific requests exceptions to HTTP status codes, messages, and error types.
         error_map = {
             requests.exceptions.Timeout: (
-                504, "The request to the PayPal API timed out. Please try again later.", "TimeoutError"
+                504, "The request to the PayPal API timed out. Please try again later."
             ),
             requests.exceptions.ConnectionError: (
-                503, "Unable to connect to the PayPal API. Please check your network and try again.", "ConnectionError"
+                503, "Unable to connect to the PayPal API. Please check your network and try again."
             ),
             requests.exceptions.RequestException: (
-                500, "An unexpected error occurred while connecting to the PayPal API.", "RequestError"
+                500, "An unexpected error occurred while connecting to the PayPal API."
             )
         }
         
-        for exc_type, (status, msg, error_type) in error_map.items():
+        for exc_type, (status, msg) in error_map.items():
             if isinstance(e, exc_type):
                 logger.error(f"{exc_type.__name__} in get_paypal_access_token: {e}")
                 return cors_response(status, {
                     "message": msg,
-                    "errorType": error_type
                 })
         
         logger.error(f"Unexpected error in get_paypal_access_token: {e}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while retrieving the PayPal access token.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while retrieving the PayPal access token."
         })
 
 
@@ -759,8 +755,7 @@ def create_paypal_order(amount, custom_id, currency="USD"):
         if not access_token:
             logger.error("Failed to retrieve PayPal access token.")
             return cors_response(500, {
-                "message": "Failed to retrieve PayPal access token.",
-                "errorType": "AccessTokenError"
+                "message": "Failed to retrieve PayPal access token."
             })
 
         # Define the PayPal order creation endpoint and headers.
@@ -793,37 +788,33 @@ def create_paypal_order(amount, custom_id, currency="USD"):
             error_details = response.json()
             logger.error(f"PayPal order error: {error_details}")
             return cors_response(response.status_code, {
-                "message": f"Failed to create PayPal order: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.",
-                "errorType": "PayPalAPIError",
-                "details": error_details
+                "message": f"Failed to create PayPal order: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}."
             })
 
     except Exception as e:
         # Map specific request exceptions to HTTP statuses, messages, and error types.
         error_map = {
             requests.exceptions.Timeout: (
-                504, "The request to the PayPal API timed out. Please try again later.", "TimeoutError"
+                504, "The request to the PayPal API timed out. Please try again later."
             ),
             requests.exceptions.ConnectionError: (
-                503, "Unable to connect to the PayPal API. Please check your network and try again.", "ConnectionError"
+                503, "Unable to connect to the PayPal API. Please check your network and try again."
             ),
             requests.exceptions.RequestException: (
-                500, "An unexpected error occurred while connecting to the PayPal API.", "RequestError"
+                500, "An unexpected error occurred while connecting to the PayPal API."
             )
         }
 
-        for exc_type, (status, msg, error_type) in error_map.items():
+        for exc_type, (status, msg) in error_map.items():
             if isinstance(e, exc_type):
                 logger.error(f"{exc_type.__name__} in create_paypal_order: {e}")
                 return cors_response(status, {
-                    "message": msg,
-                    "errorType": error_type
+                    "message": msg
                 })
 
         logger.error(f"Unexpected error in create_paypal_order: {e}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while creating the PayPal order. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while creating the PayPal order. Please try again later."
         })
 
 
@@ -860,8 +851,7 @@ def create_paypal_order_route(amount, custom_id, currency="USD"):
         if "id" not in order:
             logger.error("PayPal order response missing 'id' field.")
             return cors_response(500, {
-                "message": "PayPal order creation succeeded, but the response is incomplete.",
-                "errorType": "IncompleteResponse"
+                "message": "PayPal order creation succeeded, but the response is incomplete."
             })
 
         return cors_response(200, {
@@ -875,23 +865,21 @@ def create_paypal_order_route(amount, custom_id, currency="USD"):
             ValueError: (400, None, "ValidationError"),  # Use dynamic message (str(e)) for ValueError.
             requests.exceptions.RequestException: (
                 503,
-                "A network error occurred while connecting to PayPal. Please try again later.",
-                "NetworkError"
+                "A network error occurred while connecting to PayPal. Please try again later."
             )
         }
         
         # Check if the caught exception matches any mapped type.
-        for exc_type, (status, msg, error_type) in error_map.items():
+        for exc_type, (status, msg) in error_map.items():
             if isinstance(e, exc_type):
                 logger.error(f"{exc_type.__name__} in create_paypal_order_route: {e}")
                 final_msg = msg if msg is not None else str(e)
-                return cors_response(status, {"message": final_msg, "errorType": error_type})
+                return cors_response(status, {"message": final_msg})
         
         # Fallback for unexpected exceptions.
         logger.error(f"Unexpected error creating PayPal order: {e}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while processing your request. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while processing your request. Please try again later."
         })
 
 
@@ -933,17 +921,14 @@ def create_paypal_product():
             if not product_id:
                 logger.error("PayPal product created, but no product ID returned.")
                 return cors_response(500, {
-                    "message": "Product creation succeeded, but the response is incomplete.",
-                    "errorType": "IncompleteResponse"
+                    "message": "Product creation succeeded, but the response is incomplete."
                 })
             return product_id
         else:
             error_details = response.json()
             logger.error(f"PayPal product creation failed: {error_details}")
             return cors_response(response.status_code, {
-                "message": f"Failed to create PayPal product: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.",
-                "errorType": "PayPalAPIError",
-                "details": error_details
+                "message": f"Failed to create PayPal product: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}."
             })
 
     except Exception as e:
@@ -951,29 +936,25 @@ def create_paypal_product():
         error_map = {
             requests.exceptions.Timeout: (
                 504,
-                "The request to the PayPal API timed out. Please try again later.",
-                "TimeoutError"
+                "The request to the PayPal API timed out. Please try again later."
             ),
             requests.exceptions.ConnectionError: (
                 503,
-                "Unable to connect to the PayPal API. Please check your network and try again.",
-                "ConnectionError"
+                "Unable to connect to the PayPal API. Please check your network and try again."
             ),
             requests.exceptions.RequestException: (
                 500,
-                "An unexpected error occurred while connecting to the PayPal API.",
-                "RequestError"
+                "An unexpected error occurred while connecting to the PayPal API."
             )
         }
-        for exc_type, (status, msg, error_type) in error_map.items():
+        for exc_type, (status, msg) in error_map.items():
             if isinstance(e, exc_type):
                 logger.error(f"{exc_type.__name__} in create_paypal_product: {e}")
-                return cors_response(status, {"message": msg, "errorType": error_type})
+                return cors_response(status, {"message": msg})
 
         logger.error(f"Unexpected error in create_paypal_product: {e}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while creating the PayPal product. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while creating the PayPal product. Please try again later."
         })
 
 
@@ -993,14 +974,12 @@ def create_paypal_plan(product_id, amount):
     if not product_id:
         logger.error("Product ID is required to create a PayPal plan.")
         return cors_response(400, {
-            "message": "Product ID is required to create a PayPal plan.",
-            "errorType": "ValidationError"
+            "message": "Product ID is required to create a PayPal plan."
         })
     if amount <= 0:
         logger.error("Amount must be greater than zero.")
         return cors_response(400, {
-            "message": "Amount must be greater than zero.",
-            "errorType": "ValidationError"
+            "message": "Amount must be greater than zero."
         })
     
     try:
@@ -1009,8 +988,7 @@ def create_paypal_plan(product_id, amount):
         if not access_token:
             logger.error("Failed to retrieve PayPal access token.")
             return cors_response(500, {
-                "message": "Failed to retrieve PayPal access token.",
-                "errorType": "AccessTokenError"
+                "message": "Failed to retrieve PayPal access token."
             })
         
         # Set up the API endpoint, headers, and payload for plan creation.
@@ -1060,17 +1038,14 @@ def create_paypal_plan(product_id, amount):
             if not plan_id:
                 logger.error("PayPal plan created, but no plan ID returned.")
                 return cors_response(500, {
-                    "message": "Plan creation succeeded, but the response is incomplete.",
-                    "errorType": "IncompleteResponse"
+                    "message": "Plan creation succeeded, but the response is incomplete."
                 })
             return plan_id
         else:
             error_details = response.json()
             logger.error(f"PayPal Plan Creation Failed: {error_details}")
             return cors_response(response.status_code, {
-                "message": f"Failed to create PayPal plan: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.",
-                "errorType": "PayPalAPIError",
-                "details": error_details
+                "message": f"Failed to create PayPal plan: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}."
             })
     
     except Exception as e:
@@ -1078,30 +1053,26 @@ def create_paypal_plan(product_id, amount):
         error_map = {
             requests.exceptions.Timeout: (
                 504,
-                "The request to the PayPal API timed out. Please try again later.",
-                "TimeoutError"
+                "The request to the PayPal API timed out. Please try again later."
             ),
             requests.exceptions.ConnectionError: (
                 503,
-                "Unable to connect to the PayPal API. Please check your network and try again.",
-                "ConnectionError"
+                "Unable to connect to the PayPal API. Please check your network and try again."
             ),
             requests.exceptions.RequestException: (
                 500,
-                "An unexpected error occurred while connecting to the PayPal API.",
-                "RequestError"
+                "An unexpected error occurred while connecting to the PayPal API."
             )
         }
         for exc_type, (status, msg, error_type) in error_map.items():
             if isinstance(e, exc_type):
                 logger.error(f"{exc_type.__name__} in create_paypal_plan: {e}")
-                return cors_response(status, {"message": msg, "errorType": error_type})
+                return cors_response(status, {"message": msg})
         
         # Fallback for unexpected exceptions.
         logger.error(f"Unexpected error in create_paypal_plan: {e}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while creating the PayPal plan. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while creating the PayPal plan. Please try again later."
         })
 
 
@@ -1121,14 +1092,12 @@ def create_paypal_subscription(plan_id, custom_id):
     if not plan_id:
         logger.error("Plan ID is required to create a PayPal subscription.")
         return cors_response(400, {
-            "message": "Plan ID is required to create a PayPal subscription.",
-            "errorType": "ValidationError"
+            "message": "Plan ID is required to create a PayPal subscription."
         })
     if not custom_id:
         logger.error("Custom ID is required to create a PayPal subscription.")
         return cors_response(400, {
-            "message": "Custom ID is required to create a PayPal subscription.",
-            "errorType": "ValidationError"
+            "message": "Custom ID is required to create a PayPal subscription."
         })
     
     try:
@@ -1137,8 +1106,7 @@ def create_paypal_subscription(plan_id, custom_id):
         if not access_token:
             logger.error("Failed to retrieve PayPal access token.")
             return cors_response(500, {
-                "message": "Failed to retrieve PayPal access token.",
-                "errorType": "AccessTokenError"
+                "message": "Failed to retrieve PayPal access token."
             })
 
         # Set up the endpoint, headers, and payload for subscription creation.
@@ -1161,9 +1129,7 @@ def create_paypal_subscription(plan_id, custom_id):
             error_details = response.json()
             logger.error(f"PayPal subscription creation failed: {error_details}")
             return cors_response(response.status_code, {
-                "message": f"Failed to create PayPal subscription: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}.",
-                "errorType": "PayPalAPIError",
-                "details": error_details
+                "message": f"Failed to create PayPal subscription: {error_details.get('name', 'Unknown error')} - {error_details.get('message', 'No description')}."
             })
 
     except Exception as e:
@@ -1171,31 +1137,27 @@ def create_paypal_subscription(plan_id, custom_id):
         error_map = {
             requests.exceptions.Timeout: (
                 504,
-                "The request to the PayPal API timed out. Please try again later.",
-                "TimeoutError"
+                "The request to the PayPal API timed out. Please try again later."
             ),
             requests.exceptions.ConnectionError: (
                 503,
-                "Unable to connect to the PayPal API. Please check your network and try again.",
-                "ConnectionError"
+                "Unable to connect to the PayPal API. Please check your network and try again."
             ),
             requests.exceptions.RequestException: (
                 500,
-                "An unexpected error occurred while connecting to the PayPal API.",
-                "RequestError"
+                "An unexpected error occurred while connecting to the PayPal API."
             )
         }
         # Iterate over the error map and return a matching response if found.
         for exc_type, (status, msg, error_type) in error_map.items():
             if isinstance(e, exc_type):
                 logger.error(f"{exc_type.__name__} in create_paypal_subscription: {e}")
-                return cors_response(status, {"message": msg, "errorType": error_type})
+                return cors_response(status, {"message": msg})
         
         # Log and return a generic error response for any unexpected exceptions.
         logger.error(f"Unexpected error in create_paypal_subscription: {e}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while creating the PayPal subscription. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while creating the PayPal subscription. Please try again later."
         })
 
 
@@ -1214,15 +1176,13 @@ def create_paypal_subscription_route(amount, custom_id):
         if amount <= 0:
             logger.error("Amount must be greater than zero.")
             return cors_response(400, {
-                "message": "Amount must be greater than zero.",
-                "errorType": "ValidationError"
+                "message": "Amount must be greater than zero."
             })
 
         if not custom_id or not custom_id.strip():
             logger.error("Custom ID must be a non-empty string.")
             return cors_response(400, {
-                "message": "Custom ID must be a non-empty string.",
-                "errorType": "ValidationError"
+                "message": "Custom ID must be a non-empty string."
             })
 
         # Create PayPal product.
@@ -1230,8 +1190,7 @@ def create_paypal_subscription_route(amount, custom_id):
         if not product_id:
             logger.error("Failed to create PayPal product.")
             return cors_response(500, {
-                "message": "Failed to create PayPal product.",
-                "errorType": "ProductCreationError"
+                "message": "Failed to create PayPal product."
             })
 
         # Create PayPal plan.
@@ -1239,8 +1198,7 @@ def create_paypal_subscription_route(amount, custom_id):
         if not plan_id:
             logger.error("Failed to create PayPal plan.")
             return cors_response(500, {
-                "message": "Failed to create PayPal plan.",
-                "errorType": "PlanCreationError"
+                "message": "Failed to create PayPal plan."
             })
 
         # Create PayPal subscription.
@@ -1257,8 +1215,7 @@ def create_paypal_subscription_route(amount, custom_id):
         if not subscription_id:
             logger.error("Subscription ID is missing from the PayPal response.")
             return cors_response(500, {
-                "message": "Subscription ID is missing from the PayPal response.",
-                "errorType": "IncompleteResponse"
+                "message": "Subscription ID is missing from the PayPal response."
             })
 
         # Extract approval URL from subscription links.
@@ -1269,8 +1226,7 @@ def create_paypal_subscription_route(amount, custom_id):
         if not approval_url:
             logger.error("Approval URL is missing from the PayPal response.")
             return cors_response(500, {
-                "message": "Approval URL is missing from the PayPal response.",
-                "errorType": "IncompleteResponse"
+                "message": "Approval URL is missing from the PayPal response."
             })
 
         return cors_response(200, {
@@ -1285,14 +1241,13 @@ def create_paypal_subscription_route(amount, custom_id):
             ValueError: (400, None, "ValidationError")  # Use dynamic message for ValueError.
         }
 
-        for exc_type, (status, static_msg, error_type) in error_map.items():
+        for exc_type, (status, static_msg) in error_map.items():
             if isinstance(e, exc_type):
                 logger.error(f"{exc_type.__name__} in create_paypal_subscription_route: {e}")
                 final_msg = static_msg if static_msg is not None else str(e)
-                return cors_response(status, {"message": final_msg, "errorType": error_type})
+                return cors_response(status, {"message": final_msg})
 
         logger.error(f"Unexpected error creating PayPal subscription: {e}", exc_info=True)
         return cors_response(500, {
-            "message": "An unexpected error occurred while processing your request. Please try again later.",
-            "errorType": "InternalError"
+            "message": "An unexpected error occurred while processing your request. Please try again later."
         })

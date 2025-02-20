@@ -38,8 +38,7 @@ const OneTimePaymentComponent = ({
         const amount = parseFloat(donationAmountRef.current);
         if (isNaN(amount) || amount <= 0) {
           throw {
-            message: 'Invalid input: Ensure the amount is greater than zero.',
-            errorType: 'ValidationError',
+            message: 'Invalid input: Ensure the amount is greater than zero.'
           }
         }
 
@@ -59,39 +58,15 @@ const OneTimePaymentComponent = ({
         if (!response.ok) {
           const errorData = await response.json();
           throw {
-            message: errorData.message,
-            errorType: errorData.errorType,
-            status: response.status,
-            details: errorData.details || {},
+            message: errorData.message
           };
         }
   
         const responseData = await response.json();
-        if (!responseData.id) {
-          throw {
-            message: 'The order ID is missing in the response. Please try again later.',
-            errorType: 'MissingOrderId',
-            status: 500,
-            details: responseData || {}
-          }
-        }
 
         return responseData.id;
       } catch (error: any) {
-          const userFriendlyMessages: { [key: string]: string } = {
-            AccessTokenError: 'Failed to retrieve PayPal access token. Please try again later.',
-            PayPalAPIError: 'Failed to create PayPal order. Please check the details and try again.',
-            TimeoutError: 'The request to the PayPal API timed out. Please try again later.',
-            ConnectionError: 'Unable to connect to the PayPal API. Please check your network and try again.',
-            RequestError: 'An unexpected error occurred while connecting to the PayPal API. Please try again later.',
-            MissingOrderId: 'The order ID is missing in the response. Please try again later.',
-            ValidationError: 'Invalid input: Ensure the amount is greater than zero.',
-            InternalError: 'An unexpected error occurred. Please try again later.'
-          };
-      
-          const errorType = error.errorType || 'InternalError';
-          const message =
-            userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
+          const message = error.message || 'An unexpected error occurred. Please try again later.';
       
           setSubmitError(message);
       }
@@ -152,8 +127,7 @@ const SubscriptionPaymentComponent: React.FC<{
         const amount = parseFloat(donationAmountRef.current);
         if (isNaN(amount) || amount <= 0) {
           throw {
-            message: 'Invalid input: Ensure the amount is greater than zero.',
-            errorType: 'ValidationError',
+            message: 'Invalid input: Ensure the amount is greater than zero.'
           }
         }
 
@@ -173,39 +147,16 @@ const SubscriptionPaymentComponent: React.FC<{
         if (!response.ok) {
           const errorData = await response.json();
           throw {
-            message: errorData.message,
-            errorType: errorData.errorType,
-            status: response.status,
-            details: errorData.details || {},
+            message: errorData.message
           };
         }
   
         const responseData = await response.json();
-        if (!responseData.subscription_id) {
-          throw {
-            message: 'The order ID is missing in the response. Please try again later.',
-            errorType: 'MissingOrderId',
-            status: 500,
-            details: responseData || {}
-          }
-        }
 
         return responseData.subscription_id;
       } catch (error: any) {
-        const userFriendlyMessages: { [key: string]: string } = {
-          ValidationError: 'Invalid input: Ensure the amount is greater than zero.',
-          ProductCreationError: 'Failed to create PayPal product. Please try again later.',
-          PlanCreationError: 'Failed to create PayPal plan. Please try again later.',
-          IncompleteResponse: 'The PayPal response was incomplete. Please contact support.',
-          MissingOrderId: 'The order ID is missing in the response. Please try again later.',
-          InternalError: 'An unexpected error occurred. Please try again later.'
-        };
-    
-        const errorType = error.errorType || 'InternalError';
-        const message =
-          userFriendlyMessages[errorType] || error.message || 'An unexpected error occurred. Please try again later.';
-    
-        setSubmitError(message);
+          const message = error.message || 'An unexpected error occurred. Please try again later.';
+          setSubmitError(message);
     }
     };
   
