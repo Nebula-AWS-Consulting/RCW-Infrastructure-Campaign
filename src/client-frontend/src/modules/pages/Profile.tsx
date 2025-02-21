@@ -347,7 +347,11 @@ function Profile() {
               marginBottom: '20px',
             }}
           >
-            <Typography sx={{display: 'flex'}}>
+            <Typography sx={{
+                display: 'flex',
+                overflow: 'scroll',
+                textOverflow: 'ellipsis'
+              }}>
               {userAttributes?.email}
               {userEmailVerified ? (
                 <Box marginLeft={'0.5rem'}>
