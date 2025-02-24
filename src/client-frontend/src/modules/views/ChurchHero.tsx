@@ -6,7 +6,7 @@ import { Box } from '@mui/material';
 import { selectLanguage } from '../ducks/userSlice';
 
 const backgroundImage =
-  './images/sundaysService.jpg';
+  '/images/sundaysService.jpg';
 
 export default function ChurchHero() {
   const language = useSelector(selectLanguage);
