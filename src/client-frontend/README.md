@@ -62,6 +62,64 @@
    ```
    - If both `user` and `token` exist, dispatch `setLogin` to store them in Redux, effectively persisting login across refreshes.
 
+4. **Key Logic for PayPal Pages**
+   You have two primary PayPal payment flows: **one-time payments** and **subscriptions**. Both interact with your backend’s PayPal endpoints (`/create-paypal-order` and `/create-paypal-subscription`) and rely on the `PayPalButtons` component from **`@paypal/react-paypal-js`**.
+
+   ### **A. One-Time Payment Component**
+
+   - **Location**: Typically imported into the page for one-time donations (e.g. a `Contribution` page).  
+   - **Key Steps**:  
+     1. **Reading Amount**:  
+        - Uses `donationAmountRef.current` to parse the donation amount.  
+        - Validates the amount (> 0, numeric).  
+     2. **Creating an Order**:  
+        - Calls your backend (`SERVER + /create-paypal-order`) with the amount and a custom ID that encodes user data (e.g., `user_id`, `email`, `user_name`).  
+        - If successful, the backend responds with a `PayPal order ID` which is returned to PayPal’s SDK (`createOrder`).  
+     3. **On Approve**:  
+        - When PayPal calls `handleOnApprove`, it attempts to capture the payment (`actions.order.capture()`).  
+        - If successful, sets `setShowThankYouBanner(true)` to inform the user.  
+        - If an error occurs, it updates `setSubmitError(message)`.  
+     4. **Error Handling**:  
+        - Catches both client-side (e.g., invalid amount) and server-side errors (e.g., non-200 from the backend).  
+        - Logs or displays error messages using `setSubmitError`.
+
+   - **Props**:
+     ```ts
+     {
+       donationAmountRef: React.MutableRefObject<string>;
+       setShowThankYouBanner: React.Dispatch<React.SetStateAction<boolean>>;
+       setSubmitError: React.Dispatch<React.SetStateAction<string>>;
+       user: { user_name: string | null; email: string | null };
+       token: { user_id: string | null; ... };
+     }
+     ```
+     This ensures the component can read the user context, token, and donation amount, and signal back any success or errors to the parent component (e.g., a parent page).
+
+   ### **B. Subscription Payment Component**
+
+   - **Location**: Typically used on a page that sets up recurring donations.  
+   - **Key Steps**:  
+     1. **Reading Amount**:  
+        - Similar to one-time payment; parses and validates input.  
+     2. **Creating a Subscription**:  
+        - Calls the backend at `SERVER + /create-paypal-subscription`, sending the amount and custom ID with user info.  
+        - Returns a subscription ID from PayPal if successful.  
+     3. **On Approve**:  
+        - If `data.subscriptionID` is present, the subscription is considered active, and `setShowThankYouBanner(true)` is called.  
+        - Otherwise, it logs an error.  
+     4. **Error Handling**:  
+        - Similar pattern: any fetch errors or server errors cause `setSubmitError(message)` to be set.
+
+   ### **PayPal Buttons**  
+   - In both flows, the `<PayPalButtons>` component includes:  
+     - `createOrder` or `createSubscription` callback for initiating the transaction.  
+     - `onApprove` callback for successful captures.  
+     - `onError` callback for PayPal-level errors.  
+
+   ### **Why This Approach**:
+   - Decouples the **PayPal** logic into dedicated components, making them reusable across different donation or subscription pages.  
+   - Minimizes code duplication by focusing each component on a single workflow (one-time or recurring).
+
 ---
 
 ## **3. Routing Structure**
@@ -192,7 +250,7 @@ This structure centralizes your dynamic text, so updating event schedules or con
 2. ### **Local Storage**:  
    - Stores `user` and `userToken` after login.  
    - Session is restored on `App.tsx` mount.  
-3. **API Calls**:  
+3. ### **API Calls**:  
    - Typically reference `SERVER` (=`import.meta.env.VITE_API_LINK`) in services or pages.  
    - Example: `fetch(`${SERVER}/login`, { ... })`.
 
@@ -225,6 +283,3 @@ By consolidating the environment variables, you’ve made it easy to configure e
 2. App logic for route structure & session restoration.  
 3. High-level pages and how they might use environment-driven data.  
 4. Key considerations around authentication, state management, and future enhancements.
-
-
-Below is an **updated documentation outline** that integrates details of the `userSlice` (referred to as `userAuthAndInfoSlice`) into the overall front-end architecture. This addition clarifies how authentication data and language preferences are stored in Redux.
