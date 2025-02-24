@@ -12,6 +12,13 @@ https://lkhnk9mouh.execute-api.us-west-1.amazonaws.com/prod
 ```
 *(May change on a frequent rate)*
 
+**Deployment**
+The server code is used by a Lambda function that is created using a CloudFormation template file that references an S3 bucket. Run this command in the /server directory:
+```
+../bin/upload-server.sh
+```
+
+
 **Typical Use Cases:**
 - User account creation, email verification, and login  
 - Updating user attributes (name, password, etc.)  
