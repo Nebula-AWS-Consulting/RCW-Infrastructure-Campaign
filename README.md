@@ -1,4 +1,4 @@
-**Overview of the RCW Infrastructure Application**
+# **Overview of the RCW Infrastructure Application**
 
 *For more info visit src/client-frontend/README.md and src/server/README.md*
 
