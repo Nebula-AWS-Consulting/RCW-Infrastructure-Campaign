@@ -21,7 +21,7 @@ import {
 import { Form, Field } from 'react-final-form';
 import { email as emailValidator } from '../form/validation';
 import FormFeedback from '../form/FormFeedback.tsx';
-import { setLogin } from '../ducks/userSlice.ts';
+import { selectLanguage, setLogin } from '../ducks/userSlice.ts';
 import { Link } from 'react-router-dom';
 
 // 1. Update the type to include firstName and lastName:
@@ -44,6 +44,7 @@ function Profile() {
   const [submitError, setSubmitError] = useState('');
   const [success, setSuccess] = useState('');
   const currentUser = useSelector((state: RootState) => state.userAuthAndInfo.user);
+  const language = useSelector(selectLanguage);
 
   // State to control the modal dialog and initial form values
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -317,7 +318,7 @@ function Profile() {
             align="center"
             sx={{ marginBottom: '40px' }}
           >
-            Profile Info
+            {language === 'en-US'? 'Profile Info' : language === 'fr-FR' ? `Informations sur le profil` : language === 'es-MX' ? 'Información de perfil' : ''}
           </Typography>
           {/* Name Row */}
           <Box
@@ -332,7 +333,9 @@ function Profile() {
             <Typography>
               {userAttributes?.["custom:firstName"]} {userAttributes?.["custom:lastName"]}
             </Typography>
-            <Button onClick={openNameModal}>Change Name</Button>
+            <Button onClick={openNameModal}>
+            {language === 'en-US'? 'Change Name' : language === 'fr-FR' ? `Changer le Nom` : language === 'es-MX' ? 'Cambiar Nombre' : ''}
+            </Button>
           </Box>
           {/* Email Row */}
           <Box
@@ -344,7 +347,11 @@ function Profile() {
               marginBottom: '20px',
             }}
           >
-            <Typography sx={{display: 'flex'}}>
+            <Typography sx={{
+                display: 'flex',
+                overflow: 'scroll',
+                textOverflow: 'ellipsis'
+              }}>
               {userAttributes?.email}
               {userEmailVerified ? (
                 <Box marginLeft={'0.5rem'}>
@@ -356,7 +363,9 @@ function Profile() {
                 </Link>
               )}
               </Typography>
-            <Button onClick={openEmailModal}>Change Email</Button>
+            <Button onClick={openEmailModal}>
+              {language === 'en-US'? 'Change Email' : language === 'fr-FR' ? `Changer l'e-mail` : language === 'es-MX' ? 'Cambiar Correo Electrónico' : ''}
+            </Button>
           </Box>
           {/* Password Row */}
           <Box
@@ -369,7 +378,9 @@ function Profile() {
             }}
           >
             <Typography>********</Typography>
-            <Button onClick={openPasswordModal}>Change Password</Button>
+            <Button onClick={openPasswordModal}>
+              {language === 'en-US'? 'Change Password' : language === 'fr-FR' ? `Changer le mot de passe` : language === 'es-MX' ? 'Cambiar Contraseña' : ''}
+            </Button>
           </Box>
         </Box>
         <Box justifySelf={'center'} mb={'2rem'}>
@@ -381,7 +392,7 @@ function Profile() {
           {success && (
           <FormFeedback success sx={{ mb: '2rem', mt: 2, px:'2rem', py: '0.7rem', textAlign: 'center', width: '100%', justifySelf: 'center', borderRadius: 2 }}>
             <Typography variant="h6" color="#28282a">
-            Profile Updated Successfully!
+            {language === 'en-US'? 'Profile Updated Successfully!' : language === 'fr-FR' ? `Profil mis à jour avec succès !` : language === 'es-MX' ? '¡Perfil actualizado con éxito!' : ''}
             </Typography>
         </FormFeedback>
           )}
@@ -406,7 +417,7 @@ function Profile() {
             rel="noopener noreferrer" 
             style={{ color: '#28282a', textDecoration: '' }}
           >
-              Cancel Paypal Subscription
+              {language === 'en-US'? 'Cancel Paypal Subscription' : language === 'fr-FR' ? `Annuler l'abonnement Paypal` : language === 'es-MX' ? 'Cancelar suscripción a Paypal' : ''}
             </a>
           </Typography>
         </Box>
@@ -424,9 +435,9 @@ function Profile() {
 
       >
         <DialogTitle>
-          {updateType === 'name' && 'Change Name'}
-          {updateType === 'email' && 'Change Email'}
-          {updateType === 'password' && 'Change Password'}
+          {updateType === 'name' && `${language === 'en-US'? 'Change Name' : language === 'fr-FR' ? `Changer le nom` : language === 'es-MX' ? 'Cambiar nombre' : ''}`}
+          {updateType === 'email' && `${language === 'en-US'? 'Change Email' : language === 'fr-FR' ? `Changer l'e-mail` : language === 'es-MX' ? 'Cambiar correo electrónico' : ''}`}
+          {updateType === 'password' && `${language === 'en-US'? 'Change Password' : language === 'fr-FR' ? `Changer le mot de passe` : language === 'es-MX' ? 'Cambiar la contraseña' : ''}`}
         </DialogTitle>
         <Form
           onSubmit={onSubmit}
@@ -442,7 +453,7 @@ function Profile() {
                         <TextField
                           {...input}
                           margin="dense"
-                          label="First Name"
+                          label={language === 'en-US'? 'First Name' : language === 'fr-FR' ? `Prénom` : language === 'es-MX' ? 'Nombre' : ''}
                           fullWidth
                           error={meta.touched && Boolean(meta.error)}
                           helperText={meta.touched && meta.error}
@@ -454,7 +465,7 @@ function Profile() {
                         <TextField
                           {...input}
                           margin="dense"
-                          label="Last Name"
+                          label={language === 'en-US'? 'Last Name' : language === 'fr-FR' ? `Nom de famille` : language === 'es-MX' ? 'Apellido' : ''}
                           fullWidth
                           error={meta.touched && Boolean(meta.error)}
                           helperText={meta.touched && meta.error}
@@ -470,7 +481,7 @@ function Profile() {
                         <TextField
                           {...input}
                           margin="dense"
-                          label="New Email"
+                          label={language === 'en-US'? 'Email' : language === 'fr-FR' ? `E-mail` : language === 'es-MX' ? 'Correo electrónico' : ''}
                           fullWidth
                           error={meta.touched && Boolean(meta.error)}
                           helperText={meta.touched && meta.error}
@@ -482,7 +493,7 @@ function Profile() {
                         <TextField
                           {...input}
                           margin="dense"
-                          label="Current Password"
+                          label={language === 'en-US'? 'Current Password' : language === 'fr-FR' ? `Mot de passe actuel` : language === 'es-MX' ? 'Contraseña actual' : ''}
                           type="password"
                           fullWidth
                           error={meta.touched && Boolean(meta.error)}
@@ -499,7 +510,7 @@ function Profile() {
                         <TextField
                           {...input}
                           margin="dense"
-                          label="New Password"
+                          label={language === 'en-US'? 'Password' : language === 'fr-FR' ? `Mot de passe` : language === 'es-MX' ? 'Contraseña' : ''}
                           type="password"
                           fullWidth
                           error={meta.touched && Boolean(meta.error)}
@@ -512,7 +523,7 @@ function Profile() {
                         <TextField
                           {...input}
                           margin="dense"
-                          label="Confirm Password"
+                          label={language === 'en-US'? 'Confirm Password' : language === 'fr-FR' ? `Confirmer le mot de passe` : language === 'es-MX' ? 'Confirmar contraseña' : ''}
                           type="password"
                           fullWidth
                           error={meta.touched && Boolean(meta.error)}
@@ -524,9 +535,11 @@ function Profile() {
                 )}
               </DialogContent>
               <DialogActions>
-                <Button onClick={handleCloseDialog}>Cancel</Button>
+                <Button onClick={handleCloseDialog}>
+                  {language === 'en-US'? 'Cancel' : language === 'fr-FR' ? `Annuler` : language === 'es-MX' ? 'Cancelar' : ''}
+                </Button>
                 <Button type="submit" color="primary" disabled={submitting || pristine}>
-                  Submit
+                  {language === 'en-US'? 'Submit' : language === 'fr-FR' ? `Soumettre` : language === 'es-MX' ? 'Entregar' : ''}
                 </Button>
               </DialogActions>
             </form>
