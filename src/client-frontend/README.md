@@ -283,3 +283,11 @@ By consolidating the environment variables, you’ve made it easy to configure e
 2. App logic for route structure & session restoration.  
 3. High-level pages and how they might use environment-driven data.  
 4. Key considerations around authentication, state management, and future enhancements.
+
+
+By consolidating the environment variables, you’ve made it easy to configure event details, contact info, and API endpoints without diving into the code. This outline covers:
+
+1. Project environment & setup (including your `.env` vars).  
+2. App logic for route structure & session restoration.  
+3. High-level pages and how they might use environment-driven data.  
+4. Key considerations around authentication, state management, and future enhancements.
