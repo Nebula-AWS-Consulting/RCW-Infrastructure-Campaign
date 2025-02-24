@@ -1,4 +1,4 @@
-# **Front-End Documentation Outline (Updated)**
+# **Front-End Documentation Outline**
 
 ## **1. Project Setup & Environment**
 
