@@ -686,7 +686,9 @@ def get_paypal_access_token():
     
     :return: The PayPal access token if successful; otherwise, a CORS response with error details.
     """
-    url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
+    paypal_auth_token_link = os.getenv('PAYPAL_AUTH_TOKEN_LINK')
+
+    url = paypal_auth_token_link
     headers = {
         "Accept": "application/json",
         "Accept-Language": "en_US",
@@ -757,9 +759,11 @@ def create_paypal_order(amount, custom_id, currency="USD"):
             return cors_response(500, {
                 "message": "Failed to retrieve PayPal access token."
             })
+        
+        paypal_checkout_order_link = os.getenv('PAYPAL_CHECKOUT_ORDER_LINK')
 
         # Define the PayPal order creation endpoint and headers.
-        url = "https://api-m.sandbox.paypal.com/v2/checkout/orders"
+        url = paypal_checkout_order_link
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {access_token}"
@@ -901,8 +905,10 @@ def create_paypal_product():
                 "message": "Failed to retrieve PayPal access token.",
                 "errorType": "AccessTokenError"
             })
+        
+        paypal_catalogue_product_link = os.getenv('PAYPAL_CATALOGUE_PRODUCT_LINK')
 
-        url = "https://api-m.sandbox.paypal.com/v1/catalogs/products"
+        url = paypal_catalogue_product_link
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {access_token}"
@@ -991,8 +997,10 @@ def create_paypal_plan(product_id, amount):
                 "message": "Failed to retrieve PayPal access token."
             })
         
+        paypal_billing_plans_link = os.getenv('PAYPAL_BILLING_PLANS_LINK')
+        
         # Set up the API endpoint, headers, and payload for plan creation.
-        url = "https://api-m.sandbox.paypal.com/v1/billing/plans"
+        url = paypal_billing_plans_link
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {access_token}"
@@ -1108,9 +1116,11 @@ def create_paypal_subscription(plan_id, custom_id):
             return cors_response(500, {
                 "message": "Failed to retrieve PayPal access token."
             })
+        
+        paypal_billing_subscription_link = os.getenv('PAYPAL_BILLING_SUBSCRIPTION_LINK')
 
         # Set up the endpoint, headers, and payload for subscription creation.
-        url = "https://api-m.sandbox.paypal.com/v1/billing/subscriptions"
+        url = paypal_billing_subscription_link
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {access_token}"
