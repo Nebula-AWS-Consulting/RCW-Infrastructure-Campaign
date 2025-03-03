@@ -38,7 +38,6 @@ function Dashboard() {
               {language === 'en-US'? 'Church Goals' : language === 'fr-FR' ? `Objectifs de l'Église` : language === 'es-MX' ? 'Metas de la Iglesia' : ''}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Review and update the church goals.
               {language === 'en-US'? `Review and update the church goals.` 
               : language === 'fr-FR' ? `Révisez et mettez à jour les objectifs de l’église.` 
               : language === 'es-MX' ? 'Revisar y actualizar las metas de la iglesia.' 
@@ -47,7 +46,7 @@ function Dashboard() {
             {/* Add more content or interactive elements as needed */}
           </CardContent>
         </Card>
-        
+
         {/* -------------------------------
             Admin App Card
         --------------------------------- */}
